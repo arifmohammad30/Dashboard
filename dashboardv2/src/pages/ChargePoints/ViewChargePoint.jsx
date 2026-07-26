@@ -360,7 +360,7 @@ export default function ViewChargePoint() {
                               }`}
                               title="Connector Actions"
                             >
-                              <ChevronDown strokeWidth={2.5} className="w-4 h-4" />
+                              <ChevronDown strokeWidth={2.5} className={`w-4 h-4 transition-transform duration-200 ${openDropdownId === conn.id ? 'rotate-180' : ''}`} />
                             </button>
 
                             {openDropdownId === conn.id && (
@@ -586,28 +586,34 @@ export default function ViewChargePoint() {
                       <label className="text-xs font-bold text-stone-600 mb-1.5 block">
                         Update type <span className="text-rose-500">*</span>
                       </label>
-                      <select
-                        value={localTagUpdateType}
-                        onChange={(e) => setLocalTagUpdateType(e.target.value)}
-                        className="w-full px-4 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white transition-all shadow-xs"
-                      >
-                        <option value="">Select an Update Type</option>
-                        <option value="Differential">Differential</option>
-                        <option value="Full">Full</option>
-                      </select>
+                      <div className="relative">
+                        <select
+                          value={localTagUpdateType}
+                          onChange={(e) => setLocalTagUpdateType(e.target.value)}
+                          className="w-full px-4 pr-10 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-bold text-stone-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white appearance-none transition-all shadow-xs cursor-pointer"
+                        >
+                          <option value="">Select an Update Type</option>
+                          <option value="Differential">Differential</option>
+                          <option value="Full">Full</option>
+                        </select>
+                        <ChevronDown strokeWidth={2.5} className="w-4 h-4 text-stone-500 pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2" />
+                      </div>
                     </div>
                     <div>
                       <label className="text-xs font-bold text-stone-600 mb-1.5 block">ID Tags</label>
-                      <select
-                        value={localTagIdTags}
-                        onChange={(e) => setLocalTagIdTags(e.target.value)}
-                        className="w-full px-4 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white transition-all shadow-xs"
-                      >
-                        <option value="">Select ID Tags</option>
-                        <option value="TAG-001">TAG-001 (VIP Access)</option>
-                        <option value="TAG-002">TAG-002 (Fleet Access)</option>
-                        <option value="TAG-003">TAG-003 (Operator Key)</option>
-                      </select>
+                      <div className="relative">
+                        <select
+                          value={localTagIdTags}
+                          onChange={(e) => setLocalTagIdTags(e.target.value)}
+                          className="w-full px-4 pr-10 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-bold text-stone-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white appearance-none transition-all shadow-xs cursor-pointer"
+                        >
+                          <option value="">Select ID Tags</option>
+                          <option value="TAG-001">TAG-001 (VIP Access)</option>
+                          <option value="TAG-002">TAG-002 (Fleet Access)</option>
+                          <option value="TAG-003">TAG-003 (Operator Key)</option>
+                        </select>
+                        <ChevronDown strokeWidth={2.5} className="w-4 h-4 text-stone-500 pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2" />
+                      </div>
                     </div>
                   </div>
                   <div className="mt-6">
@@ -629,34 +635,40 @@ export default function ViewChargePoint() {
                       <label className="text-xs font-bold text-stone-600 mb-1.5 block">
                         Trigger message <span className="text-rose-500">*</span>
                       </label>
-                      <select
-                        value={triggerMessage}
-                        onChange={(e) => setTriggerMessage(e.target.value)}
-                        className="w-full px-4 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white transition-all shadow-xs"
-                      >
-                        <option value="">Select a trigger message</option>
-                        <option value="BootNotification">BootNotification</option>
-                        <option value="DiagnosticsStatusNotification">DiagnosticsStatusNotification</option>
-                        <option value="FirmwareStatusNotification">FirmwareStatusNotification</option>
-                        <option value="Heartbeat">Heartbeat</option>
-                        <option value="MeterValues">MeterValues</option>
-                        <option value="StatusNotification">StatusNotification</option>
-                      </select>
+                      <div className="relative">
+                        <select
+                          value={triggerMessage}
+                          onChange={(e) => setTriggerMessage(e.target.value)}
+                          className="w-full px-4 pr-10 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-bold text-stone-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white appearance-none transition-all shadow-xs cursor-pointer"
+                        >
+                          <option value="">Select a trigger message</option>
+                          <option value="BootNotification">BootNotification</option>
+                          <option value="DiagnosticsStatusNotification">DiagnosticsStatusNotification</option>
+                          <option value="FirmwareStatusNotification">FirmwareStatusNotification</option>
+                          <option value="Heartbeat">Heartbeat</option>
+                          <option value="MeterValues">MeterValues</option>
+                          <option value="StatusNotification">StatusNotification</option>
+                        </select>
+                        <ChevronDown strokeWidth={2.5} className="w-4 h-4 text-stone-500 pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2" />
+                      </div>
                     </div>
                     <div>
                       <label className="text-xs font-bold text-stone-600 mb-1.5 block">
                         Connector Id <span className="text-rose-500">*</span>
                       </label>
-                      <select
-                        value={triggerConnectorId}
-                        onChange={(e) => setTriggerConnectorId(e.target.value)}
-                        className="w-full px-4 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white transition-all shadow-xs"
-                      >
-                        <option value="All">All</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                      </select>
+                      <div className="relative">
+                        <select
+                          value={triggerConnectorId}
+                          onChange={(e) => setTriggerConnectorId(e.target.value)}
+                          className="w-full px-4 pr-10 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-bold text-stone-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white appearance-none transition-all shadow-xs cursor-pointer"
+                        >
+                          <option value="All">All</option>
+                          <option value="1">1</option>
+                          <option value="2">2</option>
+                          <option value="3">3</option>
+                        </select>
+                        <ChevronDown strokeWidth={2.5} className="w-4 h-4 text-stone-500 pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2" />
+                      </div>
                     </div>
                   </div>
                   <div className="mt-6">
