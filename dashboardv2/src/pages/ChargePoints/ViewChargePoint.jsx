@@ -75,6 +75,8 @@ export default function ViewChargePoint() {
   const [dataPayload, setDataPayload] = useState('');
 
   const [actionFeedback, setActionFeedback] = useState(null);
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [connectorStatusMap, setConnectorStatusMap] = useState({});
 
   const handleControlAction = (msg) => {
     setActionFeedback(msg);
@@ -141,14 +143,15 @@ export default function ViewChargePoint() {
     const connId = index + 1;
     const typeStr = c.includes('CCS2') ? 'CCS2' : c.includes('Type2') ? 'Type2' : '15A';
     const qrStr = `CQ${(cp.code || 'XYZ').replace(/[^A-Z0-9]/gi, '')}${connId}1GYMY`.slice(0, 10).toUpperCase();
+    const currentAvailability = connectorStatusMap[connId] || 'Operative';
     return {
       id: connId,
       type: typeStr,
       qrCode: qrStr,
-      availability: 'Operative',
-      status: 'Faulted',
-      error: 'OtherError',
-      vendorError: 'EmergencyPressed'
+      availability: currentAvailability,
+      status: currentAvailability === 'Inoperative' ? 'Inoperative' : 'Faulted',
+      error: currentAvailability === 'Inoperative' ? 'Unavailable' : 'OtherError',
+      vendorError: currentAvailability === 'Inoperative' ? 'ManuallyDisabled' : 'EmergencyPressed'
     };
   });
 
@@ -292,16 +295,16 @@ export default function ViewChargePoint() {
                 className={`flex items-center gap-2.5 px-5 py-3.5 text-sm font-black transition-all duration-300 border-b-2 whitespace-nowrap cursor-pointer rounded-t-2xl relative ${
                   isActive
                     ? `${t.activeBorder} ${t.activeText} bg-white/95 shadow-[0_-4px_12px_rgba(0,0,0,0.02)]`
-                    : 'border-transparent text-stone-500 hover:text-stone-800 hover:bg-white/40'
+                    : 'border-transparent text-stone-700 hover:text-stone-900 hover:bg-white/50'
                 }`}
               >
-                <Icon className={`w-4 h-4 transition-transform duration-300 ${
-                  isActive ? `${t.activeIcon} scale-110` : 'text-stone-400 group-hover:text-stone-600'
+                <Icon strokeWidth={2.5} className={`w-4 h-4 transition-transform duration-300 ${
+                  isActive ? `${t.activeIcon} scale-110` : 'text-stone-600 group-hover:text-stone-800'
                 }`} />
-                <span>{t.label}</span>
+                <span className="font-black">{t.label}</span>
                 {t.count !== undefined && (
-                  <span className={`px-2 py-0.5 text-[11px] rounded-full font-bold transition-colors ${
-                    isActive ? t.badgeActive : 'bg-stone-200/70 text-stone-600'
+                  <span className={`px-2 py-0.5 text-[11px] rounded-full font-black transition-colors ${
+                    isActive ? t.badgeActive : 'bg-stone-200 text-stone-700'
                   }`}>
                     {t.count}
                   </span>
@@ -352,16 +355,64 @@ export default function ViewChargePoint() {
                       className="group bg-white/40 hover:bg-white/80 border border-white/30 transition duration-200 rounded-2xl"
                     >
                       {/* Actions Column */}
-                      <td className="px-4 py-4 rounded-l-2xl whitespace-nowrap">
+                      <td className="px-4 py-4 rounded-l-2xl whitespace-nowrap relative">
                         <div className="flex items-center gap-2">
-                          <button className="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-white/80 transition">
-                            <ChevronDown className="w-4 h-4" />
+                          <div className="relative">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenDropdownId(openDropdownId === conn.id ? null : conn.id);
+                              }}
+                              className={`p-1.5 rounded-lg transition-all duration-200 cursor-pointer ${
+                                openDropdownId === conn.id
+                                  ? 'bg-sky-500 text-white shadow-xs'
+                                  : 'text-stone-600 hover:text-slate-900 hover:bg-white/80'
+                              }`}
+                              title="Connector Actions"
+                            >
+                              <ChevronDown strokeWidth={2.5} className="w-4 h-4" />
+                            </button>
+
+                            {/* Dropdown Menu Overlay */}
+                            {openDropdownId === conn.id && (
+                              <>
+                                <div className="fixed inset-0 z-40" onClick={() => setOpenDropdownId(null)} />
+                                <div className="absolute left-0 top-full mt-2 w-56 bg-white/95 backdrop-blur-2xl border border-white/80 shadow-[0_10px_30px_rgba(0,0,0,0.12)] rounded-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const newAvail = conn.availability === 'Inoperative' ? 'Operative' : 'Inoperative';
+                                      setConnectorStatusMap(prev => ({ ...prev, [conn.id]: newAvail }));
+                                      setOpenDropdownId(null);
+                                      handleControlAction(`Connector ${conn.id} availability changed to ${newAvail}.`);
+                                    }}
+                                    className="w-full text-left px-3.5 py-2.5 text-xs font-extrabold text-stone-700 hover:bg-rose-50 hover:text-rose-600 rounded-xl transition flex items-center gap-2.5 cursor-pointer"
+                                  >
+                                    <Power strokeWidth={2.5} className="w-4 h-4 text-rose-500" />
+                                    <span>{conn.availability === 'Inoperative' ? 'Change to Operative' : 'Change to Inoperative'}</span>
+                                  </button>
+
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setOpenDropdownId(null);
+                                      handleControlAction(`Connector ${conn.id} status requested successfully.`);
+                                    }}
+                                    className="w-full text-left px-3.5 py-2.5 text-xs font-extrabold text-stone-700 hover:bg-sky-50 hover:text-sky-600 rounded-xl transition flex items-center gap-2.5 cursor-pointer mt-1"
+                                  >
+                                    <Activity strokeWidth={2.5} className="w-4 h-4 text-sky-500" />
+                                    <span>Get connector status</span>
+                                  </button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+
+                          <button className="p-1.5 text-stone-600 hover:text-orange-500 rounded-lg hover:bg-white/80 transition cursor-pointer" title="Edit Connector">
+                            <Edit strokeWidth={2.5} className="w-3.5 h-3.5" />
                           </button>
-                          <button className="p-1.5 text-stone-400 hover:text-orange-500 rounded-lg hover:bg-white/80 transition" title="Edit Connector">
-                            <Edit className="w-3.5 h-3.5" />
-                          </button>
-                          <button className="p-1.5 text-stone-400 hover:text-purple-500 rounded-lg hover:bg-white/80 transition" title="QR View">
-                            <QrCode className="w-3.5 h-3.5" />
+                          <button className="p-1.5 text-stone-600 hover:text-purple-500 rounded-lg hover:bg-white/80 transition cursor-pointer" title="QR View">
+                            <QrCode strokeWidth={2.5} className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>
@@ -389,7 +440,11 @@ export default function ViewChargePoint() {
 
                       {/* Availability */}
                       <td className="px-4 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold border ${
+                          conn.availability === 'Inoperative'
+                            ? 'bg-rose-50 text-rose-600 border-rose-200'
+                            : 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                        }`}>
                           {conn.availability}
                         </span>
                       </td>
@@ -464,15 +519,19 @@ export default function ViewChargePoint() {
 
           {/* TAB 5: CONFIGURATION */}
           {activeTab === 'config' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="bg-white/50 border border-white/70 p-5 rounded-2xl space-y-2">
-                <label className="text-xs font-bold text-stone-500 uppercase">Heartbeat Interval</label>
-                <input type="text" defaultValue="300 seconds" className="w-full bg-white/80 border border-stone-200 p-2.5 rounded-xl text-sm font-bold" />
-              </div>
-              <div className="bg-white/50 border border-white/70 p-5 rounded-2xl space-y-2">
-                <label className="text-xs font-bold text-stone-500 uppercase">Meter Value Sample Interval</label>
-                <input type="text" defaultValue="60 seconds" className="w-full bg-white/80 border border-stone-200 p-2.5 rounded-xl text-sm font-bold" />
-              </div>
+            <div className="bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] rounded-[24px] p-8 flex flex-col items-start justify-center max-w-lg space-y-4">
+              <h3 className="text-base font-extrabold text-stone-800 flex items-center gap-2.5">
+                <Settings strokeWidth={2.5} className="w-5 h-5 text-indigo-500" /> Charger Configuration
+              </h3>
+              <p className="text-xs text-stone-500 font-medium leading-relaxed">
+                Retrieve live configuration parameters directly from the charge point via OCPP connection.
+              </p>
+              <button
+                onClick={() => handleControlAction('Charger configuration fetched successfully.')}
+                className="px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-extrabold rounded-xl text-xs shadow-md shadow-indigo-500/20 active:scale-95 transition-all duration-200 cursor-pointer flex items-center gap-2"
+              >
+                <RefreshCw strokeWidth={2.5} className="w-4 h-4 text-white" /> Fetch charger configuration
+              </button>
             </div>
           )}
 
