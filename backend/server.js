@@ -25,8 +25,6 @@ io.on('connection', (socket) => {
 app.use(cors());
 app.use(express.json());
 
-
-
 async function seedLiveSessions() {
   try {
     const count = await prisma.liveSession.count();
@@ -44,40 +42,13 @@ async function seedLiveSessions() {
         { userInitials: 'D', userColor: 'bg-sky-100 text-sky-700', userName: 'Deepak T', station: 'Nexus Mall, Koramangala', chargePoint: 'Nexus Mall DC1', connector: 'CCS2 (2)', status: 'Stopped' }
       ];
       await prisma.liveSession.createMany({ data: mockData });
-      console.log("[Mock OCPP] Seeded 9 initial live sessions into database.");
+      console.log("[Mock Database] Seeded 9 initial live sessions.");
     }
   } catch (error) {
-    console.error("[Mock OCPP] Failed to seed live sessions:", error);
+    console.error("Failed to seed live sessions:", error);
   }
 }
 seedLiveSessions();
-
-// Mimic  OCPP (Temporarily disabled to reduce system load)
-/*
-setInterval(async () => {
-  try {
-    const sessions = await prisma.liveSession.findMany();
-    if (sessions.length > 0) {
-      const randomIndex = Math.floor(Math.random() * sessions.length);
-      const session = sessions[randomIndex];
-
-      const statuses = ['Ongoing', 'Failed', 'Stopped'];
-      const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
-
-      if (session.status !== newStatus) {
-        const updatedSession = await prisma.liveSession.update({
-          where: { id: session.id },
-          data: { status: newStatus }
-        });
-        io.emit('sessionUpdated', updatedSession);
-        // console.log(`[Mock OCPP] Updated session ${updatedSession.id} status to ${updatedSession.status}`);
-      }
-    }
-  } catch (error) {
-    console.error("[Mock OCPP] Error updating session:", error);
-  }
-}, 5000);
-*/
 
 app.get('/api/livesessions', async (req, res) => {
   try {
@@ -90,8 +61,6 @@ app.get('/api/livesessions', async (req, res) => {
     res.status(500).json({ error: "Failed to fetch live sessions" });
   }
 });
-
-
 
 app.get('/api/chargepoints/filters', async (req, res) => {
   try {
@@ -124,7 +93,6 @@ app.get('/api/chargepoints', async (req, res) => {
       AND: []
     };
 
-
     if (filters.location && filters.location.length > 0) {
       whereClause.AND.push({ chargingStation: { in: filters.location } });
     }
@@ -138,13 +106,11 @@ app.get('/api/chargepoints', async (req, res) => {
       whereClause.AND.push({ type: { in: filters.type } });
     }
 
-    // Fetch all matching basic filters first
     let allData = await prisma.chargePoint.findMany({
       where: whereClause,
       orderBy: { createdAt: 'desc' }
     });
 
-    // In-memory space-agnostic fuzzy search
     if (searchTerm) {
       const normalizedSearch = searchTerm.replace(/\s+/g, '').toLowerCase();
       allData = allData.filter(cp => {
@@ -175,7 +141,7 @@ app.get('/api/chargepoints', async (req, res) => {
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Failed to fetch charge points", details: error.message, stack: error.stack });
+    res.status(500).json({ error: "Failed to fetch charge points", details: error.message });
   }
 });
 
@@ -313,9 +279,7 @@ app.post('/api/chargepoints', async (req, res) => {
     });
 
     const formattedCp = { ...newCp, chargingMethods: JSON.parse(newCp.chargingMethods) };
-
     io.emit('chargePointAdded', formattedCp);
-
     res.status(201).json(formattedCp);
   } catch (error) {
     console.error(error);
@@ -348,10 +312,7 @@ app.put('/api/chargepoints/:id', async (req, res) => {
     });
 
     const formattedCp = { ...updatedCp, chargingMethods: JSON.parse(updatedCp.chargingMethods) };
-
-    // Emit WebSocket event
     io.emit('chargePointUpdated', formattedCp);
-
     res.json(formattedCp);
   } catch (error) {
     console.error(error);
@@ -367,17 +328,12 @@ app.delete('/api/chargepoints/:id', async (req, res) => {
     });
 
     io.emit('chargePointDeleted', id);
-
     res.json({ success: true, message: "Charge point deleted" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to delete charge point", details: error.message });
   }
 });
-
-
-
-// CHARGING STATIONS
 
 app.get('/api/charging-stations', async (req, res) => {
   try {

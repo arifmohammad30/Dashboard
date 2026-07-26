@@ -277,107 +277,86 @@ export default function ChargePointsList() {
           <table className="w-full text-left text-sm border-separate border-spacing-y-1">
             <thead>
               <tr className="bg-white/40 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-                {/* 1. Actions */}
                 <th className="px-4 py-4 text-center font-black text-stone-600 text-[12px] uppercase tracking-wider rounded-l-2xl whitespace-nowrap">
                   <div className="flex items-center justify-center gap-2"><Settings2 strokeWidth={2.5} className="w-4 h-4 text-stone-400" /> Actions</div>
                 </th>
 
-                {/* 2. Name */}
                 <th className="px-4 py-4 text-left font-black text-indigo-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-2"><Tag strokeWidth={2.5} className="w-4 h-4 text-indigo-400" /> Name</div>
                 </th>
 
-                {/* 3. Code */}
                 <th className="px-4 py-4 text-center font-black text-rose-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-2"><Hash strokeWidth={2.5} className="w-4 h-4 text-rose-400" /> Code</div>
                 </th>
 
-                {/* 4. Location */}
                 <th className="px-4 py-4 text-left font-black text-emerald-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-2"><MapPin strokeWidth={2.5} className="w-4 h-4 text-emerald-400" /> Location</div>
                 </th>
 
-                {/* 5. Status */}
                 <th className="px-4 py-4 text-left font-black text-amber-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-start gap-2"><Activity strokeWidth={2.5} className="w-4 h-4 text-amber-400" /> Status</div>
                 </th>
 
-                {/* 6. Last Active */}
                 <th className="px-4 py-4 text-center font-black text-stone-600 text-[12px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-2"><Clock strokeWidth={2.5} className="w-4 h-4 text-stone-400" /> Last Active</div>
                 </th>
 
-                {/* 7. Stage */}
                 <th className="px-4 py-4 text-left font-black text-emerald-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-start gap-2"><CheckCircle2 strokeWidth={2.5} className="w-4 h-4 text-emerald-500" /> Stage</div>
                 </th>
 
-                {/* 8. Type */}
                 <th className="px-4 py-4 text-left font-black text-purple-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-start gap-2"><Zap strokeWidth={2.5} className="w-4 h-4 text-purple-400" /> Type</div>
                 </th>
 
-                {/* 9. Connector (Connector Id) */}
                 <th className="px-4 py-4 text-left font-black text-amber-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-start gap-2"><Plug strokeWidth={2.5} className="w-4 h-4 text-amber-500" /> Connector (Connector Id)</div>
                 </th>
 
-                {/* 10. Total Capacity */}
                 <th className="px-4 py-4 text-center font-black text-rose-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-2"><Gauge strokeWidth={2.5} className="w-4 h-4 text-rose-500" /> Total Capacity</div>
                 </th>
 
-                {/* 11. Mode */}
                 <th className="px-4 py-4 text-left font-black text-slate-800 text-[12px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-start gap-2"><Shield strokeWidth={2.5} className="w-4 h-4 text-slate-500" /> Mode</div>
                 </th>
 
-                {/* 12. OEM */}
                 <th className="px-4 py-4 text-center font-black text-blue-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-2"><Factory strokeWidth={2.5} className="w-4 h-4 text-blue-500" /> OEM</div>
                 </th>
 
-                {/* 14. Firmware Version */}
                 <th className="px-4 py-4 text-center font-black text-indigo-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-2"><Cpu strokeWidth={2.5} className="w-4 h-4 text-indigo-500" /> Firmware Version</div>
                 </th>
 
-                {/* 15. CP ID */}
                 <th className="px-4 py-4 text-center font-black text-orange-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-2"><Hash strokeWidth={2.5} className="w-4 h-4 text-orange-400" /> CP ID</div>
                 </th>
 
-                {/* 16. Third Party CP ID */}
                 <th className="px-4 py-4 text-center font-black text-stone-700 text-[12px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-2"><Hash strokeWidth={2.5} className="w-4 h-4 text-stone-400" /> Third Party CP ID</div>
                 </th>
 
-                {/* 17. QR Code ID */}
                 <th className="px-4 py-4 text-center font-black text-purple-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-2"><QrCode strokeWidth={2.5} className="w-4 h-4 text-purple-400" /> QR Code ID</div>
                 </th>
 
-                {/* 18. Tariff Profile */}
                 <th className="px-4 py-4 text-center font-black text-sky-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-2"><Tag strokeWidth={2.5} className="w-4 h-4 text-sky-500" /> Tariff Profile</div>
                 </th>
 
-                {/* 19. Total Sessions */}
                 <th className="px-4 py-4 text-center font-black text-emerald-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-2"><Repeat strokeWidth={2.5} className="w-4 h-4 text-emerald-500" /> Total Sessions</div>
                 </th>
 
-                {/* 20. Energy Delivered */}
                 <th className="px-4 py-4 text-center font-black text-blue-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-2"><BatteryCharging strokeWidth={2.5} className="w-4 h-4 text-blue-500" /> Energy Delivered</div>
                 </th>
 
-                {/* 21. Revenue Generated */}
                 <th className="px-4 py-4 text-center font-black text-emerald-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-2"><IndianRupee strokeWidth={2.5} className="w-4 h-4 text-emerald-600" /> Revenue Generated</div>
                 </th>
 
-                {/* 22. Created On */}
                 <th className="px-4 py-4 text-center font-black text-stone-700 text-[12px] uppercase tracking-wider rounded-r-2xl whitespace-nowrap">
                   <div className="flex items-center justify-center gap-2"><Calendar strokeWidth={2.5} className="w-4 h-4 text-sky-400" /> Created On</div>
                 </th>
@@ -407,7 +386,6 @@ export default function ChargePointsList() {
               ) : (
                 chargePoints.map((row) => (
                   <tr key={row.id} onClick={() => navigate(`/charge-points/view/${row.id}`, { state: { chargePoint: row } })} className="group bg-white/40 hover:bg-white/70 border border-white/30 hover:border-white/80 transition duration-200 rounded-2xl cursor-pointer">
-                    {/* 1. Actions */}
                     <td className="px-4 py-4 text-center rounded-l-2xl whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                         <button onClick={(e) => handleEditClick(e, row)} className="p-1.5 text-orange-500 bg-white/70 border border-orange-100 hover:bg-orange-500 hover:text-white rounded-xl shadow-xs hover:shadow-md transition active:scale-95 duration-200" title="Edit">
@@ -422,7 +400,6 @@ export default function ChargePointsList() {
                       </div>
                     </td>
 
-                    {/* 2. Name */}
                     <td className="px-4 py-4 text-left whitespace-nowrap" onClick={(e) => {
                       e.stopPropagation();
                       navigate(`/charge-points/${row.id}`, { state: { chargePoint: row } });
@@ -436,17 +413,14 @@ export default function ChargePointsList() {
                       </span>
                     </td>
 
-                    {/* 3. Code */}
                     <td className="px-4 py-4 text-center whitespace-nowrap">
                       <span className="text-rose-500 text-[13px] font-bold font-mono">{row.code}</span>
                     </td>
 
-                    {/* 4. Location */}
                     <td className="px-4 py-4 text-left whitespace-nowrap">
                       <div className="text-stone-700 text-[13px] font-medium max-w-[250px] truncate">{row.chargingStation}</div>
                     </td>
 
-                    {/* 5. Status */}
                     <td className="px-4 py-4 text-left whitespace-nowrap">
                       {(row.status === 'Online' || (row.status !== 'Offline' && row.stage === 'Active')) ? (
                         <span className="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold bg-emerald-50/80 text-emerald-600 border border-emerald-100 shadow-xs">
@@ -461,12 +435,10 @@ export default function ChargePointsList() {
                       )}
                     </td>
 
-                    {/* 6. Last Active */}
                     <td className="px-4 py-4 text-center whitespace-nowrap">
                       <span className="text-stone-500 font-medium text-[12px]">{row.lastActive || '10 mins ago'}</span>
                     </td>
 
-                    {/* 7. Stage */}
                     <td className="px-4 py-4 text-left whitespace-nowrap">
                       <span className={`inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-extrabold border shadow-xs ${
                         row.stage === 'Active' ? 'bg-emerald-50/80 text-emerald-600 border-emerald-100' :
@@ -477,7 +449,6 @@ export default function ChargePointsList() {
                       </span>
                     </td>
 
-                    {/* 8. Type */}
                     <td className="px-4 py-4 text-left whitespace-nowrap">
                       <span className={`font-bold text-[11px] px-3 py-1 rounded-xl border shadow-xs uppercase tracking-wider ${row.type === 'AC' ? 'bg-purple-50/80 text-purple-600 border-purple-100' :
                         row.type === 'DC' ? 'bg-blue-50/80 text-blue-600 border-blue-100' :
@@ -487,71 +458,58 @@ export default function ChargePointsList() {
                       </span>
                     </td>
 
-                    {/* 9. Connector (Connector Id) */}
                     <td className="px-4 py-4 text-left whitespace-nowrap">
                       {renderConnectorBadges(row.connectors)}
                     </td>
 
-                    {/* 10. Total Capacity */}
                     <td className="px-4 py-4 text-center whitespace-nowrap">
                       <span className="text-stone-600 font-medium text-[13px]">{row.totalCapacity || '-'}</span>
                     </td>
 
-                    {/* 11. Mode */}
                     <td className="px-4 py-4 text-left whitespace-nowrap">
                       <span className="text-stone-600 font-medium text-[13px]">{row.mode || 'Public'}</span>
                     </td>
 
-                    {/* 12. OEM */}
                     <td className="px-4 py-4 text-center whitespace-nowrap">
                       <span className="text-stone-700 font-bold text-[13px]">{row.oem || row.manufacturer || 'EVRE'}</span>
                     </td>
 
-                    {/* 14. Firmware Version */}
                     <td className="px-4 py-4 text-center whitespace-nowrap">
                       <span className="text-stone-600 font-medium text-[13px] font-mono">{row.firmwareVersion || '2.0.2'}</span>
                     </td>
 
-                    {/* 15. CP ID */}
                     <td className="px-4 py-4 text-center whitespace-nowrap">
                       <span className="text-orange-500 text-[13px] font-bold font-mono">{row.cpId || row.code}</span>
                     </td>
 
-                    {/* 16. Third Party CP ID */}
                     <td className="px-4 py-4 text-center whitespace-nowrap">
                       <span className="text-stone-500 font-mono text-[13px]">{row.thirdPartyCpId || 'NA'}</span>
                     </td>
 
-                    {/* 17. QR Code ID */}
                     <td className="px-4 py-4 text-center whitespace-nowrap">
                       <span className="text-stone-600 text-[13px] font-medium font-mono">{row.qrCodeId || 'N/A'}</span>
                     </td>
 
-                    {/* 18. Tariff Profile */}
                     <td className="px-4 py-4 text-center whitespace-nowrap">
                       <span className="text-sky-600 font-extrabold text-[13px] hover:text-sky-700 cursor-pointer">{row.tariffProfiles || 'Standard'}</span>
                     </td>
 
-                    {/* 19. Total Sessions */}
                     <td className="px-4 py-4 text-center whitespace-nowrap">
                       <span className="text-stone-700 font-semibold text-[13px]">{row.totalSessions !== undefined ? row.totalSessions : 0}</span>
                     </td>
 
-                    {/* 20. Energy Delivered */}
                     <td className="px-4 py-4 text-center whitespace-nowrap">
                       <span className="text-stone-700 font-semibold text-[13px]">
                         {row.energyDelivered !== undefined ? `${row.energyDelivered} kWh` : '0 kWh'}
                       </span>
                     </td>
 
-                    {/* 21. Revenue Generated */}
                     <td className="px-4 py-4 text-center whitespace-nowrap">
                       <span className="text-stone-800 font-bold text-[13px]">
                         {row.revenueGenerated !== undefined ? `₹${row.revenueGenerated.toLocaleString()}` : '₹0'}
                       </span>
                     </td>
 
-                    {/* 22. Created On */}
                     <td className="px-4 py-4 text-center rounded-r-2xl whitespace-nowrap">
                       <span className="text-stone-600 font-medium text-[12px]">{formatCreatedOn(row.createdAt)}</span>
                     </td>

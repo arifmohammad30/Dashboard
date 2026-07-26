@@ -51,10 +51,9 @@ export default function ViewChargePoint() {
 
   const [chargePoint, setChargePoint] = useState(initialData);
   const [loading, setLoading] = useState(!initialData && Boolean(id));
-  const [activeTab, setActiveTab] = useState('control'); // 'control' active view
+  const [activeTab, setActiveTab] = useState('control');
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
-  // Control Tab Form States
   const [firmwareUrl, setFirmwareUrl] = useState('');
   const [firmwareDate, setFirmwareDate] = useState('');
 
@@ -85,7 +84,6 @@ export default function ViewChargePoint() {
     }, 4000);
   };
 
-  // Fetch charge point if loaded directly or refreshed
   useEffect(() => {
     if (!initialData && id) {
       setLoading(true);
@@ -134,7 +132,6 @@ export default function ViewChargePoint() {
 
   const isOffline = cp.stage === 'Inactive' || cp.stage === 'Offline';
 
-  // Build connector table rows dynamically based on cp.connectors
   const rawConnectors = Array.isArray(cp.connectors) && cp.connectors.length > 0 
     ? cp.connectors 
     : ['15A (1)', '15A (2)', '15A (3)'];
@@ -228,7 +225,6 @@ export default function ViewChargePoint() {
 
   return (
     <div className="flex flex-col gap-3 max-w-[1500px] w-full mx-auto h-[calc(100vh-115px)] overflow-hidden">
-      {/* Top Back Button & Main Header (Fixed / Static at top) */}
       <div className="shrink-0 space-y-3">
         <div>
           <button
@@ -239,7 +235,6 @@ export default function ViewChargePoint() {
           </button>
         </div>
 
-        {/* Main Page Title & Actions Card */}
         <div className="bg-white/70 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] rounded-[28px] p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
@@ -281,9 +276,7 @@ export default function ViewChargePoint() {
         </div>
       </div>
 
-      {/* Tab Navigation & Content Glass Card Container */}
       <div className="bg-white/70 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] rounded-[32px] overflow-hidden flex flex-col flex-1 min-h-0">
-        {/* Tab Header Bar (Static & Fixed at top of Tab container) */}
         <div className="shrink-0 px-6 pt-3 pb-0 bg-white/60 backdrop-blur-xl border-b border-white/60 overflow-x-auto flex items-center gap-2 z-10">
           {tabs.map((t) => {
             const Icon = t.icon;
@@ -314,9 +307,7 @@ export default function ViewChargePoint() {
           })}
         </div>
 
-        {/* Tab Content Body (Independently Scrollable Container!) */}
         <div className="p-6 sm:p-8 flex-1 overflow-y-auto custom-scrollbar">
-          {/* TAB 1: CONNECTORS */}
           {activeTab === 'connectors' && (
             <div className="overflow-x-auto pb-36">
               <table className="w-full text-left text-sm border-separate border-spacing-y-1">
@@ -354,7 +345,6 @@ export default function ViewChargePoint() {
                       key={conn.id}
                       className="group bg-white/40 hover:bg-white/80 border border-white/30 transition duration-200 rounded-2xl"
                     >
-                      {/* Actions Column */}
                       <td className="px-4 py-4 rounded-l-2xl whitespace-nowrap relative">
                         <div className="flex items-center gap-2">
                           <div className="relative">
@@ -373,7 +363,6 @@ export default function ViewChargePoint() {
                               <ChevronDown strokeWidth={2.5} className="w-4 h-4" />
                             </button>
 
-                            {/* Dropdown Menu Overlay */}
                             {openDropdownId === conn.id && (
                               <>
                                 <div className="fixed inset-0 z-40" onClick={() => setOpenDropdownId(null)} />
@@ -417,12 +406,10 @@ export default function ViewChargePoint() {
                         </div>
                       </td>
 
-                      {/* Connector ID */}
                       <td className="px-4 py-4 whitespace-nowrap">
                         <span className="font-bold text-stone-800 text-[13px]">{conn.id}</span>
                       </td>
 
-                      {/* Connector Type */}
                       <td className="px-4 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold border ${
                           conn.type === 'CCS2' ? 'bg-sky-50/90 text-sky-700 border-sky-200/80' :
@@ -433,12 +420,10 @@ export default function ViewChargePoint() {
                         </span>
                       </td>
 
-                      {/* QR Code */}
                       <td className="px-4 py-4 whitespace-nowrap">
                         <span className="font-mono text-stone-600 text-[13px] font-medium">{conn.qrCode}</span>
                       </td>
 
-                      {/* Availability */}
                       <td className="px-4 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold border ${
                           conn.availability === 'Inoperative'
@@ -449,21 +434,18 @@ export default function ViewChargePoint() {
                         </span>
                       </td>
 
-                      {/* Status */}
                       <td className="px-4 py-4 whitespace-nowrap">
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-600 border border-rose-200">
                           {conn.status}
                         </span>
                       </td>
 
-                      {/* Error */}
                       <td className="px-4 py-4 whitespace-nowrap">
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold bg-stone-100 text-stone-500 border border-stone-200">
                           {conn.error}
                         </span>
                       </td>
 
-                      {/* Vendor Error */}
                       <td className="px-4 py-4 rounded-r-2xl whitespace-nowrap">
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold bg-stone-100 text-stone-500 border border-stone-200">
                           {conn.vendorError}
@@ -476,7 +458,6 @@ export default function ViewChargePoint() {
             </div>
           )}
 
-          {/* TAB 2: STATS */}
           {activeTab === 'stats' && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-white/50 border border-white/70 p-6 rounded-2xl shadow-xs">
@@ -494,7 +475,6 @@ export default function ViewChargePoint() {
             </div>
           )}
 
-          {/* TAB 3: LOGS */}
           {activeTab === 'logs' && (
             <div className="space-y-4">
               <div className="flex justify-between items-center pb-2 border-b border-stone-200/50">
@@ -507,7 +487,6 @@ export default function ViewChargePoint() {
             </div>
           )}
 
-          {/* TAB 4: CHARGE TRANSACTIONS */}
           {activeTab === 'transactions' && (
             <div className="text-stone-500 text-center py-12">
               <Zap className="w-10 h-10 text-stone-300 mx-auto mb-3" />
@@ -515,7 +494,6 @@ export default function ViewChargePoint() {
             </div>
           )}
 
-          {/* TAB 5: CONFIGURATION */}
           {activeTab === 'config' && (
             <div>
               <button
@@ -527,7 +505,6 @@ export default function ViewChargePoint() {
             </div>
           )}
 
-          {/* TAB 6: CONTROL (Refined 7 Form Cards) */}
           {activeTab === 'control' && (
             <div className="space-y-6">
               {actionFeedback && (
@@ -541,7 +518,6 @@ export default function ViewChargePoint() {
               )}
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* 1. Reset Charge Point */}
                 <div className="bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] rounded-[24px] p-6 flex flex-col justify-between hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300">
                   <div>
                     <h3 className="text-base font-extrabold text-stone-800 mb-5 flex items-center gap-2.5">
@@ -564,7 +540,6 @@ export default function ViewChargePoint() {
                   </div>
                 </div>
 
-                {/* 2. Update Charge Point firmware */}
                 <div className="bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] rounded-[24px] p-6 flex flex-col justify-between hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300">
                   <div className="space-y-4">
                     <h3 className="text-base font-extrabold text-stone-800 flex items-center gap-2.5">
@@ -602,7 +577,6 @@ export default function ViewChargePoint() {
                   </div>
                 </div>
 
-                {/* 3. Charge Point local ID Tag list management */}
                 <div className="bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] rounded-[24px] p-6 flex flex-col justify-between hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300">
                   <div className="space-y-4">
                     <h3 className="text-base font-extrabold text-stone-800 flex items-center gap-2.5">
@@ -646,7 +620,6 @@ export default function ViewChargePoint() {
                   </div>
                 </div>
 
-                {/* 4. Send trigger message to Charge Point */}
                 <div className="bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] rounded-[24px] p-6 flex flex-col justify-between hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300">
                   <div className="space-y-4">
                     <h3 className="text-base font-extrabold text-stone-800 flex items-center gap-2.5">
@@ -696,7 +669,6 @@ export default function ViewChargePoint() {
                   </div>
                 </div>
 
-                {/* 5. Get Diagnostics Report */}
                 <div className="bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] rounded-[24px] p-6 flex flex-col justify-between hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300">
                   <div className="space-y-4">
                     <h3 className="text-base font-extrabold text-stone-800 flex items-center gap-2.5">
@@ -761,7 +733,6 @@ export default function ViewChargePoint() {
                   </div>
                 </div>
 
-                {/* 6. Send data transfer message to Charge Point */}
                 <div className="bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] rounded-[24px] p-6 flex flex-col justify-between hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300">
                   <div className="space-y-4">
                     <h3 className="text-base font-extrabold text-stone-800 flex items-center gap-2.5">
@@ -810,7 +781,6 @@ export default function ViewChargePoint() {
                   </div>
                 </div>
 
-                {/* 7. Send clear cache message to Charge Point */}
                 <div className="bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] rounded-[24px] p-6 flex flex-col justify-between col-span-1 lg:col-span-2 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300">
                   <div>
                     <h3 className="text-base font-extrabold text-stone-800 mb-4 flex items-center gap-2.5">
@@ -830,7 +800,6 @@ export default function ViewChargePoint() {
             </div>
           )}
 
-          {/* TAB 7: TARIFFS */}
           {activeTab === 'tariffs' && (
             <div className="bg-white/50 border border-white/70 p-6 rounded-2xl space-y-3">
               <h4 className="font-extrabold text-stone-800 text-sm">Assigned Tariff Profile</h4>
@@ -841,7 +810,6 @@ export default function ViewChargePoint() {
         </div>
       </div>
 
-      {/* Show Details Modal */}
       {showDetailsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-md">
           <div className="bg-white/80 backdrop-blur-2xl border border-white/70 shadow-2xl rounded-3xl w-full max-w-lg p-8 space-y-6">
