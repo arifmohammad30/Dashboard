@@ -1,0 +1,248 @@
+@import 'tailwindcss';
+
+:root {
+  --neo-bg-60: rgba(255, 255, 255, 0.85);
+  --neo-bg-30: rgba(255, 255, 255, 0.65);
+  --neo-bg-10: rgba(255, 255, 255, 0.4);
+  --shadow-dark: rgba(0, 0, 0, 0.08);
+  --shadow-light: rgba(255, 255, 255, 0);
+
+  --shadow-accent-dark: rgba(20, 184, 166, 0.3);
+}
+
+html {
+  font-size: 90%;
+}
+
+body {
+  background-color: #f8fafc;
+  color: #292524;
+  font-family: system-ui, sans-serif;
+  transition: background-color 0.5s ease;
+}
+
+@layer components {
+  .neo-bg-60 {
+    background-color: var(--neo-bg-60);
+  }
+
+  .neo-bg-30 {
+    background-color: var(--neo-bg-30);
+  }
+
+  .neo-outset-60 {
+    background-color: var(--neo-bg-60);
+    box-shadow: 10px 10px 20px var(--shadow-dark), -10px -10px 20px var(--shadow-light);
+    transition: all 0.3s ease;
+  }
+
+  .neo-inset-60 {
+    background-color: var(--neo-bg-60);
+    box-shadow: inset 6px 6px 12px var(--shadow-dark), inset -6px -6px 12px var(--shadow-light);
+    transition: all 0.3s ease;
+  }
+
+  .neo-outset-30 {
+    background-color: var(--neo-bg-30);
+    box-shadow: 12px 12px 24px var(--shadow-dark), -12px -12px 24px var(--shadow-light);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    transition: all 0.3s ease;
+    will-change: transform, box-shadow;
+    transform: translateZ(0);
+  }
+
+
+  .neo-outset-30-static {
+    background-color: var(--neo-bg-30);
+    box-shadow: 12px 12px 24px var(--shadow-dark), -12px -12px 24px var(--shadow-light);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+  }
+
+  .neo-inset-30 {
+    background-color: var(--neo-bg-30);
+    box-shadow: inset 5px 5px 10px var(--shadow-dark), inset -5px -5px 10px var(--shadow-light);
+    transition: all 0.3s ease;
+  }
+
+  .neo-search-input {
+    background-color: var(--neo-bg-10);
+    box-shadow: inset 5px 5px 10px rgba(120, 113, 108, 0.15), inset -5px -5px 10px var(--shadow-light);
+    transition: all 0.3s ease;
+    outline: none;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    will-change: box-shadow;
+    transform: translateZ(0);
+  }
+
+  .neo-search-input:focus {
+    box-shadow: inset 5px 5px 10px rgba(20, 184, 166, 0.25), inset -5px -5px 10px var(--shadow-light);
+  }
+
+  .neo-search-input:-webkit-autofill,
+  .neo-search-input:-webkit-autofill:hover,
+  .neo-search-input:-webkit-autofill:focus,
+  .neo-search-input:-webkit-autofill:active {
+    transition: background-color 5000s ease-in-out 0s !important;
+    -webkit-text-fill-color: #292524 !important;
+    -webkit-box-shadow: inset 5px 5px 10px rgba(20, 184, 166, 0.25), inset -5px -5px 10px var(--shadow-light) !important;
+  }
+
+  .neo-form-input {
+    background-color: var(--neo-bg-10);
+    box-shadow: inset 5px 5px 10px rgba(120, 113, 108, 0.15), inset -5px -5px 10px var(--shadow-light);
+    transition: all 0.3s ease;
+    outline: none;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .neo-form-input:focus,
+  input.neo-form-input:not(:placeholder-shown),
+  select.neo-form-input.has-value {
+    box-shadow: inset 5px 5px 10px rgba(244, 63, 94, 0.25), inset -5px -5px 10px var(--shadow-light);
+  }
+
+  .neo-form-input:-webkit-autofill,
+  .neo-form-input:-webkit-autofill:hover,
+  .neo-form-input:-webkit-autofill:focus,
+  .neo-form-input:-webkit-autofill:active {
+    transition: background-color 5000s ease-in-out 0s !important;
+    -webkit-text-fill-color: #292524 !important;
+    -webkit-box-shadow: inset 5px 5px 10px rgba(244, 63, 94, 0.25), inset -5px -5px 10px var(--shadow-light) !important;
+  }
+
+  .neo-form-error {
+    box-shadow: inset 5px 5px 10px rgba(244, 63, 94, 0.25), inset -5px -5px 10px rgba(255, 228, 230, 0.8) !important;
+  }
+
+  .neo-button {
+    background-color: var(--neo-bg-30);
+    box-shadow: 0 4px 20px var(--shadow-dark), 0 0 15px var(--shadow-light);
+    transition: box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    will-change: transform, box-shadow;
+    transform: translateZ(0);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    outline: none;
+    cursor: pointer;
+  }
+
+  .neo-button:hover:not(:disabled) {
+    box-shadow: 0 6px 25px var(--shadow-dark), 0 0 20px var(--shadow-light);
+  }
+
+  .neo-button:active:not(:disabled),
+  .neo-button.active {
+    box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+  }
+
+  .neo-accent-btn {
+    background: linear-gradient(135deg, #F43F5E, #F97316);
+
+    color: white;
+    box-shadow: 6px 6px 15px rgba(244, 63, 94, 0.4), -6px -6px 15px var(--shadow-light);
+    transition: box-shadow 0.3s ease, background 0.3s ease, filter 0.3s ease;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .neo-accent-btn:hover:not(:disabled) {
+    box-shadow: 8px 8px 20px rgba(244, 63, 94, 0.5), -8px -8px 20px var(--shadow-light);
+    background: linear-gradient(135deg, #E11D48, #EA580C);
+  }
+
+  .neo-accent-btn:active:not(:disabled) {
+    box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.2), inset -4px -4px 8px rgba(255, 255, 255, 0.2);
+  }
+
+  .neo-check {
+    background-color: var(--neo-bg-10);
+    box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.15), inset -3px -3px 6px var(--shadow-light);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+  }
+
+  .neo-inset-emerald {
+    background-color: var(--neo-bg-30);
+    box-shadow: inset 4px 4px 8px rgba(16, 185, 129, 0.25), inset -4px -4px 8px var(--shadow-light);
+    transition: all 0.3s ease;
+  }
+
+  .neo-inset-rose {
+    background-color: var(--neo-bg-30);
+    box-shadow: inset 4px 4px 8px rgba(244, 63, 94, 0.25), inset -4px -4px 8px var(--shadow-light);
+    transition: all 0.3s ease;
+  }
+
+  .neo-inset-amber {
+    background-color: var(--neo-bg-30);
+    box-shadow: inset 4px 4px 8px rgba(245, 158, 11, 0.25), inset -4px -4px 8px var(--shadow-light);
+    transition: all 0.3s ease;
+  }
+
+  .neo-inset-indigo {
+    background-color: var(--neo-bg-30);
+    box-shadow: inset 4px 4px 8px rgba(99, 102, 241, 0.25), inset -4px -4px 8px var(--shadow-light);
+    transition: all 0.3s ease;
+  }
+
+  .neo-btn-indigo {
+    background-color: var(--neo-bg-30);
+    box-shadow: 6px 6px 12px rgba(99, 102, 241, 0.15), -6px -6px 12px var(--shadow-light);
+    transition: all 0.2s ease;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .neo-btn-indigo:hover {
+    box-shadow: 8px 8px 16px rgba(99, 102, 241, 0.2), -8px -8px 16px var(--shadow-light);
+    transform: translateY(-1px);
+  }
+
+  .neo-btn-indigo:active,
+  .neo-btn-indigo.active {
+    box-shadow: inset 4px 4px 8px rgba(99, 102, 241, 0.25), inset -4px -4px 8px var(--shadow-light);
+    transform: translateY(1px);
+  }
+
+  .neo-btn-rose {
+    background-color: var(--neo-bg-30);
+    box-shadow: 6px 6px 12px rgba(244, 63, 94, 0.15), -6px -6px 12px var(--shadow-light);
+    transition: all 0.2s ease;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .neo-btn-rose:hover {
+    box-shadow: 8px 8px 16px rgba(244, 63, 94, 0.2), -8px -8px 16px var(--shadow-light);
+    transform: translateY(-1px);
+  }
+
+/* Hardware / CPU Optimizations for Low-end Devices */
+@media (prefers-reduced-transparency: reduce) {
+  .neo-outset-30,
+  .neo-outset-30-static,
+  .neo-search-input,
+  .neo-form-input,
+  .neo-button,
+  .neo-accent-btn,
+  .neo-btn-rose {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+  .neo-btn-rose:active,
+  .neo-btn-rose.active {
+    box-shadow: inset 4px 4px 8px rgba(244, 63, 94, 0.25), inset -4px -4px 8px var(--shadow-light);
+    transform: translateY(1px);
+  }
+}
+
+body.is-scrolling * { pointer-events: none !important; }

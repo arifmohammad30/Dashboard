@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model ChargePoint {
+  id                String   @id @default(uuid())
+  name              String
+  chargingStation   String
+  manufacturer      String
+  mode              String
+  code              String   @unique
+  accessibility     String
+  stage             String
+  exclusive         String
+  gracePeriod       Int?
+  tariffProfiles    String
+  settlementProfile String
+  type              String
+  chargingMethods   String   // Storing the array as a JSON string
+
+  // Extended columns for EV Dashboard v2
+  cpId              String?
+  thirdPartyCpId    String?  @default("NA")
+  oem               String?  @default("EVRE")
+  zone              String?  @default("-")
+  lastActive        String?
+  totalSessions     Int?     @default(0)
+  energyDelivered   Float?   @default(0.0)
+  revenueGenerated  Float?   @default(0.0)
+  mobilityType      String?  @default("Stationary")
+  qrCodeId          String?
+  firmwareVersion   String?  @default("2.0.2")
+  connectors        String?  // JSON array string
+  totalCapacity     String?  @default("-")
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model ChargingStation {
+  id               String   @id @default(uuid())
+  name             String
+  code             String   @unique
+  chargePoints     Int
+  totalSessions    Int
+  revenueGenerated Float
+  energyDelivered  Float
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model LiveSession {
+  id            Int      @id @default(autoincrement())
+  userInitials  String
+  userColor     String
+  userName      String
+  station       String
+  chargePoint   String
+  connector     String
+  status        String
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
