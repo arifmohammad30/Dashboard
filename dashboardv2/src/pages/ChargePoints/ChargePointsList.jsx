@@ -43,7 +43,7 @@ const renderConnectorBadges = (connectors) => {
     return <span className="text-stone-400 font-bold text-[12px]">-</span>;
   }
   return (
-    <div className="flex flex-wrap items-center justify-center gap-1.5 min-w-[130px]">
+    <div className="flex flex-wrap items-center justify-start gap-1.5 min-w-[130px]">
       {connectors.map((c, index) => {
         const is15A = c.includes('15A');
         const isCCS2 = c.includes('CCS2');
@@ -298,8 +298,8 @@ export default function ChargePointsList() {
                 </th>
 
                 {/* 5. Status */}
-                <th className="px-4 py-4 text-center font-black text-amber-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center justify-center gap-2"><Activity strokeWidth={2.5} className="w-4 h-4 text-amber-400" /> Status</div>
+                <th className="px-4 py-4 text-left font-black text-amber-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
+                  <div className="flex items-center justify-start gap-2"><Activity strokeWidth={2.5} className="w-4 h-4 text-amber-400" /> Status</div>
                 </th>
 
                 {/* 6. Last Active */}
@@ -308,18 +308,18 @@ export default function ChargePointsList() {
                 </th>
 
                 {/* 7. Stage */}
-                <th className="px-4 py-4 text-center font-black text-emerald-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center justify-center gap-2"><CheckCircle2 strokeWidth={2.5} className="w-4 h-4 text-emerald-500" /> Stage</div>
+                <th className="px-4 py-4 text-left font-black text-emerald-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
+                  <div className="flex items-center justify-start gap-2"><CheckCircle2 strokeWidth={2.5} className="w-4 h-4 text-emerald-500" /> Stage</div>
                 </th>
 
                 {/* 8. Type */}
-                <th className="px-4 py-4 text-center font-black text-purple-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center justify-center gap-2"><Zap strokeWidth={2.5} className="w-4 h-4 text-purple-400" /> Type</div>
+                <th className="px-4 py-4 text-left font-black text-purple-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
+                  <div className="flex items-center justify-start gap-2"><Zap strokeWidth={2.5} className="w-4 h-4 text-purple-400" /> Type</div>
                 </th>
 
                 {/* 9. Connector (Connector Id) */}
-                <th className="px-4 py-4 text-center font-black text-amber-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center justify-center gap-2"><Plug strokeWidth={2.5} className="w-4 h-4 text-amber-500" /> Connector (Connector Id)</div>
+                <th className="px-4 py-4 text-left font-black text-amber-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
+                  <div className="flex items-center justify-start gap-2"><Plug strokeWidth={2.5} className="w-4 h-4 text-amber-500" /> Connector (Connector Id)</div>
                 </th>
 
                 {/* 10. Total Capacity */}
@@ -328,8 +328,8 @@ export default function ChargePointsList() {
                 </th>
 
                 {/* 11. Mode */}
-                <th className="px-4 py-4 text-center font-black text-slate-800 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center justify-center gap-2"><Shield strokeWidth={2.5} className="w-4 h-4 text-slate-500" /> Mode</div>
+                <th className="px-4 py-4 text-left font-black text-slate-800 text-[12px] uppercase tracking-wider whitespace-nowrap">
+                  <div className="flex items-center justify-start gap-2"><Shield strokeWidth={2.5} className="w-4 h-4 text-slate-500" /> Mode</div>
                 </th>
 
                 {/* 12. OEM */}
@@ -447,7 +447,7 @@ export default function ChargePointsList() {
                     </td>
 
                     {/* 5. Status */}
-                    <td className="px-4 py-4 text-center whitespace-nowrap">
+                    <td className="px-4 py-4 text-left whitespace-nowrap">
                       {(row.status === 'Online' || (row.status !== 'Offline' && row.stage === 'Active')) ? (
                         <span className="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold bg-emerald-50/80 text-emerald-600 border border-emerald-100 shadow-xs">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
@@ -467,7 +467,7 @@ export default function ChargePointsList() {
                     </td>
 
                     {/* 7. Stage */}
-                    <td className="px-4 py-4 text-center whitespace-nowrap">
+                    <td className="px-4 py-4 text-left whitespace-nowrap">
                       <span className={`inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-extrabold border shadow-xs ${
                         row.stage === 'Active' ? 'bg-emerald-50/80 text-emerald-600 border-emerald-100' :
                         row.stage === 'Inactive' ? 'bg-stone-100/90 text-stone-600 border-stone-200/80' :
@@ -478,7 +478,7 @@ export default function ChargePointsList() {
                     </td>
 
                     {/* 8. Type */}
-                    <td className="px-4 py-4 text-center whitespace-nowrap">
+                    <td className="px-4 py-4 text-left whitespace-nowrap">
                       <span className={`font-bold text-[11px] px-3 py-1 rounded-xl border shadow-xs uppercase tracking-wider ${row.type === 'AC' ? 'bg-purple-50/80 text-purple-600 border-purple-100' :
                         row.type === 'DC' ? 'bg-blue-50/80 text-blue-600 border-blue-100' :
                           'bg-white/60 text-stone-500 border-white/80'
@@ -488,7 +488,7 @@ export default function ChargePointsList() {
                     </td>
 
                     {/* 9. Connector (Connector Id) */}
-                    <td className="px-4 py-4 text-center whitespace-nowrap">
+                    <td className="px-4 py-4 text-left whitespace-nowrap">
                       {renderConnectorBadges(row.connectors)}
                     </td>
 
@@ -498,7 +498,7 @@ export default function ChargePointsList() {
                     </td>
 
                     {/* 11. Mode */}
-                    <td className="px-4 py-4 text-center whitespace-nowrap">
+                    <td className="px-4 py-4 text-left whitespace-nowrap">
                       <span className="text-stone-600 font-medium text-[13px]">{row.mode || 'Public'}</span>
                     </td>
 
