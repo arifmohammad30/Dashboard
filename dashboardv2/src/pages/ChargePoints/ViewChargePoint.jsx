@@ -318,7 +318,7 @@ export default function ViewChargePoint() {
         <div className="p-6 sm:p-8 flex-1 overflow-y-auto custom-scrollbar">
           {/* TAB 1: CONNECTORS */}
           {activeTab === 'connectors' && (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto pb-36">
               <table className="w-full text-left text-sm border-separate border-spacing-y-1">
                 <thead>
                   <tr className="bg-white/40 shadow-xs">
@@ -377,7 +377,7 @@ export default function ViewChargePoint() {
                             {openDropdownId === conn.id && (
                               <>
                                 <div className="fixed inset-0 z-40" onClick={() => setOpenDropdownId(null)} />
-                                <div className="absolute left-0 top-full mt-2 w-56 bg-white/95 backdrop-blur-2xl border border-white/80 shadow-[0_10px_30px_rgba(0,0,0,0.12)] rounded-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                                <div className="absolute left-0 top-full mt-2 w-60 bg-white backdrop-blur-2xl border border-stone-200 shadow-[0_12px_40px_rgba(0,0,0,0.18)] rounded-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -386,10 +386,10 @@ export default function ViewChargePoint() {
                                       setOpenDropdownId(null);
                                       handleControlAction(`Connector ${conn.id} availability changed to ${newAvail}.`);
                                     }}
-                                    className="w-full text-left px-3.5 py-2.5 text-xs font-extrabold text-stone-700 hover:bg-rose-50 hover:text-rose-600 rounded-xl transition flex items-center gap-2.5 cursor-pointer"
+                                    className="w-full text-left px-4 py-3 text-xs font-black text-stone-700 hover:bg-rose-50 hover:text-rose-600 rounded-xl transition-all duration-150 flex items-center gap-3 cursor-pointer"
                                   >
-                                    <Power strokeWidth={2.5} className="w-4 h-4 text-rose-500" />
-                                    <span>{conn.availability === 'Inoperative' ? 'Change to Operative' : 'Change to Inoperative'}</span>
+                                    <Power strokeWidth={2.5} className="w-4 h-4 text-rose-500 shrink-0" />
+                                    <span className="whitespace-nowrap">{conn.availability === 'Inoperative' ? 'Change to Operative' : 'Change to Inoperative'}</span>
                                   </button>
 
                                   <button
@@ -398,10 +398,10 @@ export default function ViewChargePoint() {
                                       setOpenDropdownId(null);
                                       handleControlAction(`Connector ${conn.id} status requested successfully.`);
                                     }}
-                                    className="w-full text-left px-3.5 py-2.5 text-xs font-extrabold text-stone-700 hover:bg-sky-50 hover:text-sky-600 rounded-xl transition flex items-center gap-2.5 cursor-pointer mt-1"
+                                    className="w-full text-left px-4 py-3 text-xs font-black text-stone-700 hover:bg-sky-50 hover:text-sky-600 rounded-xl transition-all duration-150 flex items-center gap-3 cursor-pointer mt-1"
                                   >
-                                    <Activity strokeWidth={2.5} className="w-4 h-4 text-sky-500" />
-                                    <span>Get connector status</span>
+                                    <Activity strokeWidth={2.5} className="w-4 h-4 text-sky-500 shrink-0" />
+                                    <span className="whitespace-nowrap">Get connector status</span>
                                   </button>
                                 </div>
                               </>
@@ -501,10 +501,8 @@ export default function ViewChargePoint() {
                 <h3 className="font-extrabold text-stone-800 text-sm">Real-time OCPP Logs</h3>
                 <span className="text-xs text-stone-500 font-medium">Live Event Stream</span>
               </div>
-              <div className="bg-stone-900 text-emerald-400 font-mono text-xs p-5 rounded-2xl space-y-2 overflow-x-auto shadow-inner">
-                <div>[2026-07-26 09:40:12] OCPP Heartbeat received from {cp.code}</div>
-                <div>[2026-07-26 09:35:00] StatusNotification: Connector 1 -&gt; Faulted (EmergencyPressed)</div>
-                <div>[2026-07-26 09:20:44] MeterValues received: 42.44 kWh</div>
+              <div className="bg-stone-900 text-emerald-400 font-mono text-xs p-5 rounded-2xl min-h-[100px] shadow-inner flex items-center justify-center text-stone-500">
+                <p className="font-bold text-stone-400">No active log entries recorded.</p>
               </div>
             </div>
           )}
@@ -519,13 +517,7 @@ export default function ViewChargePoint() {
 
           {/* TAB 5: CONFIGURATION */}
           {activeTab === 'config' && (
-            <div className="bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] rounded-[24px] p-8 flex flex-col items-start justify-center max-w-lg space-y-4">
-              <h3 className="text-base font-extrabold text-stone-800 flex items-center gap-2.5">
-                <Settings strokeWidth={2.5} className="w-5 h-5 text-indigo-500" /> Charger Configuration
-              </h3>
-              <p className="text-xs text-stone-500 font-medium leading-relaxed">
-                Retrieve live configuration parameters directly from the charge point via OCPP connection.
-              </p>
+            <div>
               <button
                 onClick={() => handleControlAction('Charger configuration fetched successfully.')}
                 className="px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-extrabold rounded-xl text-xs shadow-md shadow-indigo-500/20 active:scale-95 transition-all duration-200 cursor-pointer flex items-center gap-2"
