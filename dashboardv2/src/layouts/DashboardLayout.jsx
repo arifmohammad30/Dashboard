@@ -11,6 +11,14 @@ export default function DashboardLayout({ children }) {
   const isChargePointsPage = location.pathname.startsWith('/charge-points');
   const isChargingStationsPage = location.pathname.startsWith('/charging-stations');
   const isLiveSessionsPage = location.pathname.startsWith('/live-sessions');
+  const isTariffsPage = location.pathname.startsWith('/tariffs');
+  const isAnalyticsPage = location.pathname.startsWith('/analytics');
+  const isReportsPage = location.pathname.startsWith('/reports');
+  const isAlertsPage = location.pathname.startsWith('/alerts');
+  const isAbnormalPage = location.pathname.startsWith('/abnormal-transactions');
+  const isBillsPage = location.pathname.startsWith('/bills');
+  const isTelematicsPage = location.pathname.startsWith('/telematics-devices');
+
   const { logout, user } = useAuth();
   const userMenuRef = useRef(null);
 
@@ -67,10 +75,17 @@ export default function DashboardLayout({ children }) {
                 <Menu size={20} />
               </button>
             )}
-            <div className="font-semibold  uppercase  text-[17px] text-slate-800 tracking-tight hidden sm:block">
+            <div className="font-semibold uppercase text-[17px] text-slate-800 tracking-tight hidden sm:block">
               {isChargePointsPage ? 'Charge Point Management' :
                 isChargingStationsPage ? 'Charging Station Management' :
-                  isLiveSessionsPage ? 'Live Session Management' : ''}
+                  isLiveSessionsPage ? 'Live Session Management' :
+                    isTariffsPage ? 'Tariff Management' :
+                      isAnalyticsPage ? 'Analytics & Intelligence' :
+                        isReportsPage ? 'Reports & Audits' :
+                          isAlertsPage ? 'System Alerts' :
+                            isAbnormalPage ? 'Abnormal Transactions' :
+                              isBillsPage ? 'Billing & Invoices' :
+                                isTelematicsPage ? 'Telematics Management' : ''}
             </div>
           </div>
           <div className="flex items-center gap-5">

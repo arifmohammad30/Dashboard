@@ -8,6 +8,8 @@ const AddNewChargePoint = lazy(() => import('./pages/ChargePoints/AddChargePoint
 const ViewChargePoint = lazy(() => import('./pages/ChargePoints/ViewChargePoint'));
 const ChargingStationsList = lazy(() => import('./pages/ChargingStations/ChargingStationsList'));
 const LiveSessionsList = lazy(() => import('./pages/LiveSessions/LiveSessionsList'));
+const TariffsList = lazy(() => import('./pages/Tariffs/TariffsList'));
+const AddNewTariff = lazy(() => import('./pages/Tariffs/AddNewTariff'));
 const Login = lazy(() => import('./pages/Login/Login'));
 
 // Dummy component for unused pages for now
@@ -50,7 +52,10 @@ function App() {
               <Route path="/charge-points/view/:id" element={<AddNewChargePoint isViewMode={true} />} />
               <Route path="/charge-points/:id" element={<ViewChargePoint />} />
               
-              <Route path="/tariffs" element={<DummyPage title="Tariffs" />} />
+              <Route path="/tariffs" element={<TariffsList />} />
+              <Route path="/tariffs/new" element={<AddNewTariff />} />
+              <Route path="/tariffs/edit/:id" element={<AddNewTariff isEditMode={true} />} />
+              <Route path="/tariffs/view/:id" element={<AddNewTariff isViewMode={true} />} />
               <Route path="/bills" element={<DummyPage title="Bills" />} />
               <Route path="/telematics-devices" element={<DummyPage title="Telematics Devices" />} />
             </Route>

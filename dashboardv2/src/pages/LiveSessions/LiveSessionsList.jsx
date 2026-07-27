@@ -10,6 +10,7 @@ import {
   Zap,
   Plug,
   Activity,
+  BatteryCharging,
   Loader2
 } from 'lucide-react';
 import Pagination from '../../components/ui/Pagination';
@@ -100,10 +101,10 @@ export default function LiveSessionsList() {
       </div>
 
       {/* Main Glass Table Container */}
-      <div className="bg-white/70 shadow-[0_8px_32px_rgba(0,0,0,0.04)] border border-white/60 rounded-[32px] overflow-hidden flex flex-col min-h-[500px]">
-        <div className="px-8 pt-4 pb-2 flex flex-col sm:flex-row items-center justify-between gap-6 bg-white/20 border-b border-white/40">
+      <div className="bg-white/40 backdrop-blur-2xl border border-white/80 shadow-[0_16px_50px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.9)_inset] rounded-[32px] overflow-hidden flex flex-col min-h-[500px]">
+        <div className="px-8 pt-4 pb-2 flex flex-col sm:flex-row items-center justify-between gap-6 bg-white/30 backdrop-blur-xl border-b border-white/60">
 
-          <div className="flex items-center gap-2 text-sm text-stone-600 font-medium px-2 py-2 rounded-2xl bg-white/50 backdrop-blur-md border border-white/60 shadow-sm">
+          <div className="flex items-center gap-2 text-sm text-stone-600 font-medium px-2 py-2 rounded-2xl bg-white/40 backdrop-blur-md border border-white/60 shadow-xs">
             {tabs.map((tab) => (
               <button
                 key={tab}
@@ -129,7 +130,7 @@ export default function LiveSessionsList() {
               value={searchTerm}
               onChange={handleSearch}
               placeholder="Search sessions..."
-              className="w-full pl-14 pr-5 py-3.5 bg-white/50 border border-white/60 shadow-sm focus:shadow-[0_0_20px_rgba(251,146,60,0.15)] focus:border-orange-300 focus:bg-white/80 rounded-2xl text-sm focus:outline-none text-stone-800 placeholder:text-stone-400 transition-[background-color,border-color,box-shadow] duration-300"
+              className="w-full pl-14 pr-5 py-3.5 bg-white/40 backdrop-blur-xl border border-white/80 shadow-xs focus:shadow-[0_0_25px_rgba(255,255,255,0.9)] focus:border-white focus:bg-white/70 rounded-2xl text-sm focus:outline-none text-stone-800 placeholder:text-stone-400 transition-all duration-300"
             />
           </div>
         </div>
@@ -138,7 +139,7 @@ export default function LiveSessionsList() {
         <div className="overflow-x-auto flex-1 px-4 sm:px-8 pb-6 pt-0">
           <table className="w-full text-left text-sm border-separate border-spacing-y-1">
             <thead>
-              <tr className="bg-white/40 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+              <tr className="bg-white/30 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.02)] border-b border-white/40">
                 <th className="w-[15%] px-4 py-4 font-black text-indigo-950/70 text-[12px] uppercase tracking-wider rounded-l-2xl">
                   <div className="flex items-center gap-2 whitespace-nowrap"><UserIcon strokeWidth={2.5} className="w-4 h-4 text-indigo-400" /> User</div>
                 </th>
@@ -148,40 +149,41 @@ export default function LiveSessionsList() {
                 <th className="w-[20%] px-4 py-4 font-black text-emerald-950/70 text-[12px] uppercase tracking-wider">
                   <div className="flex items-center gap-2 whitespace-nowrap"><Zap strokeWidth={2.5} className="w-4 h-4 text-emerald-400" /> Charge Point</div>
                 </th>
-                <th className="w-[15%] px-4 py-4 font-black text-amber-950/70 text-[12px] uppercase tracking-wider">
-                  <div className="flex items-center gap-2 whitespace-nowrap"><Plug strokeWidth={2.5} className="w-4 h-4 text-amber-400" /> Connector</div>
+                <th className="w-[15%] px-4 py-4 font-black text-purple-950/70 text-[12px] uppercase tracking-wider">
+                  <div className="flex items-center gap-2 whitespace-nowrap"><Plug strokeWidth={2.5} className="w-4 h-4 text-purple-400" /> Connector</div>
                 </th>
-                <th className="w-[20%] px-4 py-4 font-black text-purple-950/70 text-[12px] uppercase tracking-wider">
-                  <div className="flex items-center gap-2 whitespace-nowrap"><Activity strokeWidth={2.5} className="w-4 h-4 text-purple-400" /> Transaction Status</div>
+                <th className="w-[15%] px-4 py-4 font-black text-sky-950/70 text-[12px] uppercase tracking-wider">
+                  <div className="flex items-center gap-2 whitespace-nowrap"><Activity strokeWidth={2.5} className="w-4 h-4 text-sky-400" /> Status</div>
                 </th>
-                <th className="w-[5%] px-4 py-4 font-black text-stone-500 text-[12px] uppercase tracking-wider text-right rounded-r-2xl">
+                <th className="w-[10%] px-4 py-4 font-black text-amber-950/70 text-[12px] uppercase tracking-wider text-right pr-6 rounded-r-2xl">
+                  <div className="flex items-center justify-end gap-2 whitespace-nowrap"><BatteryCharging strokeWidth={2.5} className="w-4 h-4 text-amber-400" /> Power (kW)</div>
                 </th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                 <tr>
-                   <td colSpan="6" className="px-5 py-24 text-center">
-                     <div className="flex flex-col items-center justify-center text-orange-400">
-                       <Loader2 className="w-10 h-10 animate-spin mb-4" />
-                       <p className="text-sm font-bold">Loading live sessions...</p>
-                     </div>
-                   </td>
-                 </tr>
+                <tr>
+                  <td colSpan="6" className="px-5 py-24 text-center">
+                    <div className="text-orange-400 flex flex-col items-center">
+                      <Loader2 className="w-10 h-10 animate-spin mb-4" />
+                      <p className="text-sm font-bold text-stone-500">Loading live sessions...</p>
+                    </div>
+                  </td>
+                </tr>
               ) : paginatedSessions.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="px-5 py-24 text-center">
-                    <div className="text-stone-500 flex flex-col items-center">
-                      <div className="w-16 h-16 bg-stone-50 rounded-full flex items-center justify-center mb-4">
-                        <Activity className="w-8 h-8 text-stone-300" />
+                    <div className="text-stone-400 flex flex-col items-center">
+                      <div className="w-20 h-20 bg-white/40 backdrop-blur-md rounded-3xl shadow-[inset_0_2px_10px_rgba(255,255,255,0.6)] border border-white/50 flex items-center justify-center mb-6">
+                        <Search className="w-10 h-10 text-stone-400" />
                       </div>
-                      <p className="text-sm font-bold">No {activeTab.toLowerCase()} sessions found.</p>
+                      <p className="text-sm font-bold text-stone-500">No {activeTab.toLowerCase()} sessions found.</p>
                     </div>
                   </td>
                 </tr>
               ) : (
                 paginatedSessions.map((row) => (
-                  <tr key={row.id} className="group bg-white/40 hover:bg-white/70 border border-white/30 hover:border-white/80 transition duration-200 rounded-2xl cursor-pointer">
+                  <tr key={row.id} className="group bg-white/30 hover:bg-white/60 backdrop-blur-md border border-white/40 hover:border-white/90 shadow-[0_4px_15px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300 rounded-2xl cursor-pointer">
                     <td className="px-4 py-4 rounded-l-2xl">
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-extrabold ${row.userColor} shadow-sm border border-white ring-1 ring-black/5`}>

@@ -1,6 +1,6 @@
 import React, { forwardRef, useRef, useEffect } from 'react';
 
-const Select = forwardRef(({ options, error, onChange, onBlur, ...rest }, ref) => {
+const Select = forwardRef(({ options, placeholder = "Select an option", error, onChange, onBlur, ...rest }, ref) => {
   const internalRef = useRef(null);
 
   const checkValue = (element) => {
@@ -40,7 +40,7 @@ const Select = forwardRef(({ options, error, onChange, onBlur, ...rest }, ref) =
         onBlur={handleBlur}
         {...rest}
       >
-        <option value="" disabled>Select an option</option>
+        <option value="" disabled>{placeholder}</option>
         {options.map((opt) => (
           <option key={opt} value={opt}>{opt}</option>
         ))}

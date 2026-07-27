@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 export function useTableData(fetchCallback, dependencies = []) {
+  const safeDeps = Array.isArray(dependencies) ? dependencies : [];
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -38,7 +39,7 @@ export function useTableData(fetchCallback, dependencies = []) {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, itemsPerPage, debouncedSearch, ...dependencies]);
+  }, [currentPage, itemsPerPage, debouncedSearch, ...safeDeps]);
 
   useEffect(() => {
     loadData();

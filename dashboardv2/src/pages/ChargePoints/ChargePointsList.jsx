@@ -27,7 +27,8 @@ import {
   Gauge,
   Clock,
   Calendar,
-  CheckCircle2
+  CheckCircle2,
+  Smartphone
 } from 'lucide-react';
 
 import Pagination from '../../components/ui/Pagination';
@@ -251,9 +252,9 @@ export default function ChargePointsList() {
       </div>
 
       {/* Main Glass Table Container */}
-      <div className="bg-white/70 shadow-[0_8px_32px_rgba(0,0,0,0.04)] border border-white/60 rounded-[32px] overflow-hidden flex flex-col min-h-[500px]">
-        <div className="px-6 pt-4 pb-2 flex flex-col sm:flex-row items-center justify-between gap-6 bg-white/20 border-b border-white/40">
-          <div className="flex items-center gap-2 text-sm text-stone-600 font-medium px-4 py-2 rounded-lg bg-white border border-stone-200 shadow-sm">
+      <div className="bg-white/40 backdrop-blur-2xl border border-white/80 shadow-[0_16px_50px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.9)_inset] rounded-[32px] overflow-hidden flex flex-col min-h-[500px]">
+        <div className="px-6 pt-4 pb-2 flex flex-col sm:flex-row items-center justify-between gap-6 bg-white/30 backdrop-blur-xl border-b border-white/60">
+          <div className="flex items-center gap-2 text-sm text-stone-600 font-medium px-4 py-2 rounded-lg bg-white/60 backdrop-blur-md border border-white/80 shadow-xs">
             <span className="font-extrabold text-orange-600 text-base">{totalItems}</span> total charge points
           </div>
 
@@ -267,7 +268,7 @@ export default function ChargePointsList() {
               value={searchTerm}
               onChange={handleSearch}
               placeholder="Search points by name, location..."
-              className="w-full pl-14 pr-5 py-3.5 bg-white/50 border border-white/60 shadow-sm focus:shadow-[0_0_20px_rgba(251,146,60,0.15)] focus:border-orange-300 focus:bg-white/80 rounded-2xl text-sm focus:outline-none text-stone-800 placeholder:text-stone-400 transition-[background-color,border-color,box-shadow] duration-300"
+              className="w-full pl-14 pr-5 py-3.5 bg-white/40 backdrop-blur-xl border border-white/80 shadow-xs focus:shadow-[0_0_25px_rgba(255,255,255,0.9)] focus:border-white focus:bg-white/70 rounded-2xl text-sm focus:outline-none text-stone-800 placeholder:text-stone-400 transition-all duration-300"
             />
           </div>
         </div>
@@ -276,7 +277,7 @@ export default function ChargePointsList() {
         <div className="overflow-x-auto flex-1 px-1.5 sm:px-2 pb-6 pt-0">
           <table className="w-full text-left text-sm border-separate border-spacing-y-1">
             <thead>
-              <tr className="bg-white/40 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+              <tr className="bg-white/30 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.02)] border-b border-white/40">
                 <th className="px-4 py-4 text-center font-black text-stone-600 text-[12px] uppercase tracking-wider rounded-l-2xl whitespace-nowrap">
                   <div className="flex items-center justify-center gap-2"><Settings2 strokeWidth={2.5} className="w-4 h-4 text-stone-400" /> Actions</div>
                 </th>
@@ -290,11 +291,11 @@ export default function ChargePointsList() {
                 </th>
 
                 <th className="px-4 py-4 text-left font-black text-emerald-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-2"><MapPin strokeWidth={2.5} className="w-4 h-4 text-emerald-400" /> Location</div>
+                  <div className="flex items-center gap-2"><MapPin strokeWidth={2.5} className="w-4 h-4 text-emerald-400" /> Charge Station</div>
                 </th>
 
-                <th className="px-4 py-4 text-left font-black text-amber-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center justify-start gap-2"><Activity strokeWidth={2.5} className="w-4 h-4 text-amber-400" /> Status</div>
+                <th className="px-4 py-4 text-left font-black text-sky-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
+                  <div className="flex items-center gap-2"><Activity strokeWidth={2.5} className="w-4 h-4 text-sky-400" /> Status</div>
                 </th>
 
                 <th className="px-4 py-4 text-center font-black text-stone-600 text-[12px] uppercase tracking-wider whitespace-nowrap">
@@ -350,25 +351,25 @@ export default function ChargePointsList() {
                 </th>
 
                 <th className="px-4 py-4 text-center font-black text-blue-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center justify-center gap-2"><BatteryCharging strokeWidth={2.5} className="w-4 h-4 text-blue-500" /> Energy Delivered</div>
+                  <div className="flex items-center justify-center gap-2"><Zap strokeWidth={2.5} className="w-4 h-4 text-blue-500" /> Energy Delivered</div>
                 </th>
 
-                <th className="px-4 py-4 text-center font-black text-emerald-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center justify-center gap-2"><IndianRupee strokeWidth={2.5} className="w-4 h-4 text-emerald-600" /> Revenue Generated</div>
+                <th className="px-4 py-4 text-center font-black text-amber-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
+                  <div className="flex items-center justify-center gap-2"><IndianRupee strokeWidth={2.5} className="w-4 h-4 text-amber-500" /> Revenue Generated</div>
                 </th>
 
-                <th className="px-4 py-4 text-center font-black text-stone-700 text-[12px] uppercase tracking-wider rounded-r-2xl whitespace-nowrap">
-                  <div className="flex items-center justify-center gap-2"><Calendar strokeWidth={2.5} className="w-4 h-4 text-sky-400" /> Created On</div>
+                <th className="px-4 py-4 text-center font-black text-indigo-950/70 text-[12px] uppercase tracking-wider rounded-r-2xl whitespace-nowrap">
+                  <div className="flex items-center justify-center gap-2"><Smartphone strokeWidth={2.5} className="w-4 h-4 text-indigo-500" /> Mobility Type</div>
                 </th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="21" className="px-5 py-24 text-center">
-                    <div className="flex flex-col items-center justify-center text-orange-400">
-                      <Loader2 className="w-10 h-10 animate-spin mb-4" />
-                      <p className="text-sm font-bold">Loading charge points...</p>
+                  <td colSpan="21" className="px-4 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+                      <p className="text-sm font-bold text-stone-500">Loading charge points...</p>
                     </div>
                   </td>
                 </tr>
@@ -385,7 +386,7 @@ export default function ChargePointsList() {
                 </tr>
               ) : (
                 chargePoints.map((row) => (
-                  <tr key={row.id} onClick={() => navigate(`/charge-points/view/${row.id}`, { state: { chargePoint: row } })} className="group bg-white/40 hover:bg-white/70 border border-white/30 hover:border-white/80 transition duration-200 rounded-2xl cursor-pointer">
+                  <tr key={row.id} onClick={() => navigate(`/charge-points/${row.id}`, { state: { chargePoint: row } })} className="group bg-white/30 hover:bg-white/60 backdrop-blur-md border border-white/40 hover:border-white/90 shadow-[0_4px_15px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300 rounded-2xl cursor-pointer">
                     <td className="px-4 py-4 text-center rounded-l-2xl whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                         <button onClick={(e) => handleEditClick(e, row)} className="p-1.5 text-orange-500 bg-white/70 border border-orange-100 hover:bg-orange-500 hover:text-white rounded-xl shadow-xs hover:shadow-md transition active:scale-95 duration-200" title="Edit">
@@ -404,11 +405,10 @@ export default function ChargePointsList() {
                       e.stopPropagation();
                       navigate(`/charge-points/${row.id}`, { state: { chargePoint: row } });
                     }}>
-                      <span className={`text-stone-800 font-bold text-[13px] hover:underline transition-colors duration-200 ${
-                        (row.status === 'Online' || (row.status !== 'Offline' && row.stage === 'Active'))
+                      <span className={`text-stone-800 font-bold text-[13px] hover:underline transition-colors duration-200 ${(row.status === 'Online' || (row.status !== 'Offline' && row.stage === 'Active'))
                           ? 'group-hover:text-emerald-500'
                           : 'group-hover:text-rose-500'
-                      }`}>
+                        }`}>
                         {row.name}
                       </span>
                     </td>
@@ -417,8 +417,15 @@ export default function ChargePointsList() {
                       <span className="text-rose-500 text-[13px] font-bold font-mono">{row.code}</span>
                     </td>
 
-                    <td className="px-4 py-4 text-left whitespace-nowrap">
-                      <div className="text-stone-700 text-[13px] font-medium max-w-[250px] truncate">{row.chargingStation}</div>
+                    <td className="px-4 py-4 text-left whitespace-nowrap" onClick={(e) => {
+                      e.stopPropagation();
+                      if (row.chargingStation) {
+                        navigate(`/charging-stations?search=${encodeURIComponent(row.chargingStation)}`);
+                      }
+                    }}>
+                      <span className="text-sky-600 font-bold text-[13px] hover:underline transition-colors duration-200 cursor-pointer max-w-[250px] truncate block">
+                        {row.chargingStation}
+                      </span>
                     </td>
 
                     <td className="px-4 py-4 text-left whitespace-nowrap">
@@ -440,11 +447,10 @@ export default function ChargePointsList() {
                     </td>
 
                     <td className="px-4 py-4 text-left whitespace-nowrap">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-extrabold border shadow-xs ${
-                        row.stage === 'Active' ? 'bg-emerald-50/80 text-emerald-600 border-emerald-100' :
-                        row.stage === 'Inactive' ? 'bg-stone-100/90 text-stone-600 border-stone-200/80' :
-                        'bg-amber-50/80 text-amber-700 border-amber-200/80'
-                      }`}>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-extrabold border shadow-xs ${row.stage === 'Active' ? 'bg-emerald-50/80 text-emerald-600 border-emerald-100' :
+                          row.stage === 'Inactive' ? 'bg-stone-100/90 text-stone-600 border-stone-200/80' :
+                            'bg-amber-50/80 text-amber-700 border-amber-200/80'
+                        }`}>
                         {row.stage || 'Active'}
                       </span>
                     </td>
@@ -490,8 +496,14 @@ export default function ChargePointsList() {
                       <span className="text-stone-600 text-[13px] font-medium font-mono">{row.qrCodeId || 'N/A'}</span>
                     </td>
 
-                    <td className="px-4 py-4 text-center whitespace-nowrap">
-                      <span className="text-sky-600 font-extrabold text-[13px] hover:text-sky-700 cursor-pointer">{row.tariffProfiles || 'Standard'}</span>
+                    <td className="px-4 py-4 text-center whitespace-nowrap" onClick={(e) => {
+                      e.stopPropagation();
+                      const tariffName = row.tariffProfiles || 'DLF Park Place DC';
+                      navigate(`/tariffs?search=${encodeURIComponent(tariffName)}`);
+                    }}>
+                      <span className="text-sky-600 font-extrabold text-[13px] hover:underline hover:text-sky-700 cursor-pointer">
+                        {row.tariffProfiles || 'DLF Park Place DC'}
+                      </span>
                     </td>
 
                     <td className="px-4 py-4 text-center whitespace-nowrap">

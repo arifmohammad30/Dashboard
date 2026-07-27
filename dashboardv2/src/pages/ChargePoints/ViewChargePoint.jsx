@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
   Edit,
@@ -47,11 +47,19 @@ export default function ViewChargePoint() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const initialData = location.state?.chargePoint;
+
+  const validTabs = ['stats', 'connectors', 'logs', 'transactions', 'config', 'control', 'tariffs'];
+  const tabFromUrl = searchParams.get('tab');
+  const activeTab = validTabs.includes(tabFromUrl) ? tabFromUrl : 'stats';
+
+  const handleTabChange = (tabId) => {
+    setSearchParams({ tab: tabId }, { replace: true });
+  };
 
   const [chargePoint, setChargePoint] = useState(initialData);
   const [loading, setLoading] = useState(!initialData && Boolean(id));
-  const [activeTab, setActiveTab] = useState('control');
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   const [firmwareUrl, setFirmwareUrl] = useState('');
@@ -74,8 +82,12 @@ export default function ViewChargePoint() {
   const [dataPayload, setDataPayload] = useState('');
 
   const [actionFeedback, setActionFeedback] = useState(null);
-  const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [openDropdownIds, setOpenDropdownIds] = useState({});
   const [connectorStatusMap, setConnectorStatusMap] = useState({});
+
+  const toggleRowDropdown = (id) => {
+    setOpenDropdownIds(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   const handleControlAction = (msg) => {
     setActionFeedback(msg);
@@ -284,7 +296,7 @@ export default function ViewChargePoint() {
             return (
               <button
                 key={t.id}
-                onClick={() => setActiveTab(t.id)}
+                onClick={() => handleTabChange(t.id)}
                 className={`flex items-center gap-2.5 px-5 py-3.5 text-sm font-black transition-all duration-300 border-b-2 whitespace-nowrap cursor-pointer rounded-t-2xl relative ${
                   isActive
                     ? `${t.activeBorder} ${t.activeText} bg-white/95 shadow-[0_-4px_12px_rgba(0,0,0,0.02)]`
@@ -340,119 +352,127 @@ export default function ViewChargePoint() {
                   </tr>
                 </thead>
                 <tbody>
-                  {connectorRows.map((conn) => (
-                    <tr
-                      key={conn.id}
-                      className="group bg-white/40 hover:bg-white/80 border border-white/30 transition duration-200 rounded-2xl"
-                    >
-                      <td className="px-4 py-4 rounded-l-2xl whitespace-nowrap relative">
-                        <div className="flex items-center gap-2">
-                          <div className="relative">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setOpenDropdownId(openDropdownId === conn.id ? null : conn.id);
-                              }}
-                              className={`p-1.5 rounded-lg transition-all duration-200 cursor-pointer ${
-                                openDropdownId === conn.id
-                                  ? 'bg-sky-500 text-white shadow-xs'
-                                  : 'text-stone-600 hover:text-slate-900 hover:bg-white/80'
-                              }`}
-                              title="Connector Actions"
-                            >
-                              <ChevronDown strokeWidth={2.5} className={`w-4 h-4 transition-transform duration-200 ${openDropdownId === conn.id ? 'rotate-180' : ''}`} />
-                            </button>
-
-                            {openDropdownId === conn.id && (
-                              <>
-                                <div className="fixed inset-0 z-40" onClick={() => setOpenDropdownId(null)} />
-                                <div className="absolute left-0 top-full mt-2 w-60 bg-white backdrop-blur-2xl border border-stone-200 shadow-[0_12px_40px_rgba(0,0,0,0.18)] rounded-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      const newAvail = conn.availability === 'Inoperative' ? 'Operative' : 'Inoperative';
-                                      setConnectorStatusMap(prev => ({ ...prev, [conn.id]: newAvail }));
-                                      setOpenDropdownId(null);
-                                      handleControlAction(`Connector ${conn.id} availability changed to ${newAvail}.`);
-                                    }}
-                                    className="w-full text-left px-4 py-3 text-xs font-black text-stone-700 hover:bg-rose-50 hover:text-rose-600 rounded-xl transition-all duration-150 flex items-center gap-3 cursor-pointer"
-                                  >
-                                    <Power strokeWidth={2.5} className="w-4 h-4 text-rose-500 shrink-0" />
-                                    <span className="whitespace-nowrap">{conn.availability === 'Inoperative' ? 'Change to Operative' : 'Change to Inoperative'}</span>
-                                  </button>
-
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setOpenDropdownId(null);
-                                      handleControlAction(`Connector ${conn.id} status requested successfully.`);
-                                    }}
-                                    className="w-full text-left px-4 py-3 text-xs font-black text-stone-700 hover:bg-sky-50 hover:text-sky-600 rounded-xl transition-all duration-150 flex items-center gap-3 cursor-pointer mt-1"
-                                  >
-                                    <Activity strokeWidth={2.5} className="w-4 h-4 text-sky-500 shrink-0" />
-                                    <span className="whitespace-nowrap">Get connector status</span>
-                                  </button>
-                                </div>
-                              </>
-                            )}
-                          </div>
-
-                          <button className="p-1.5 text-stone-600 hover:text-orange-500 rounded-lg hover:bg-white/80 transition cursor-pointer" title="Edit Connector">
-                            <Edit strokeWidth={2.5} className="w-3.5 h-3.5" />
-                          </button>
-                          <button className="p-1.5 text-stone-600 hover:text-purple-500 rounded-lg hover:bg-white/80 transition cursor-pointer" title="QR View">
-                            <QrCode strokeWidth={2.5} className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <span className="font-bold text-stone-800 text-[13px]">{conn.id}</span>
-                      </td>
-
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold border ${
-                          conn.type === 'CCS2' ? 'bg-sky-50/90 text-sky-700 border-sky-200/80' :
-                          conn.type === 'Type2' ? 'bg-purple-50/90 text-purple-700 border-purple-200/80' :
-                          'bg-amber-50/90 text-amber-700 border-amber-200/80'
+                  {connectorRows.map((conn) => {
+                    const isExpanded = Boolean(openDropdownIds[conn.id]);
+                    return (
+                      <React.Fragment key={conn.id}>
+                        <tr className={`group border transition-all duration-200 rounded-2xl ${
+                          isExpanded 
+                            ? 'bg-sky-50/40 border-sky-200/80 shadow-xs' 
+                            : 'bg-white/40 hover:bg-white/80 border-white/30'
                         }`}>
-                          {conn.type}
-                        </span>
-                      </td>
+                          <td className="px-4 py-4 rounded-l-2xl whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleRowDropdown(conn.id);
+                                }}
+                                className={`p-1.5 rounded-lg transition-all duration-200 cursor-pointer ${
+                                  isExpanded
+                                    ? 'bg-sky-500 text-white shadow-xs'
+                                    : 'text-stone-600 hover:text-slate-900 hover:bg-white/80'
+                                }`}
+                                title="Connector Actions"
+                              >
+                                <ChevronDown strokeWidth={2.5} className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                              </button>
 
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <span className="font-mono text-stone-600 text-[13px] font-medium">{conn.qrCode}</span>
-                      </td>
+                              <button className="p-1.5 text-stone-600 hover:text-orange-500 rounded-lg hover:bg-white/80 transition cursor-pointer" title="Edit Connector">
+                                <Edit strokeWidth={2.5} className="w-3.5 h-3.5" />
+                              </button>
+                              <button className="p-1.5 text-stone-600 hover:text-purple-500 rounded-lg hover:bg-white/80 transition cursor-pointer" title="QR View">
+                                <QrCode strokeWidth={2.5} className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
 
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold border ${
-                          conn.availability === 'Inoperative'
-                            ? 'bg-rose-50 text-rose-600 border-rose-200'
-                            : 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                        }`}>
-                          {conn.availability}
-                        </span>
-                      </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <span className="font-bold text-stone-800 text-[13px]">{conn.id}</span>
+                          </td>
 
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-600 border border-rose-200">
-                          {conn.status}
-                        </span>
-                      </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold border ${
+                              conn.type === 'CCS2' ? 'bg-sky-50/90 text-sky-700 border-sky-200/80' :
+                              conn.type === 'Type2' ? 'bg-purple-50/90 text-purple-700 border-purple-200/80' :
+                              'bg-amber-50/90 text-amber-700 border-amber-200/80'
+                            }`}>
+                              {conn.type}
+                            </span>
+                          </td>
 
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold bg-stone-100 text-stone-500 border border-stone-200">
-                          {conn.error}
-                        </span>
-                      </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <span className="font-mono text-stone-600 text-[13px] font-medium">{conn.qrCode}</span>
+                          </td>
 
-                      <td className="px-4 py-4 rounded-r-2xl whitespace-nowrap">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold bg-stone-100 text-stone-500 border border-stone-200">
-                          {conn.vendorError}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold border ${
+                              conn.availability === 'Inoperative'
+                                ? 'bg-rose-50 text-rose-600 border-rose-200'
+                                : 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                            }`}>
+                              {conn.availability}
+                            </span>
+                          </td>
+
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-600 border border-rose-200">
+                              {conn.status}
+                            </span>
+                          </td>
+
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold bg-stone-100 text-stone-500 border border-stone-200">
+                              {conn.error}
+                            </span>
+                          </td>
+
+                          <td className="px-4 py-4 rounded-r-2xl whitespace-nowrap">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold bg-stone-100 text-stone-500 border border-stone-200">
+                              {conn.vendorError}
+                            </span>
+                          </td>
+                        </tr>
+
+                        {/* Expanded Action Buttons Row */}
+                        {isExpanded && (
+                          <tr className="animate-in fade-in slide-in-from-top-1 duration-150">
+                            <td colSpan="8" className="px-4 pt-1 pb-3">
+                              <div className="flex items-center gap-3 pl-1">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const newAvail = conn.availability === 'Inoperative' ? 'Operative' : 'Inoperative';
+                                    setConnectorStatusMap(prev => ({ ...prev, [conn.id]: newAvail }));
+                                    handleControlAction(`Connector ${conn.id} availability changed to ${newAvail}.`);
+                                  }}
+                                  className={`px-4 py-2 rounded-xl text-xs font-black shadow-xs transition-all cursor-pointer flex items-center gap-2 active:scale-95 border ${
+                                    conn.availability === 'Inoperative'
+                                      ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200/90 shadow-emerald-500/10'
+                                      : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200/90 shadow-rose-500/10'
+                                  }`}
+                                >
+                                  <Power strokeWidth={2.5} className="w-3.5 h-3.5" />
+                                  <span>{conn.availability === 'Inoperative' ? 'Change to Operative' : 'Change to Inoperative'}</span>
+                                </button>
+
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleControlAction(`Connector ${conn.id} status requested successfully.`);
+                                  }}
+                                  className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white font-black rounded-xl text-xs shadow-md shadow-sky-500/20 transition-all cursor-pointer flex items-center gap-2 active:scale-95"
+                                >
+                                  <Activity strokeWidth={2.5} className="w-3.5 h-3.5" />
+                                  <span>Get Connector Status</span>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
