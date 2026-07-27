@@ -222,7 +222,7 @@ export default function TariffsList() {
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
             All Tariffs
           </h1>
-          <p className="text-sm text-slate-900 mt-1 font-medium ml-1">
+          <p className="text-sm text-stone-500 mt-1 font-medium ml-1">
             Configure, manage, and monitor your charging fee structures & rates.
           </p>
         </div>
@@ -296,16 +296,16 @@ export default function TariffsList() {
         </div>
       </div>
 
-      {/* Main Glass Table Container */}
-      <div className="bg-white/40 backdrop-blur-2xl border border-white/80 shadow-[0_16px_50px_rgba(0,0,0,0.06),0_1px_2px_rgba(255,255,255,0.9)_inset] rounded-[32px] overflow-hidden flex flex-col min-h-[500px]">
+      {/* Main Enterprise Table Container */}
+      <div className="bg-[#F6F8FB] border border-stone-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col min-h-[500px]">
         {/* Top Info & Search Bar */}
-        <div className="px-6 pt-4 pb-2 flex flex-col sm:flex-row items-center justify-between gap-6 bg-white/30 backdrop-blur-xl border-b border-white/60">
-          <div className="flex items-center gap-2 text-sm text-stone-600 font-medium px-4 py-2 rounded-lg bg-white/60 backdrop-blur-md border border-white/80 shadow-xs">
-            <span className="font-extrabold text-sky-600 text-base">{totalRecords}</span> total tariffs
+        <div className="px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white border-b border-stone-200/80">
+          <div className="flex items-center gap-2 text-xs text-stone-600 font-bold px-3 py-1.5 rounded-lg bg-[#F8FAFC] border border-stone-200/80 shadow-2xs">
+            <span className="font-extrabold text-stone-900 text-sm">{totalRecords}</span> total tariffs
           </div>
 
           <div className="relative w-full sm:w-[400px] group">
-            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-stone-400 group-focus-within:text-sky-500 transition-colors z-10">
+            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-stone-400 group-focus-within:text-stone-900 transition-colors z-10">
               <Search className="w-5 h-5" />
             </div>
 
@@ -314,7 +314,7 @@ export default function TariffsList() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search tariffs by name..."
-              className="w-full pl-14 pr-5 py-3.5 bg-white/40 backdrop-blur-xl border border-white/80 shadow-xs focus:shadow-[0_0_25px_rgba(255,255,255,0.9)] focus:border-white focus:bg-white/70 rounded-2xl text-sm focus:outline-none text-stone-800 placeholder:text-stone-400 transition-all duration-300"
+              className="w-full pl-14 pr-5 py-2.5 bg-white border border-stone-200/90 shadow-2xs focus:border-stone-900 focus:ring-1 focus:ring-stone-900/10 rounded-2xl text-xs font-medium focus:outline-none text-stone-800 placeholder:text-stone-400 transition-colors duration-150"
             />
           </div>
         </div>
@@ -322,90 +322,49 @@ export default function TariffsList() {
         {/* Table Section */}
         <div className="overflow-x-auto flex-1 px-1.5 sm:px-2 pb-6 pt-0">
           <table className="w-full text-left text-sm border-separate border-spacing-y-1">
-            <thead>
-              <tr className="bg-white/30 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.02)] border-b border-white/40">
-                <th className="px-4 py-4 text-center font-black text-stone-600 text-[12px] uppercase tracking-wider rounded-l-2xl whitespace-nowrap">
-                  <div className="flex items-center justify-center gap-2">
-                    <Settings2 strokeWidth={2.5} className="w-4 h-4 text-stone-400" /> Actions
-                  </div>
+            <thead className="sticky top-0 z-20 shadow-2xs">
+              <tr className="bg-[#F8FAFC] border-b border-stone-200/90">
+                <th className="px-4 py-2.5 text-center font-bold text-stone-600 text-[11px] uppercase tracking-wider rounded-l-xl whitespace-nowrap">
+                  <div className="flex items-center justify-center gap-1.5"><Settings2 className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Actions</div>
                 </th>
-
-                <th className="px-4 py-4 text-left font-black text-indigo-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <Tag strokeWidth={2.5} className="w-4 h-4 text-indigo-400" /> Name
-                  </div>
+                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                  <div className="flex items-center gap-1.5"><Tag className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Name</div>
                 </th>
-
-                <th className="px-4 py-4 text-left font-black text-stone-700 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <Layers strokeWidth={2.5} className="w-4 h-4 text-stone-400" /> Type
-                  </div>
+                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                  <div className="flex items-center gap-1.5"><Layers className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Type</div>
                 </th>
-
-                <th className="px-4 py-4 text-left font-black text-slate-800 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <CreditCard strokeWidth={2.5} className="w-4 h-4 text-slate-500" /> Costing Type
-                  </div>
+                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                  <div className="flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Costing Type</div>
                 </th>
-
-                <th className="px-4 py-4 text-left font-black text-sky-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <Users strokeWidth={2.5} className="w-4 h-4 text-sky-500" /> Applicable To
-                  </div>
+                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                  <div className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Applicable To</div>
                 </th>
-
-                <th className="px-4 py-4 text-left font-black text-amber-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <IndianRupee strokeWidth={2.5} className="w-4 h-4 text-amber-500" /> Charging Fee
-                  </div>
+                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                  <div className="flex items-center gap-1.5"><IndianRupee className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Charging Fee</div>
                 </th>
-
-                <th className="px-4 py-4 text-left font-black text-stone-600 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <Car strokeWidth={2.5} className="w-4 h-4 text-stone-400" /> Parking Fee
-                  </div>
+                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                  <div className="flex items-center gap-1.5"><Car className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Parking Fee</div>
                 </th>
-
-                <th className="px-4 py-4 text-left font-black text-rose-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <Clock strokeWidth={2.5} className="w-4 h-4 text-rose-500" /> Idle Fee
-                  </div>
+                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                  <div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Idle Fee</div>
                 </th>
-
-                <th className="px-4 py-4 text-left font-black text-purple-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <Gauge strokeWidth={2.5} className="w-4 h-4 text-purple-400" /> SoC
-                  </div>
+                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                  <div className="flex items-center gap-1.5"><Gauge className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> SoC</div>
                 </th>
-
-                <th className="px-4 py-4 text-left font-black text-emerald-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <Play strokeWidth={2.5} className="w-4 h-4 text-emerald-500" /> Starts At
-                  </div>
+                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                  <div className="flex items-center gap-1.5"><Play className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Starts At</div>
                 </th>
-
-                <th className="px-4 py-4 text-left font-black text-rose-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <Square strokeWidth={2.5} className="w-4 h-4 text-rose-500" /> Ends At
-                  </div>
+                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                  <div className="flex items-center gap-1.5"><Square className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Ends At</div>
                 </th>
-
-                <th className="px-4 py-4 text-left font-black text-blue-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <Layers strokeWidth={2.5} className="w-4 h-4 text-blue-500" /> Weight
-                  </div>
+                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                  <div className="flex items-center gap-1.5"><Layers className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Weight</div>
                 </th>
-
-                <th className="px-4 py-4 text-left font-black text-indigo-950/70 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <Calendar strokeWidth={2.5} className="w-4 h-4 text-indigo-400" /> Created On
-                  </div>
+                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                  <div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Created On</div>
                 </th>
-
-                <th className="px-4 py-4 text-left font-black text-lime-950/70 text-[12px] uppercase tracking-wider rounded-r-2xl whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <Percent strokeWidth={2.5} className="w-4 h-4 text-lime-500" /> GST Percentage
-                  </div>
+                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider rounded-r-xl whitespace-nowrap">
+                  <div className="flex items-center gap-1.5"><Percent className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> GST Percentage</div>
                 </th>
               </tr>
             </thead>
@@ -424,7 +383,7 @@ export default function TariffsList() {
                 <tr>
                   <td colSpan="14" className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <div className="w-12 h-12 rounded-2xl bg-white/40 backdrop-blur-md border border-white/60 flex items-center justify-center text-sky-400 mb-1">
+                      <div className="w-12 h-12 rounded-2xl bg-white/40 border border-white/60 flex items-center justify-center text-sky-400 mb-1">
                         <Search className="w-6 h-6" />
                       </div>
                       <p className="text-sm font-bold text-stone-500">No tariffs found.</p>
@@ -435,94 +394,94 @@ export default function TariffsList() {
                 paginatedTariffs.map((t) => (
                   <tr
                     key={t.id}
-                    className="group bg-white/30 hover:bg-white/60 backdrop-blur-md border border-white/40 hover:border-white/90 shadow-[0_4px_15px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300 rounded-2xl cursor-pointer"
+                    className="group bg-white hover:bg-[#F9FBFF] border border-stone-200/80 hover:border-slate-300 shadow-2xs transition-colors duration-150 rounded-xl cursor-pointer"
                   >
                     {/* Actions Column (Edit Only - Visible on Hover) */}
-                    <td className="px-4 py-4 text-center rounded-l-2xl whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                    <td className="px-4 py-3 text-center rounded-l-xl whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             navigate(`/tariffs/edit/${t.id}`, { state: { tariff: t } });
                           }}
-                          className="p-1.5 text-orange-500 bg-orange-50/80 border border-orange-200/80 hover:bg-orange-500 hover:text-white hover:border-orange-500 rounded-xl shadow-xs hover:shadow-md transition active:scale-95 duration-200 cursor-pointer"
+                          className="p-1.5 text-sky-600 bg-white/70 border border-sky-100 hover:bg-sky-500 hover:text-white rounded-xl shadow-xs hover:shadow-md transition active:scale-95 duration-200 cursor-pointer"
                           title="Edit Tariff"
                         >
-                          <Edit className="w-3.5 h-3.5" />
+                          <Edit className="w-3 h-3" />
                         </button>
                       </div>
                     </td>
 
                     {/* Name (Click to View Tariff Details) */}
-                    <td className="px-4 py-4 text-left whitespace-nowrap" onClick={(e) => {
+                    <td className="px-4 py-3 text-left whitespace-nowrap" onClick={(e) => {
                       e.stopPropagation();
                       setTariffToView(t);
                       setViewModalOpen(true);
                     }}>
-                      <span className="text-sky-600 font-bold text-[13px] hover:underline transition-colors duration-200 cursor-pointer">
+                      <span className="text-sky-600 font-bold text-[13px] hover:underline hover:text-sky-700 transition-colors duration-200 cursor-pointer">
                         {t.name}
                       </span>
                     </td>
 
                     {/* Type */}
-                    <td className="px-4 py-4 text-left whitespace-nowrap">
-                      <span className="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-extrabold bg-stone-100/90 text-stone-600 border border-stone-200/80 shadow-xs">
+                    <td className="px-4 py-3 text-left whitespace-nowrap">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-stone-100 text-stone-600 border border-stone-200/80">
                         {t.type || 'Default'}
                       </span>
                     </td>
 
                     {/* Costing Type */}
-                    <td className="px-4 py-4 text-left whitespace-nowrap">
+                    <td className="px-4 py-3 text-left whitespace-nowrap">
                       <span className="text-stone-700 text-[13px] font-medium">{t.costingType}</span>
                     </td>
 
                     {/* Applicable To */}
-                    <td className="px-4 py-4 text-left whitespace-nowrap">
+                    <td className="px-4 py-3 text-left whitespace-nowrap">
                       <span className="text-stone-700 text-[13px] font-medium">{t.applicableTo || 'All Fleets'}</span>
                     </td>
 
                     {/* Charging Fee */}
-                    <td className="px-4 py-4 text-left whitespace-nowrap">
+                    <td className="px-4 py-3 text-left whitespace-nowrap">
                       <span className="text-stone-800 font-bold text-[13px]">{t.chargingFee}</span>
                     </td>
 
                     {/* Parking Fee */}
-                    <td className="px-4 py-4 text-left whitespace-nowrap">
+                    <td className="px-4 py-3 text-left whitespace-nowrap">
                       <span className="text-stone-500 text-[13px] font-medium">{t.parkingFee}</span>
                     </td>
 
                     {/* Idle Fee */}
-                    <td className="px-4 py-4 text-left whitespace-nowrap">
+                    <td className="px-4 py-3 text-left whitespace-nowrap">
                       <span className="text-stone-700 text-[13px] font-medium">{t.idleFee}</span>
                     </td>
 
                     {/* SoC */}
-                    <td className="px-4 py-4 text-left whitespace-nowrap">
+                    <td className="px-4 py-3 text-left whitespace-nowrap">
                       <span className="text-stone-500 text-[13px] font-medium">{t.soc}</span>
                     </td>
 
                     {/* Starts At */}
-                    <td className="px-4 py-4 text-left whitespace-nowrap">
+                    <td className="px-4 py-3 text-left whitespace-nowrap">
                       <span className="text-stone-700 text-[13px] font-medium">{t.startsAt}</span>
                     </td>
 
                     {/* Ends At */}
-                    <td className="px-4 py-4 text-left whitespace-nowrap">
+                    <td className="px-4 py-3 text-left whitespace-nowrap">
                       <span className="text-stone-700 text-[13px] font-medium">{t.endsAt}</span>
                     </td>
 
                     {/* Weight */}
-                    <td className="px-4 py-4 text-left whitespace-nowrap">
+                    <td className="px-4 py-3 text-left whitespace-nowrap">
                       <span className="text-stone-800 font-bold text-[13px]">{t.weight}</span>
                     </td>
 
                     {/* Created on */}
-                    <td className="px-4 py-4 text-left whitespace-nowrap">
+                    <td className="px-4 py-3 text-left whitespace-nowrap">
                       <span className="text-stone-500 font-medium text-[12px]">{t.createdOn}</span>
                     </td>
 
                     {/* GST Percentage */}
-                    <td className="px-4 py-4 text-left rounded-r-2xl whitespace-nowrap">
+                    <td className="px-4 py-3 text-left rounded-r-xl whitespace-nowrap">
                       <span className="text-stone-800 font-bold text-[13px]">{t.gstPercentage}</span>
                     </td>
                   </tr>

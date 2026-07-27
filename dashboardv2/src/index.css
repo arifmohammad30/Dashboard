@@ -44,43 +44,41 @@ body {
 
   .neo-outset-30 {
     background-color: var(--neo-bg-30);
-    box-shadow: 12px 12px 24px var(--shadow-dark), -12px -12px 24px var(--shadow-light);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.4);
-    transition: all 0.3s ease;
-    will-change: transform, box-shadow;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     transform: translateZ(0);
   }
 
 
   .neo-outset-30-static {
     background-color: var(--neo-bg-30);
-    box-shadow: 12px 12px 24px var(--shadow-dark), -12px -12px 24px var(--shadow-light);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.4);
   }
 
   .neo-inset-30 {
     background-color: var(--neo-bg-30);
-    box-shadow: inset 5px 5px 10px var(--shadow-dark), inset -5px -5px 10px var(--shadow-light);
-    transition: all 0.3s ease;
+    box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
   }
 
   .neo-search-input {
     background-color: var(--neo-bg-10);
-    box-shadow: inset 5px 5px 10px rgba(120, 113, 108, 0.15), inset -5px -5px 10px var(--shadow-light);
-    transition: all 0.3s ease;
+    box-shadow: inset 3px 3px 6px rgba(120, 113, 108, 0.12), inset -3px -3px 6px var(--shadow-light);
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     outline: none;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    will-change: box-shadow;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     transform: translateZ(0);
   }
 
   .neo-search-input:focus {
-    box-shadow: inset 5px 5px 10px rgba(20, 184, 166, 0.25), inset -5px -5px 10px var(--shadow-light);
+    box-shadow: inset 3px 3px 6px rgba(20, 184, 166, 0.2), inset -3px -3px 6px var(--shadow-light);
   }
 
   .neo-search-input:-webkit-autofill,
@@ -89,22 +87,22 @@ body {
   .neo-search-input:-webkit-autofill:active {
     transition: background-color 5000s ease-in-out 0s !important;
     -webkit-text-fill-color: #292524 !important;
-    -webkit-box-shadow: inset 5px 5px 10px rgba(20, 184, 166, 0.25), inset -5px -5px 10px var(--shadow-light) !important;
+    -webkit-box-shadow: inset 3px 3px 6px rgba(20, 184, 166, 0.2), inset -3px -3px 6px var(--shadow-light) !important;
   }
 
   .neo-form-input {
     background-color: var(--neo-bg-10);
-    box-shadow: inset 5px 5px 10px rgba(120, 113, 108, 0.15), inset -5px -5px 10px var(--shadow-light);
-    transition: all 0.3s ease;
+    box-shadow: inset 3px 3px 6px rgba(120, 113, 108, 0.12), inset -3px -3px 6px var(--shadow-light);
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     outline: none;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
   .neo-form-input:focus,
   input.neo-form-input:not(:placeholder-shown),
   select.neo-form-input.has-value {
-    box-shadow: inset 5px 5px 10px rgba(244, 63, 94, 0.25), inset -5px -5px 10px var(--shadow-light);
+    box-shadow: inset 3px 3px 6px rgba(244, 63, 94, 0.2), inset -3px -3px 6px var(--shadow-light);
   }
 
   .neo-form-input:-webkit-autofill,
@@ -113,20 +111,19 @@ body {
   .neo-form-input:-webkit-autofill:active {
     transition: background-color 5000s ease-in-out 0s !important;
     -webkit-text-fill-color: #292524 !important;
-    -webkit-box-shadow: inset 5px 5px 10px rgba(244, 63, 94, 0.25), inset -5px -5px 10px var(--shadow-light) !important;
+    -webkit-box-shadow: inset 3px 3px 6px rgba(244, 63, 94, 0.2), inset -3px -3px 6px var(--shadow-light) !important;
   }
 
   .neo-form-error {
-    box-shadow: inset 5px 5px 10px rgba(244, 63, 94, 0.25), inset -5px -5px 10px rgba(255, 228, 230, 0.8) !important;
+    box-shadow: inset 3px 3px 6px rgba(244, 63, 94, 0.25), inset -3px -3px 6px rgba(255, 228, 230, 0.8) !important;
   }
 
   .neo-button {
     background-color: var(--neo-bg-30);
-    box-shadow: 0 4px 20px var(--shadow-dark), 0 0 15px var(--shadow-light);
-    transition: box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    will-change: transform, box-shadow;
+    box-shadow: 0 4px 12px var(--shadow-dark);
+    transition: box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     transform: translateZ(0);
     border: 1px solid rgba(255, 255, 255, 0.3);
     outline: none;
