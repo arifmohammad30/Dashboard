@@ -221,17 +221,17 @@ export default function ViewChargePoint() {
               {cp.name}
             </h1>
 
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border shadow-2xs ${
-              cp.status === 'Available' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-              cp.status === 'Charging' ? 'bg-sky-50 text-sky-700 border-sky-200' :
-              cp.status === 'Preparing' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-              'bg-rose-50 text-rose-700 border-rose-200'
+            <span className={`inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-medium border shadow-2xs ${
+              cp.status === 'Available' ? 'bg-emerald-50/90 text-emerald-800 border-emerald-200/60' :
+              cp.status === 'Charging' ? 'bg-blue-50/90 text-blue-700 border-blue-200/60' :
+              cp.status === 'Preparing' ? 'bg-amber-50/90 text-amber-800 border-amber-200/60' :
+              'bg-red-50/90 text-red-700 border-red-200/60'
             }`}>
-              <span className={`w-2 h-2 rounded-full mr-2 ${
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
                 cp.status === 'Available' ? 'bg-emerald-500' :
-                cp.status === 'Charging' ? 'bg-sky-500 animate-pulse' :
+                cp.status === 'Charging' ? 'bg-blue-500 animate-pulse' :
                 cp.status === 'Preparing' ? 'bg-amber-500' :
-                'bg-rose-500'
+                'bg-red-500'
               }`} />
               {cp.status || 'Available'}
             </span>
@@ -265,8 +265,8 @@ export default function ViewChargePoint() {
         </div>
       </div>
 
-      <div className="bg-white/70 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] rounded-[32px] overflow-hidden flex flex-col flex-1 min-h-0">
-        <div className="shrink-0 px-6 pt-3 pb-0 bg-[#F8FAFC] border-b border-stone-200/80 overflow-x-auto flex items-center gap-2.5 z-10">
+      <div className="bg-white/80 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] rounded-2xl overflow-hidden flex flex-col flex-1 min-h-0">
+        <div className="shrink-0 px-5 pt-2 pb-0 bg-[#F8FAFC] border-b border-stone-200/80 overflow-x-auto flex items-center gap-1.5 z-10">
           {tabs.map((t) => {
             const Icon = t.icon;
             const isActive = activeTab === t.id;
@@ -274,18 +274,18 @@ export default function ViewChargePoint() {
               <button
                 key={t.id}
                 onClick={() => handleTabChange(t.id)}
-                className={`flex items-center gap-3 px-5 py-3.5 text-sm font-bold transition-all duration-200 border-b-2 rounded-t-xl whitespace-nowrap cursor-pointer select-none relative -mb-[1px] ${
+                className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold tracking-tight transition-all duration-150 border-b-2 rounded-t-xl whitespace-nowrap cursor-pointer select-none relative -mb-[1px] ${
                   isActive
-                    ? 'border-b-2 border-b-orange-500 text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-xs font-extrabold'
-                    : 'border-transparent text-stone-500 hover:text-stone-800 hover:bg-stone-100/60'
+                    ? 'border-orange-500 text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-2xs font-bold'
+                    : 'border-transparent text-stone-500 hover:text-stone-900 hover:bg-stone-100/60 font-medium'
                 }`}
               >
-                <Icon strokeWidth={2.25} className={`w-4.5 h-4.5 transition-transform ${
+                <Icon strokeWidth={2.25} className={`w-4 h-4 transition-transform ${
                   isActive ? 'text-orange-500 scale-105' : 'text-stone-400'
                 }`} />
-                <span className="font-bold text-sm tracking-tight">{t.label}</span>
+                <span>{t.label}</span>
                 {t.count !== undefined && (
-                  <span className={`px-2.5 py-0.5 text-xs font-mono font-bold rounded-md transition-colors ${
+                  <span className={`px-2 py-0.5 text-[11px] font-mono font-bold rounded transition-colors ${
                     isActive ? 'bg-orange-100/80 text-orange-700 border border-orange-200/60' : 'bg-stone-100 text-stone-600 border border-stone-200/60'
                   }`}>
                     {t.count}
@@ -298,7 +298,7 @@ export default function ViewChargePoint() {
 
         <div className="p-6 sm:p-8 flex-1 overflow-y-auto custom-scrollbar">
           {activeTab === 'connectors' && (
-            <div className="overflow-x-auto pb-36">
+            <div className="overflow-x-auto pb-36 transform-gpu translate-z-0">
               <table className="w-full text-left text-sm border-separate border-spacing-y-1">
                 <thead>
                   <tr className="bg-white/40 shadow-xs">
@@ -321,10 +321,10 @@ export default function ViewChargePoint() {
                       Status
                     </th>
                     <th className="px-4 py-4 font-black text-stone-700 text-[12px] uppercase tracking-wider whitespace-nowrap">
-                      Error
+                      Error Code
                     </th>
                     <th className="px-4 py-4 font-black text-stone-700 text-[12px] uppercase tracking-wider rounded-r-2xl whitespace-nowrap">
-                      Vendor Error
+                      Vendor Error Code
                     </th>
                   </tr>
                 </thead>
@@ -383,22 +383,31 @@ export default function ViewChargePoint() {
                           </td>
 
                           <td className="px-4 py-4 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold border ${
+                            <span className={`inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium border shadow-2xs ${
                               conn.availability === 'Inoperative'
-                                ? 'bg-rose-50 text-rose-700 border-rose-200/80'
-                                : 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
+                                ? 'bg-red-50/90 text-red-700 border-red-200/60'
+                                : 'bg-emerald-50/90 text-emerald-800 border-emerald-200/60'
                             }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                                conn.availability === 'Inoperative' ? 'bg-red-500' : 'bg-emerald-500'
+                              }`} />
                               {conn.availability}
                             </span>
                           </td>
 
                           <td className="px-4 py-4 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold border ${
-                              conn.status === 'Available' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' :
-                              conn.status === 'Charging' ? 'bg-sky-50 text-sky-700 border-sky-200/80' :
-                              conn.status === 'Preparing' ? 'bg-amber-50 text-amber-700 border-amber-200/80' :
-                              'bg-rose-50 text-rose-700 border-rose-200/80'
+                            <span className={`inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium border shadow-2xs ${
+                              conn.status === 'Available' ? 'bg-emerald-50/90 text-emerald-800 border-emerald-200/60' :
+                              conn.status === 'Charging' ? 'bg-blue-50/90 text-blue-700 border-blue-200/60' :
+                              conn.status === 'Preparing' ? 'bg-amber-50/90 text-amber-800 border-amber-200/60' :
+                              'bg-red-50/90 text-red-700 border-red-200/60'
                             }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                                conn.status === 'Available' ? 'bg-emerald-500' :
+                                conn.status === 'Charging' ? 'bg-blue-500 animate-pulse' :
+                                conn.status === 'Preparing' ? 'bg-amber-500' :
+                                'bg-red-500'
+                              }`} />
                               {conn.status}
                             </span>
                           </td>
@@ -416,7 +425,6 @@ export default function ViewChargePoint() {
                           </td>
                         </tr>
 
-                        {/* Expanded Action Buttons Row */}
                         {isExpanded && (
                           <tr className="animate-in fade-in slide-in-from-top-1 duration-150">
                             <td colSpan="8" className="px-4 pt-1 pb-3">
@@ -481,11 +489,11 @@ export default function ViewChargePoint() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-white/50 border border-white/70 p-6 rounded-2xl shadow-xs">
                 <div className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">Total Energy Delivered</div>
-                <div className="text-3xl font-extrabold text-slate-900">{cp.energyDelivered || 42.44} <span className="text-sm text-stone-500">kWh</span></div>
+                <div className="text-3xl font-extrabold text-emerald-600">{cp.energyDelivered || 42.44} kWh</div>
               </div>
               <div className="bg-white/50 border border-white/70 p-6 rounded-2xl shadow-xs">
-                <div className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">Revenue Generated</div>
-                <div className="text-3xl font-extrabold text-emerald-600">₹{(cp.revenueGenerated || 579.95).toLocaleString()}</div>
+                <div className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">Total Revenue Generated</div>
+                <div className="text-3xl font-extrabold text-amber-600">₹{cp.revenueGenerated || 579.95}</div>
               </div>
               <div className="bg-white/50 border border-white/70 p-6 rounded-2xl shadow-xs">
                 <div className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">Total Charging Sessions</div>
@@ -525,187 +533,178 @@ export default function ViewChargePoint() {
           )}
 
           {activeTab === 'control' && (
-            <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs hover:border-stone-300 transition-all flex flex-col justify-between">
+                <div>
+                  <h3 className="text-sm font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+                    <RotateCcw className="w-4 h-4 text-orange-500" /> Reset Charge Point
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      onClick={() => handleControlAction('Soft Reset command sent to charge point.')}
+                      className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 font-bold rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer shadow-2xs"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-stone-600" /> Soft Reset
+                    </button>
+                    <button
+                      onClick={() => handleControlAction('Hard Reset command sent to charge point.')}
+                      className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs flex items-center gap-2 shadow-2xs transition-all cursor-pointer"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" /> Hard Reset
+                    </button>
+                  </div>
+                </div>
+              </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] rounded-[24px] p-6 flex flex-col justify-between hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300">
+              <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs hover:border-stone-300 transition-all flex flex-col justify-between">
+                <div className="space-y-3">
+                  <h3 className="text-sm font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+                    <Cpu className="w-4 h-4 text-sky-500" /> Update Charge Point firmware
+                  </h3>
                   <div>
-                    <h3 className="text-base font-extrabold text-stone-800 mb-5 flex items-center gap-2.5">
-                      <RefreshCw className="w-4 h-4 text-orange-500" /> Reset Charge Point
-                    </h3>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <button
-                        onClick={() => handleControlAction('Soft Reset command sent to charge point.')}
-                        className="px-4 py-2.5 bg-white/90 hover:bg-sky-50 text-sky-600 border border-sky-200/80 hover:border-sky-300 font-bold rounded-xl text-xs flex items-center gap-2 shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer"
+                    <label className="text-xs font-bold text-stone-600 mb-1.5 block">Firmware URL <span className="text-rose-500">*</span></label>
+                    <input
+                      type="text"
+                      placeholder="Paste firmware URL"
+                      value={firmwareUrl}
+                      onChange={(e) => setFirmwareUrl(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-medium focus:bg-white focus:border-slate-800 focus:outline-none transition-all shadow-2xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-stone-600 mb-1.5 block">Scheduled date of firmware update</label>
+                    <input
+                      type="date"
+                      value={firmwareDate}
+                      onChange={(e) => setFirmwareDate(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-medium focus:bg-white focus:border-slate-800 focus:outline-none transition-all shadow-2xs"
+                    />
+                  </div>
+                </div>
+                <div className="pt-4">
+                  <button
+                    onClick={() => handleControlAction('Firmware update scheduled successfully.')}
+                    className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow-2xs transition-all cursor-pointer flex items-center gap-2"
+                  >
+                    <Send className="w-3.5 h-3.5" /> Update
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs hover:border-stone-300 transition-all flex flex-col justify-between">
+                <div className="space-y-3">
+                  <h3 className="text-sm font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+                    <KeyRound className="w-4 h-4 text-purple-500" /> Charge Point local ID Tag list management
+                  </h3>
+                  <div>
+                    <label className="text-xs font-bold text-stone-600 mb-1.5 block">Update type <span className="text-rose-500">*</span></label>
+                    <div className="relative">
+                      <select
+                        value={localTagUpdateType}
+                        onChange={(e) => setLocalTagUpdateType(e.target.value)}
+                        className="w-full px-3.5 pr-8 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-bold focus:bg-white focus:border-slate-800 focus:outline-none appearance-none transition-all cursor-pointer"
                       >
-                        <RotateCcw className="w-3.5 h-3.5 text-sky-500" /> Soft Reset
-                      </button>
-                      <button
-                        onClick={() => handleControlAction('Hard Reset command sent to charge point.')}
-                        className="px-4 py-2.5 bg-white/90 hover:bg-sky-50 text-sky-600 border border-sky-200/80 hover:border-sky-300 font-bold rounded-xl text-xs flex items-center gap-2 shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer"
+                        <option value="">Select an Update Type</option>
+                        <option value="Differential">Differential</option>
+                        <option value="Full">Full</option>
+                      </select>
+                      <ChevronDown strokeWidth={2.5} className="w-3.5 h-3.5 text-stone-500 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-stone-600 mb-1.5 block">ID Tags</label>
+                    <div className="relative">
+                      <select
+                        value={localTagIdTags}
+                        onChange={(e) => setLocalTagIdTags(e.target.value)}
+                        className="w-full px-3.5 pr-8 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-bold focus:bg-white focus:border-slate-800 focus:outline-none appearance-none transition-all cursor-pointer"
                       >
-                        <RotateCcw className="w-3.5 h-3.5 text-sky-500" /> Hard Reset
-                      </button>
+                        <option value="">Select ID Tags</option>
+                        <option value="TAG-001">TAG-001 (VIP Access)</option>
+                        <option value="TAG-002">TAG-002 (Fleet Access)</option>
+                        <option value="TAG-003">TAG-003 (Operator Key)</option>
+                      </select>
+                      <ChevronDown strokeWidth={2.5} className="w-3.5 h-3.5 text-stone-500 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" />
                     </div>
                   </div>
                 </div>
+                <div className="pt-4">
+                  <button
+                    onClick={() => handleControlAction('Local ID Tag list update message sent.')}
+                    className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow-2xs transition-all cursor-pointer flex items-center gap-2"
+                  >
+                    <Send className="w-3.5 h-3.5" /> Update
+                  </button>
+                </div>
+              </div>
 
-                <div className="bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] rounded-[24px] p-6 flex flex-col justify-between hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300">
-                  <div className="space-y-4">
-                    <h3 className="text-base font-extrabold text-stone-800 flex items-center gap-2.5">
-                      <Cpu className="w-4 h-4 text-sky-500" /> Update Charge Point firmware
-                    </h3>
-                    <div>
-                      <label className="text-xs font-bold text-stone-600 mb-1.5 block">
-                        Firmware URL <span className="text-rose-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Paste firmware URL"
-                        value={firmwareUrl}
-                        onChange={(e) => setFirmwareUrl(e.target.value)}
-                        className="w-full px-4 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-medium text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white transition-all shadow-xs"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-stone-600 mb-1.5 block">Scheduled date of firmware update</label>
-                      <input
-                        type="date"
-                        value={firmwareDate}
-                        onChange={(e) => setFirmwareDate(e.target.value)}
-                        className="w-full px-4 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white transition-all shadow-xs"
-                      />
+              <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs hover:border-stone-300 transition-all flex flex-col justify-between">
+                <div className="space-y-3">
+                  <h3 className="text-sm font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-amber-500" /> Send trigger message to Charge Point
+                  </h3>
+                  <div>
+                    <label className="text-xs font-bold text-stone-600 mb-1.5 block">Trigger message <span className="text-rose-500">*</span></label>
+                    <div className="relative">
+                      <select
+                        value={triggerMessage}
+                        onChange={(e) => setTriggerMessage(e.target.value)}
+                        className="w-full px-3.5 pr-8 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-bold focus:bg-white focus:border-slate-800 focus:outline-none appearance-none transition-all cursor-pointer"
+                      >
+                        <option value="">Select a trigger message</option>
+                        <option value="BootNotification">BootNotification</option>
+                        <option value="DiagnosticsStatusNotification">DiagnosticsStatusNotification</option>
+                        <option value="FirmwareStatusNotification">FirmwareStatusNotification</option>
+                        <option value="Heartbeat">Heartbeat</option>
+                        <option value="MeterValues">MeterValues</option>
+                        <option value="StatusNotification">StatusNotification</option>
+                      </select>
+                      <ChevronDown strokeWidth={2.5} className="w-3.5 h-3.5 text-stone-500 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" />
                     </div>
                   </div>
-                  <div className="mt-6">
-                    <button
-                      onClick={() => handleControlAction('Firmware update scheduled successfully.')}
-                      className="px-6 py-2.5 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl text-xs shadow-md shadow-sky-500/20 active:scale-95 transition-all duration-200 cursor-pointer flex items-center gap-2"
-                    >
-                      <Send className="w-3.5 h-3.5" /> Update
-                    </button>
+                  <div>
+                    <label className="text-xs font-bold text-stone-600 mb-1.5 block">Connector Id <span className="text-rose-500">*</span></label>
+                    <div className="relative">
+                      <select
+                        value={triggerConnectorId}
+                        onChange={(e) => setTriggerConnectorId(e.target.value)}
+                        className="w-full px-3.5 pr-8 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-bold focus:bg-white focus:border-slate-800 focus:outline-none appearance-none transition-all cursor-pointer"
+                      >
+                        <option value="All">All</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                      </select>
+                      <ChevronDown strokeWidth={2.5} className="w-3.5 h-3.5 text-stone-500 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" />
+                    </div>
                   </div>
                 </div>
-
-                <div className="bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] rounded-[24px] p-6 flex flex-col justify-between hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300">
-                  <div className="space-y-4">
-                    <h3 className="text-base font-extrabold text-stone-800 flex items-center gap-2.5">
-                      <KeyRound className="w-4 h-4 text-purple-500" /> Charge Point local ID Tag list management
-                    </h3>
-                    <div>
-                      <label className="text-xs font-bold text-stone-600 mb-1.5 block">
-                        Update type <span className="text-rose-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <select
-                          value={localTagUpdateType}
-                          onChange={(e) => setLocalTagUpdateType(e.target.value)}
-                          className="w-full px-4 pr-10 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-bold text-stone-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white appearance-none transition-all shadow-xs cursor-pointer"
-                        >
-                          <option value="">Select an Update Type</option>
-                          <option value="Differential">Differential</option>
-                          <option value="Full">Full</option>
-                        </select>
-                        <ChevronDown strokeWidth={2.5} className="w-4 h-4 text-stone-500 pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-stone-600 mb-1.5 block">ID Tags</label>
-                      <div className="relative">
-                        <select
-                          value={localTagIdTags}
-                          onChange={(e) => setLocalTagIdTags(e.target.value)}
-                          className="w-full px-4 pr-10 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-bold text-stone-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white appearance-none transition-all shadow-xs cursor-pointer"
-                        >
-                          <option value="">Select ID Tags</option>
-                          <option value="TAG-001">TAG-001 (VIP Access)</option>
-                          <option value="TAG-002">TAG-002 (Fleet Access)</option>
-                          <option value="TAG-003">TAG-003 (Operator Key)</option>
-                        </select>
-                        <ChevronDown strokeWidth={2.5} className="w-4 h-4 text-stone-500 pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2" />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-6">
-                    <button
-                      onClick={() => handleControlAction('Local ID Tag list update message sent.')}
-                      className="px-6 py-2.5 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl text-xs shadow-md shadow-sky-500/20 active:scale-95 transition-all duration-200 cursor-pointer flex items-center gap-2"
-                    >
-                      <Send className="w-3.5 h-3.5" /> Update
-                    </button>
-                  </div>
+                <div className="pt-4">
+                  <button
+                    onClick={() => handleControlAction('Trigger message sent successfully.')}
+                    className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow-2xs transition-all cursor-pointer flex items-center gap-2"
+                  >
+                    <Send className="w-3.5 h-3.5" /> Send
+                  </button>
                 </div>
+              </div>
 
-                <div className="bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] rounded-[24px] p-6 flex flex-col justify-between hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300">
-                  <div className="space-y-4">
-                    <h3 className="text-base font-extrabold text-stone-800 flex items-center gap-2.5">
-                      <Zap className="w-4 h-4 text-amber-500" /> Send trigger message to Charge Point
-                    </h3>
-                    <div>
-                      <label className="text-xs font-bold text-stone-600 mb-1.5 block">
-                        Trigger message <span className="text-rose-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <select
-                          value={triggerMessage}
-                          onChange={(e) => setTriggerMessage(e.target.value)}
-                          className="w-full px-4 pr-10 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-bold text-stone-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white appearance-none transition-all shadow-xs cursor-pointer"
-                        >
-                          <option value="">Select a trigger message</option>
-                          <option value="BootNotification">BootNotification</option>
-                          <option value="DiagnosticsStatusNotification">DiagnosticsStatusNotification</option>
-                          <option value="FirmwareStatusNotification">FirmwareStatusNotification</option>
-                          <option value="Heartbeat">Heartbeat</option>
-                          <option value="MeterValues">MeterValues</option>
-                          <option value="StatusNotification">StatusNotification</option>
-                        </select>
-                        <ChevronDown strokeWidth={2.5} className="w-4 h-4 text-stone-500 pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-stone-600 mb-1.5 block">
-                        Connector Id <span className="text-rose-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <select
-                          value={triggerConnectorId}
-                          onChange={(e) => setTriggerConnectorId(e.target.value)}
-                          className="w-full px-4 pr-10 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-bold text-stone-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white appearance-none transition-all shadow-xs cursor-pointer"
-                        >
-                          <option value="All">All</option>
-                          <option value="1">1</option>
-                          <option value="2">2</option>
-                          <option value="3">3</option>
-                        </select>
-                        <ChevronDown strokeWidth={2.5} className="w-4 h-4 text-stone-500 pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2" />
-                      </div>
-                    </div>
+              <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs hover:border-stone-300 transition-all flex flex-col justify-between">
+                <div className="space-y-3">
+                  <h3 className="text-sm font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-emerald-500" /> Get Diagnostics Report
+                  </h3>
+                  <div>
+                    <label className="text-xs font-bold text-stone-600 mb-1.5 block">URL to upload the charge Point file</label>
+                    <input
+                      type="text"
+                      placeholder="Enter URL"
+                      value={diagUrl}
+                      onChange={(e) => setDiagUrl(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-medium focus:bg-white focus:border-slate-800 focus:outline-none transition-all shadow-2xs"
+                    />
                   </div>
-                  <div className="mt-6">
-                    <button
-                      onClick={() => handleControlAction('Trigger message sent successfully.')}
-                      className="px-6 py-2.5 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl text-xs shadow-md shadow-sky-500/20 active:scale-95 transition-all duration-200 cursor-pointer flex items-center gap-2"
-                    >
-                      <Send className="w-3.5 h-3.5" /> Send
-                    </button>
-                  </div>
-                </div>
-
-                <div className="bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] rounded-[24px] p-6 flex flex-col justify-between hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300">
-                  <div className="space-y-4">
-                    <h3 className="text-base font-extrabold text-stone-800 flex items-center gap-2.5">
-                      <FileText className="w-4 h-4 text-emerald-500" /> Get Diagnostics Report
-                    </h3>
-                    <div>
-                      <label className="text-xs font-bold text-stone-600 mb-1.5 block">URL to upload the charge Point file</label>
-                      <input
-                        type="text"
-                        placeholder="Enter URL"
-                        value={diagUrl}
-                        onChange={(e) => setDiagUrl(e.target.value)}
-                        className="w-full px-4 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-medium text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white transition-all shadow-xs"
-                      />
-                    </div>
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs font-bold text-stone-600 mb-1.5 block">Number of retries</label>
                       <input
@@ -713,7 +712,7 @@ export default function ViewChargePoint() {
                         placeholder="Number of retries"
                         value={diagRetries}
                         onChange={(e) => setDiagRetries(e.target.value)}
-                        className="w-full px-4 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-medium text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white transition-all shadow-xs"
+                        className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-medium focus:bg-white focus:border-slate-800 focus:outline-none transition-all shadow-2xs"
                       />
                     </div>
                     <div>
@@ -723,16 +722,18 @@ export default function ViewChargePoint() {
                         placeholder="Enter retry interval"
                         value={diagInterval}
                         onChange={(e) => setDiagInterval(e.target.value)}
-                        className="w-full px-4 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-medium text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white transition-all shadow-xs"
+                        className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-medium focus:bg-white focus:border-slate-800 focus:outline-none transition-all shadow-2xs"
                       />
                     </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs font-bold text-stone-600 mb-1.5 block">Start date of diagnostics logs</label>
                       <input
                         type="date"
                         value={diagStartDate}
                         onChange={(e) => setDiagStartDate(e.target.value)}
-                        className="w-full px-4 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white transition-all shadow-xs"
+                        className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-medium focus:bg-white focus:border-slate-800 focus:outline-none transition-all shadow-2xs"
                       />
                     </div>
                     <div>
@@ -741,81 +742,79 @@ export default function ViewChargePoint() {
                         type="date"
                         value={diagEndDate}
                         onChange={(e) => setDiagEndDate(e.target.value)}
-                        className="w-full px-4 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white transition-all shadow-xs"
+                        className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-medium focus:bg-white focus:border-slate-800 focus:outline-none transition-all shadow-2xs"
                       />
                     </div>
-                  </div>
-                  <div className="mt-6">
-                    <button
-                      onClick={() => handleControlAction('Diagnostics report request initiated.')}
-                      className="px-6 py-2.5 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl text-xs shadow-md shadow-sky-500/20 active:scale-95 transition-all duration-200 cursor-pointer flex items-center gap-2"
-                    >
-                      <Send className="w-3.5 h-3.5" /> Send
-                    </button>
                   </div>
                 </div>
-
-                <div className="bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] rounded-[24px] p-6 flex flex-col justify-between hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300">
-                  <div className="space-y-4">
-                    <h3 className="text-base font-extrabold text-stone-800 flex items-center gap-2.5">
-                      <Database className="w-4 h-4 text-indigo-500" /> Send data transfer message to Charge Point
-                    </h3>
-                    <div>
-                      <label className="text-xs font-bold text-stone-600 mb-1.5 block">
-                        Vendor ID <span className="text-rose-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Enter Vendor ID"
-                        value={dataVendorId}
-                        onChange={(e) => setDataVendorId(e.target.value)}
-                        className="w-full px-4 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-medium text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white transition-all shadow-xs"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-stone-600 mb-1.5 block">Message ID</label>
-                      <input
-                        type="text"
-                        placeholder="Enter Message ID"
-                        value={dataMessageId}
-                        onChange={(e) => setDataMessageId(e.target.value)}
-                        className="w-full px-4 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-medium text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white transition-all shadow-xs"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-stone-600 mb-1.5 block">Data</label>
-                      <textarea
-                        rows={3}
-                        placeholder="Enter Data"
-                        value={dataPayload}
-                        onChange={(e) => setDataPayload(e.target.value)}
-                        className="w-full px-4 py-3 bg-white/80 border border-stone-200/80 rounded-xl text-sm font-medium text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white transition-all shadow-xs"
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-6">
-                    <button
-                      onClick={() => handleControlAction('Data transfer message sent.')}
-                      className="px-6 py-2.5 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl text-xs shadow-md shadow-sky-500/20 active:scale-95 transition-all duration-200 cursor-pointer flex items-center gap-2"
-                    >
-                      <Send className="w-3.5 h-3.5" /> Send
-                    </button>
-                  </div>
+                <div className="pt-4">
+                  <button
+                    onClick={() => handleControlAction('Diagnostics report request initiated.')}
+                    className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow-2xs transition-all cursor-pointer flex items-center gap-2"
+                  >
+                    <Send className="w-3.5 h-3.5" /> Send
+                  </button>
                 </div>
+              </div>
 
-                <div className="bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] rounded-[24px] p-6 flex flex-col justify-between col-span-1 lg:col-span-2 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300">
+              <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs hover:border-stone-300 transition-all flex flex-col justify-between">
+                <div className="space-y-3">
+                  <h3 className="text-sm font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+                    <Database className="w-4 h-4 text-indigo-500" /> Send data transfer message to Charge Point
+                  </h3>
                   <div>
-                    <h3 className="text-base font-extrabold text-stone-800 mb-4 flex items-center gap-2.5">
-                      <Trash2 className="w-4 h-4 text-rose-500" /> Send clear cache message to Charge Point
-                    </h3>
-                    <div>
-                      <button
-                        onClick={() => handleControlAction('Clear cache message sent to charge point.')}
-                        className="px-5 py-2.5 bg-white/90 hover:bg-rose-50 text-sky-600 border border-sky-200/80 hover:border-sky-300 font-bold rounded-xl text-xs shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-2"
-                      >
-                        <RotateCcw className="w-3.5 h-3.5 text-sky-500" /> Clear Cache
-                      </button>
-                    </div>
+                    <label className="text-xs font-bold text-stone-600 mb-1.5 block">Vendor ID <span className="text-rose-500">*</span></label>
+                    <input
+                      type="text"
+                      placeholder="Enter Vendor ID"
+                      value={dataVendorId}
+                      onChange={(e) => setDataVendorId(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-medium focus:bg-white focus:border-slate-800 focus:outline-none transition-all shadow-2xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-stone-600 mb-1.5 block">Message ID</label>
+                    <input
+                      type="text"
+                      placeholder="Enter Message ID"
+                      value={dataMessageId}
+                      onChange={(e) => setDataMessageId(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-medium focus:bg-white focus:border-slate-800 focus:outline-none transition-all shadow-2xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-stone-600 mb-1.5 block">Data</label>
+                    <textarea
+                      rows={2}
+                      placeholder="Enter Data"
+                      value={dataPayload}
+                      onChange={(e) => setDataPayload(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-medium focus:bg-white focus:border-slate-800 focus:outline-none transition-all shadow-2xs"
+                    />
+                  </div>
+                </div>
+                <div className="pt-4">
+                  <button
+                    onClick={() => handleControlAction('Data transfer message sent.')}
+                    className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow-2xs transition-all cursor-pointer flex items-center gap-2"
+                  >
+                    <Send className="w-3.5 h-3.5" /> Send
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs hover:border-stone-300 transition-all flex flex-col justify-between col-span-1 lg:col-span-2">
+                <div>
+                  <h3 className="text-sm font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+                    <Trash2 className="w-4 h-4 text-rose-500" /> Send clear cache message to Charge Point
+                  </h3>
+                  <div>
+                    <button
+                      onClick={() => handleControlAction('Clear cache message sent to charge point.')}
+                      className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs shadow-2xs transition-all cursor-pointer flex items-center gap-2"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" /> Clear Cache
+                    </button>
                   </div>
                 </div>
               </div>

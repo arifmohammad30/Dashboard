@@ -143,9 +143,9 @@ export default function LiveSessionsList() {
         </div>
 
         {/* Table Section */}
-        <div className="overflow-x-auto flex-1 px-1.5 sm:px-2 pb-6 pt-0">
+        <div className="overflow-x-auto flex-1 px-1.5 sm:px-2 pb-6 pt-0 transform-gpu translate-z-0">
           <table className="w-full text-left text-sm border-separate border-spacing-y-1">
-            <thead className="sticky top-0 z-20 shadow-2xs">
+            <thead className="bg-[#F8FAFC] border-b border-stone-200/90 shadow-2xs">
               <tr className="bg-[#F8FAFC] border-b border-stone-200/90">
                 <th className="w-[15%] px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider rounded-l-xl whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><UserIcon className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> User</div>
@@ -229,20 +229,20 @@ export default function LiveSessionsList() {
                     </td>
                     <td className="px-4 py-3">
                       {row.status === 'Ongoing' && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium bg-emerald-50/90 text-emerald-800 border border-emerald-200/60 shadow-2xs">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
                           Ongoing
                         </span>
                       )}
                       {row.status === 'Failed' && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-rose-500/10 text-rose-700 border border-rose-500/20">
-                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                        <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium bg-red-50/90 text-red-700 border border-red-200/60 shadow-2xs">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span>
                           Failed
                         </span>
                       )}
                       {row.status === 'Stopped' && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-amber-500/10 text-amber-800 border border-amber-500/20">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                        <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium bg-stone-100 text-stone-600 border border-stone-200/80 shadow-2xs">
+                          <span className="w-1.5 h-1.5 rounded-full bg-stone-400 shrink-0"></span>
                           Stopped
                         </span>
                       )}

@@ -134,7 +134,7 @@ export default function DashboardLayout({ children }) {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto px-6 md:px-8 py-4">
+        <main className="flex-1 overflow-y-auto px-6 md:px-8 py-4 transform-gpu translate-z-0 custom-scrollbar">
           <div className="w-full max-w-[1380px] mx-auto">
             {children}
           </div>

@@ -323,9 +323,9 @@ export default function TariffsList() {
         </div>
 
         {/* Table Section */}
-        <div className="overflow-x-auto flex-1 px-1.5 sm:px-2 pb-6 pt-0">
+        <div className="overflow-x-auto flex-1 px-1.5 sm:px-2 pb-6 pt-0 transform-gpu translate-z-0">
           <table className="w-full text-left text-sm border-separate border-spacing-y-1">
-            <thead className="sticky top-0 z-20 shadow-2xs">
+            <thead className="bg-[#F8FAFC] border-b border-stone-200/90 shadow-2xs">
               <tr className="bg-[#F8FAFC] border-b border-stone-200/90">
                 <th className="px-4 py-2.5 text-center font-bold text-stone-600 text-[11px] uppercase tracking-wider rounded-l-xl whitespace-nowrap">
                   <div className="flex items-center justify-center gap-1.5"><Settings2 className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Actions</div>

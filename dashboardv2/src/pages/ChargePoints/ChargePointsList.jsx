@@ -329,9 +329,9 @@ export default function ChargePointsList({ stationFilter, hideHeader = false }) 
         </div>
 
         {/* Table Section */}
-        <div className="overflow-x-auto flex-1 px-1.5 sm:px-2 pb-6 pt-0">
+        <div className="overflow-x-auto flex-1 px-1.5 sm:px-2 pb-6 pt-0 transform-gpu translate-z-0">
           <table className="w-full text-left text-sm border-separate border-spacing-y-1">
-            <thead className="sticky top-0 z-20 shadow-2xs">
+            <thead className="bg-[#F8FAFC] border-b border-stone-200/90 shadow-2xs">
               <tr className="bg-[#F8FAFC] border-b border-stone-200/90">
                 <th className="px-4 py-2.5 text-center font-bold text-stone-600 text-[11px] uppercase tracking-wider rounded-l-xl whitespace-nowrap">
                   <div className="flex items-center justify-center gap-1.5"><Settings2 className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Actions</div>
@@ -455,23 +455,23 @@ export default function ChargePointsList({ stationFilter, hideHeader = false }) 
 
                     <td className="px-4 py-3 text-left whitespace-nowrap">
                       {(row.stage === 'Inactive' || row.stage === 'Offline' || row.status === 'Faulted') ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200/80">
-                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                        <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium bg-red-50/90 text-red-700 border border-red-200/60 shadow-2xs">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span>
                           Faulted
                         </span>
                       ) : row.status === 'Charging' ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sky-50 text-sky-700 border border-sky-200/80">
-                          <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
+                        <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium bg-blue-50/90 text-blue-700 border border-blue-200/60 shadow-2xs">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 animate-pulse"></span>
                           Charging
                         </span>
                       ) : row.status === 'Preparing' ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/80">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                        <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium bg-amber-50/90 text-amber-800 border border-amber-200/60 shadow-2xs">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
                           Preparing
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium bg-emerald-50/90 text-emerald-800 border border-emerald-200/60 shadow-2xs">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
                           Available
                         </span>
                       )}
@@ -482,9 +482,9 @@ export default function ChargePointsList({ stationFilter, hideHeader = false }) 
                     </td>
 
                     <td className="px-4 py-3 text-left whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${row.stage === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' :
-                        row.stage === 'Inactive' ? 'bg-slate-100 text-slate-600 border-slate-200/80' :
-                          'bg-amber-50 text-amber-700 border-amber-200/80'
+                      <span className={`inline-flex items-center h-7 px-2.5 rounded-full text-xs font-medium border shadow-2xs ${row.stage === 'Active' ? 'bg-emerald-50/90 text-emerald-800 border-emerald-200/60' :
+                        row.stage === 'Inactive' ? 'bg-stone-100 text-stone-600 border-stone-200/80' :
+                          'bg-amber-50/90 text-amber-800 border-amber-200/60'
                         }`}>
                         {row.stage || 'Active'}
                       </span>

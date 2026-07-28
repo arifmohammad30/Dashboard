@@ -17,7 +17,7 @@ html {
 body {
   background-color: #f8fafc;
   color: #292524;
-  font-family: system-ui, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   transition: background-color 0.5s ease;
 }
 
@@ -95,14 +95,16 @@ body {
     box-shadow: inset 3px 3px 6px rgba(120, 113, 108, 0.12), inset -3px -3px 6px var(--shadow-light);
     transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     outline: none;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
   }
 
-  .neo-form-input:focus,
-  input.neo-form-input:not(:placeholder-shown),
+  .neo-form-input:focus {
+    box-shadow: inset 3px 3px 6px rgba(120, 113, 108, 0.2), inset -3px -3px 6px var(--shadow-light);
+  }
+
+  .neo-form-input.has-value,
+  input.neo-form-input:not([type="time"]):not([type="date"]):not(:placeholder-shown),
   select.neo-form-input.has-value {
-    box-shadow: inset 3px 3px 6px rgba(244, 63, 94, 0.2), inset -3px -3px 6px var(--shadow-light);
+    box-shadow: inset 3px 3px 6px rgba(249, 115, 22, 0.15), inset -3px -3px 6px var(--shadow-light);
   }
 
   .neo-form-input:-webkit-autofill,
@@ -111,7 +113,7 @@ body {
   .neo-form-input:-webkit-autofill:active {
     transition: background-color 5000s ease-in-out 0s !important;
     -webkit-text-fill-color: #292524 !important;
-    -webkit-box-shadow: inset 3px 3px 6px rgba(244, 63, 94, 0.2), inset -3px -3px 6px var(--shadow-light) !important;
+    -webkit-box-shadow: inset 3px 3px 6px rgba(249, 115, 22, 0.15), inset -3px -3px 6px var(--shadow-light) !important;
   }
 
   .neo-form-error {

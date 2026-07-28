@@ -61,18 +61,19 @@ const SocPopoverCell = ({ initialSoc, currentSoc }) => {
           e.stopPropagation();
           setIsOpen(!isOpen);
         }}
-        className="w-7 h-7 rounded-lg bg-stone-100/90 hover:bg-orange-100 hover:text-orange-600 text-stone-600 flex items-center justify-center border border-stone-200/80 cursor-pointer shadow-2xs transition-all duration-150"
-        title="Click to view SoC breakdown"
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-stone-100/90 hover:bg-stone-200/80 text-stone-700 border border-stone-200/80 cursor-pointer shadow-2xs transition-all duration-150"
+        title="Click to view State of Charge details"
       >
-        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-150 ${isOpen ? 'rotate-180 text-orange-500' : ''}`} />
+        <span>View SoC</span>
+        <ChevronDown className={`w-3 h-3 text-stone-400 transition-transform duration-150 ${isOpen ? 'rotate-180 text-stone-800' : ''}`} />
       </button>
 
       {isOpen && (
         <div className="absolute left-0 top-full mt-1.5 z-40 bg-white border border-stone-200 shadow-xl rounded-xl p-2.5 min-w-[160px] text-xs animate-in fade-in zoom-in-95 duration-150 font-sans">
           <div className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5 pb-1 border-b border-stone-100">State of Charge</div>
           <div className="flex flex-col gap-1 text-[11px]">
-            <div className="flex justify-between"><span className="text-stone-500">Initial SoC:</span> <strong className="font-mono text-stone-800">{initialSoc}</strong></div>
-            <div className="flex justify-between"><span className="text-stone-500">Current SoC:</span> <strong className="font-mono text-stone-800">{currentSoc}</strong></div>
+            <div className="flex justify-between"><span className="text-stone-500">Initial SoC:</span> <strong className="font-mono text-stone-800">{initialSoc || '-'}</strong></div>
+            <div className="flex justify-between"><span className="text-stone-500">Current SoC:</span> <strong className="font-mono text-stone-800">{currentSoc || '-'}</strong></div>
           </div>
         </div>
       )}
@@ -80,7 +81,7 @@ const SocPopoverCell = ({ initialSoc, currentSoc }) => {
   );
 };
 
-// Compact Popover Component for Meter Values (standalone drop icon button)
+// Compact Popover Component for Meter Values (serious enterprise trigger label)
 const MeterValuesPopoverCell = ({ meterValues }) => {
   const [isOpen, setIsOpen] = useState(false);
   const popoverRef = useRef(null);
@@ -105,20 +106,21 @@ const MeterValuesPopoverCell = ({ meterValues }) => {
           e.stopPropagation();
           setIsOpen(!isOpen);
         }}
-        className="w-7 h-7 rounded-lg bg-stone-100/90 hover:bg-orange-100 hover:text-orange-600 text-stone-600 flex items-center justify-center border border-stone-200/80 cursor-pointer shadow-2xs transition-all duration-150"
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-stone-100/90 hover:bg-stone-200/80 text-stone-700 border border-stone-200/80 cursor-pointer shadow-2xs transition-all duration-150"
         title="Click to view Telemetry details"
       >
-        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-150 ${isOpen ? 'rotate-180 text-orange-500' : ''}`} />
+        <span>View Meter</span>
+        <ChevronDown className={`w-3 h-3 text-stone-400 transition-transform duration-150 ${isOpen ? 'rotate-180 text-stone-800' : ''}`} />
       </button>
 
       {isOpen && (
         <div className="absolute left-0 top-full mt-1.5 z-40 bg-white border border-stone-200 shadow-xl rounded-xl p-2.5 min-w-[170px] text-xs animate-in fade-in zoom-in-95 duration-150 font-sans">
           <div className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5 pb-1 border-b border-stone-100">Meter Telemetry</div>
           <div className="flex flex-col gap-1 text-[11px] font-mono">
-            <div className="flex justify-between"><span className="text-stone-500 font-sans">Energy:</span> <strong className="text-stone-800">{meterValues?.energy}</strong></div>
-            <div className="flex justify-between"><span className="text-stone-500 font-sans">Power:</span> <strong className="text-stone-800">{meterValues?.power}</strong></div>
-            <div className="flex justify-between"><span className="text-stone-500 font-sans">Voltage:</span> <strong className="text-stone-800">{meterValues?.voltage}</strong></div>
-            <div className="flex justify-between"><span className="text-stone-500 font-sans">Current:</span> <strong className="text-stone-800">{meterValues?.current}</strong></div>
+            <div className="flex justify-between"><span className="text-stone-500 font-sans">Energy:</span> <strong className="text-stone-800">{meterValues?.energy || '-'}</strong></div>
+            <div className="flex justify-between"><span className="text-stone-500 font-sans">Power:</span> <strong className="text-stone-800">{meterValues?.power || '-'}</strong></div>
+            <div className="flex justify-between"><span className="text-stone-500 font-sans">Voltage:</span> <strong className="text-stone-800">{meterValues?.voltage || '-'}</strong></div>
+            <div className="flex justify-between"><span className="text-stone-500 font-sans">Current:</span> <strong className="text-stone-800">{meterValues?.current || '-'}</strong></div>
           </div>
         </div>
       )}
@@ -496,7 +498,7 @@ export default function ViewChargingStation() {
               </div>
 
               {/* Transactions Table with 20 Columns matching main application theme */}
-              <div className="overflow-x-auto flex-1 p-2 custom-scrollbar">
+              <div className="overflow-x-auto flex-1 p-2 custom-scrollbar transform-gpu translate-z-0">
                 <table className="w-full text-left text-xs border-separate border-spacing-y-1.5 min-w-[2200px]">
                   <thead>
                     <tr className="bg-[#F8FAFC]/90 border-b border-stone-200/80">
@@ -599,31 +601,31 @@ export default function ViewChargingStation() {
                               const cpStatus = tx.chargePointObj?.status || tx.status || 'Available';
                               if (cpStatus === 'Available' || cpStatus === 'Completed') {
                                 return (
-                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                  <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium bg-emerald-50/90 text-emerald-800 border border-emerald-200/60 shadow-2xs">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
                                     {cpStatus}
                                   </span>
                                 );
                               }
                               if (cpStatus === 'Charging' || cpStatus === 'Active') {
                                 return (
-                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80 animate-pulse">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                  <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium bg-blue-50/90 text-blue-700 border border-blue-200/60 shadow-2xs">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 animate-pulse"></span>
                                     {cpStatus}
                                   </span>
                                 );
                               }
                               if (cpStatus === 'Faulted' || cpStatus === 'Failed') {
                                 return (
-                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                  <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium bg-red-50/90 text-red-700 border border-red-200/60 shadow-2xs">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span>
                                     Faulted
                                   </span>
                                 );
                               }
                               return (
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200/80">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                                <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium bg-stone-100 text-stone-600 border border-stone-200/80 shadow-2xs">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-stone-400 shrink-0"></span>
                                   {cpStatus}
                                 </span>
                               );
