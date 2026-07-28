@@ -33,12 +33,14 @@ import {
 } from 'lucide-react';
 
 import Pagination from '../../components/ui/Pagination';
+import TableActions from '../../components/ui/TableActions';
 import DeleteModal from '../../components/ui/DeleteModal';
 import FilterSection from '../../components/ui/FilterSection';
 
 import { getChargePoints, getFilterOptions, deleteChargePoint } from '../../services/chargePointService';
 import { useTableData } from '../../hooks/useTableData';
 import { useSocketEvents } from '../../hooks/useSocketEvents';
+import { useToast } from '../../context/ToastContext';
 
 const ConnectorBadgesCell = ({ connectors }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -105,6 +107,7 @@ const formatCreatedOn = (dateStr) => {
 
 export default function ChargePointsList() {
   const navigate = useNavigate();
+  const toast = useToast();
 
   const [filters, setFilters] = useState({ location: [], manufacturer: [], status: [], type: [] });
   const [filterOptions, setFilterOptions] = useState({ locations: [], manufacturers: [], statuses: [], types: [] });
@@ -180,9 +183,10 @@ export default function ChargePointsList() {
       await deleteChargePoint(chargePointToDelete.id);
       setDeleteModalOpen(false);
       setChargePointToDelete(null);
+      toast.success("Charge point deleted successfully", { code: 200 });
     } catch (error) {
       console.error('Failed to delete charge point:', error);
-      alert('Failed to delete charge point.');
+      toast.error("Failed to delete charge point", { code: 500 });
     } finally {
       setIsDeleting(false);
     }
@@ -201,18 +205,21 @@ export default function ChargePointsList() {
   };
 
   return (
-    <div className="flex flex-col gap-6 w-full mx-auto pb-10">
+    <div className="flex flex-col gap-3.5 max-w-[1400px] w-full mx-auto pb-6">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2 mt-1">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 px-1 mt-0">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
             Charge Points
           </h1>
-          <p className="text-sm text-stone-500 mt-1 font-medium ml-1">Manage and monitor your charging infrastructure.</p>
+          <p className="text-xs text-stone-500 mt-0.5 font-medium ml-0.5">Manage and monitor your charging infrastructure.</p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4">
-          <button className="flex items-center gap-2 px-5 py-2.5 bg-white/60 hover:bg-white/80 border border-white/50 text-stone-700 font-bold rounded-2xl shadow-sm active:scale-95 transition-colors duration-200 text-sm">
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => toast.success("Charge points report exported successfully", { code: 200 })}
+            className="flex items-center gap-2 px-4.5 py-2 bg-white/60 hover:bg-white/80 border border-white/50 text-stone-700 font-bold rounded-xl shadow-xs active:scale-95 transition-colors duration-200 text-xs cursor-pointer"
+          >
             <Download className="w-4 h-4 text-emerald-500" />
             Export
           </button>
@@ -220,7 +227,7 @@ export default function ChargePointsList() {
           <div className="relative" ref={filterRef}>
             <button
               onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-white/60 hover:bg-white/80 border border-white/50 text-stone-700 font-bold rounded-2xl shadow-sm active:scale-95 transition-colors duration-200 text-sm">
+              className="flex items-center gap-2 px-4.5 py-2 bg-white/60 hover:bg-white/80 border border-white/50 text-stone-700 font-bold rounded-xl shadow-xs active:scale-95 transition-colors duration-200 text-xs cursor-pointer">
               <Filter className="w-4 h-4 text-violet-500" />
               Filter
               {activeFiltersCount > 0 && (
@@ -258,9 +265,9 @@ export default function ChargePointsList() {
 
           <button
             onClick={() => navigate('/charge-points/new')}
-            className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white font-bold rounded-2xl shadow-md active:scale-95 transition-colors duration-200 text-sm border border-orange-400/50"
+            className="flex items-center gap-2 px-4.5 py-2 bg-gradient-to-r from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white font-bold rounded-xl shadow-sm active:scale-95 transition-colors duration-200 text-xs border border-orange-400/50 cursor-pointer"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4" />
             Add Charge Point
           </button>
         </div>
@@ -268,10 +275,9 @@ export default function ChargePointsList() {
 
       {/* Main Enterprise Table Container */}
       <div className="bg-[#F6F8FB] border border-stone-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col min-h-[500px]">
-        {/* Toolbar (#FFFFFF) */}
-        <div className="px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white border-b border-stone-200/80">
-          <div className="flex items-center gap-2 text-xs text-stone-600 font-bold px-3 py-1.5 rounded-lg bg-[#F8FAFC] border border-stone-200/80 shadow-2xs">
-            <span className="font-extrabold text-stone-900 text-sm">{totalItems}</span> total charge points
+        <div className="px-5 py-2 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white border-b border-stone-200/80">
+          <div className="flex items-center gap-2 text-xs text-stone-600 font-bold px-3 py-1 rounded-lg bg-[#F8FAFC] border border-stone-200/80 shadow-2xs">
+            <span className="font-extrabold text-stone-900 text-xs">{totalItems}</span> total charge points
           </div>
 
           <div className="relative w-full sm:w-[400px] group">
@@ -346,15 +352,6 @@ export default function ChargePointsList() {
                   <div className="flex items-center justify-center gap-1.5"><Tag className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Tariff Profile</div>
                 </th>
                 <th className="px-4 py-2.5 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center justify-center gap-1.5"><Repeat className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Total Sessions</div>
-                </th>
-                <th className="px-4 py-2.5 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center justify-center gap-1.5"><Zap className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Energy Delivered</div>
-                </th>
-                <th className="px-4 py-2.5 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center justify-center gap-1.5"><IndianRupee className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Revenue Generated</div>
-                </th>
-                <th className="px-4 py-2.5 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-1.5"><Smartphone className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Mobility Type</div>
                 </th>
                 <th className="px-4 py-2.5 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider rounded-r-xl whitespace-nowrap">
@@ -366,7 +363,7 @@ export default function ChargePointsList() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="22" className="px-4 py-12 text-center">
+                  <td colSpan="19" className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
                       <p className="text-sm font-bold text-stone-500">Loading charge points...</p>
@@ -375,7 +372,7 @@ export default function ChargePointsList() {
                 </tr>
               ) : chargePoints.length === 0 ? (
                 <tr>
-                  <td colSpan="22" className="px-5 py-24 text-center">
+                  <td colSpan="19" className="px-5 py-24 text-center">
                     <div className="text-stone-400 flex flex-col items-center">
                       <div className="w-20 h-20 bg-white/40 backdrop-blur-md rounded-3xl shadow-[inset_0_2px_10px_rgba(255,255,255,0.6)] border border-white/50 flex items-center justify-center mb-6">
                         <Search className="w-10 h-10 text-orange-300" />
@@ -388,26 +385,20 @@ export default function ChargePointsList() {
                 chargePoints.map((row) => (
                   <tr key={row.id} onClick={() => navigate(`/charge-points/${row.id}`, { state: { chargePoint: row } })} className="group bg-white hover:bg-[#F9FBFF] border border-stone-200/80 hover:border-slate-300 shadow-2xs transition-colors duration-150 rounded-xl cursor-pointer">
                     <td className="px-4 py-3 text-center rounded-l-xl whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <button onClick={(e) => handleEditClick(e, row)} className="p-1.5 text-orange-500 bg-white/70 border border-orange-100 hover:bg-orange-500 hover:text-white rounded-xl shadow-xs hover:shadow-md transition active:scale-95 duration-200" title="Edit">
-                          <Edit className="w-3 h-3" />
-                        </button>
-                        <button onClick={(e) => handleDeleteClick(e, row)} className="p-1.5 text-rose-500 bg-white/70 border border-rose-100 hover:bg-rose-500 hover:text-white rounded-xl shadow-xs hover:shadow-md transition active:scale-95 duration-200" title="Delete">
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                        <button onClick={(e) => e.stopPropagation()} className="p-1.5 text-stone-500 bg-white/70 border border-stone-200 hover:bg-stone-600 hover:text-white rounded-xl shadow-xs hover:shadow-md transition active:scale-95 duration-200">
-                          <MoreVertical className="w-3 h-3" />
-                        </button>
-                      </div>
+                      <TableActions
+                        onEdit={(e) => handleEditClick(e, row)}
+                        onDelete={(e) => handleDeleteClick(e, row)}
+                        showMore={true}
+                      />
                     </td>
 
                     <td className="px-4 py-3 text-left whitespace-nowrap" onClick={(e) => {
                       e.stopPropagation();
                       navigate(`/charge-points/${row.id}`, { state: { chargePoint: row } });
                     }}>
-                      <span className={`text-stone-900 font-bold text-[13px] group-hover:underline transition-colors duration-200 ${(row.status === 'Online' || (row.status !== 'Offline' && row.stage === 'Active'))
-                          ? 'group-hover:text-emerald-600'
-                          : 'group-hover:text-rose-600'
+                      <span className={`text-stone-900 font-bold text-[13px] transition-colors duration-200 ${(row.status === 'Available' || row.status === 'Charging' || (row.status !== 'Faulted' && row.stage === 'Active'))
+                        ? 'group-hover:text-emerald-600'
+                        : 'group-hover:text-rose-600'
                         }`}>
                         {row.name}
                       </span>
@@ -423,21 +414,31 @@ export default function ChargePointsList() {
                         navigate(`/charging-stations?search=${encodeURIComponent(row.chargingStation)}`);
                       }
                     }}>
-                      <span className="text-sky-600 font-bold text-[13px] hover:underline transition-colors duration-200 cursor-pointer max-w-[250px] truncate block">
+                      <span className="text-sky-600 font-bold text-[13px] hover:text-sky-700 transition-colors duration-200 cursor-pointer max-w-[250px] truncate block">
                         {row.chargingStation}
                       </span>
                     </td>
 
                     <td className="px-4 py-3 text-left whitespace-nowrap">
-                      {(row.status === 'Online' || (row.status !== 'Offline' && row.stage === 'Active')) ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                          Online
-                        </span>
-                      ) : (
+                      {(row.stage === 'Inactive' || row.stage === 'Offline' || row.status === 'Faulted') ? (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200/80">
                           <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                          Offline
+                          Faulted
+                        </span>
+                      ) : row.status === 'Charging' ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sky-50 text-sky-700 border border-sky-200/80">
+                          <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
+                          Charging
+                        </span>
+                      ) : row.status === 'Preparing' ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/80">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                          Preparing
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                          Available
                         </span>
                       )}
                     </td>
@@ -448,8 +449,8 @@ export default function ChargePointsList() {
 
                     <td className="px-4 py-3 text-left whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${row.stage === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' :
-                          row.stage === 'Inactive' ? 'bg-slate-100 text-slate-600 border-slate-200/80' :
-                            'bg-amber-50 text-amber-700 border-amber-200/80'
+                        row.stage === 'Inactive' ? 'bg-slate-100 text-slate-600 border-slate-200/80' :
+                          'bg-amber-50 text-amber-700 border-amber-200/80'
                         }`}>
                         {row.stage || 'Active'}
                       </span>
@@ -498,24 +499,8 @@ export default function ChargePointsList() {
                       const tariffName = row.tariffProfiles || 'DLF Park Place DC';
                       navigate(`/tariffs?search=${encodeURIComponent(tariffName)}`);
                     }}>
-                      <span className="text-sky-600 font-extrabold text-[13px] hover:underline hover:text-sky-700 cursor-pointer">
+                      <span className="text-sky-600 font-extrabold text-[13px] hover:text-sky-700 cursor-pointer">
                         {row.tariffProfiles || 'DLF Park Place DC'}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3 text-center whitespace-nowrap">
-                      <span className="text-stone-700 font-semibold text-[13px]">{row.totalSessions !== undefined ? row.totalSessions : 0}</span>
-                    </td>
-
-                    <td className="px-4 py-3 text-center whitespace-nowrap">
-                      <span className="text-stone-700 font-semibold text-[13px]">
-                        {row.energyDelivered !== undefined ? `${row.energyDelivered} kWh` : '0 kWh'}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3 text-center whitespace-nowrap">
-                      <span className="text-stone-800 font-bold text-[13px]">
-                        {row.revenueGenerated !== undefined ? `₹${row.revenueGenerated.toLocaleString()}` : '₹0'}
                       </span>
                     </td>
 

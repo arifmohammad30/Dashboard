@@ -10,6 +10,7 @@ import Select from '../../components/ui/Select';
 import LabelWithInfo from '../../components/ui/LabelWithInfo';
 import FormCard from '../../components/ui/FormCard';
 import { createChargePoint, updateChargePoint, getChargePointById } from '../../services/chargePointService';
+import { useToast } from '../../context/ToastContext';
 
 const chargingMethodSchema = z.object({
   id: z.string(),
@@ -57,6 +58,7 @@ const defaultMethods = [
 export default function AddNewChargePoint({ isViewMode = false, isEditMode = false }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const toast = useToast();
   const { id } = useParams();
   const chargePointData = location.state?.chargePoint;
 
@@ -151,16 +153,16 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
       const targetId = activeChargePoint?.id || id;
       if (isEditMode && targetId) {
         await updateChargePoint(targetId, payload);
-        alert('Charge point updated successfully!');
+        toast.success('Charge point updated successfully!', { code: 200 });
       } else {
         await createChargePoint(payload);
-        alert('Charge point added successfully!');
+        toast.success('Charge point added successfully!', { code: 201 });
       }
 
       navigate('/charge-points');
     } catch (error) {
       console.error('Error submitting form:', error);
-      alert('Failed to save charge point. Check console for details.');
+      toast.error('Failed to save charge point.', { code: 500 });
     }
   };
 
@@ -190,8 +192,21 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
               if (isViewMode) {
                 navigate('/charge-points');
               } else {
-                reset();
-                document.querySelectorAll('select.has-value').forEach(el => el.classList.remove('has-value'));
+                reset({
+                  name: '',
+                  chargingStation: '',
+                  manufacturer: '',
+                  mode: '',
+                  code: '',
+                  accessibility: '',
+                  stage: '',
+                  type: '',
+                  exclusive: '',
+                  gracePeriod: '',
+                  tariffProfiles: '',
+                  settlementProfile: '',
+                  chargingMethods: defaultMethods
+                });
               }
             }}
             className="px-4 py-2 text-sm bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 font-medium rounded-lg shadow-sm transition-colors duration-200"

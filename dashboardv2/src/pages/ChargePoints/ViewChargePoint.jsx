@@ -41,11 +41,14 @@ import {
   Trash2,
   Sparkles
 } from 'lucide-react';
-import { getChargePointById } from '../../services/chargePointService';
+import { getChargePointById, updateChargePoint } from '../../services/chargePointService';
+import { useSocketEvents } from '../../hooks/useSocketEvents';
+import { useToast } from '../../context/ToastContext';
 
 export default function ViewChargePoint() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialData = location.state?.chargePoint;
@@ -90,11 +93,16 @@ export default function ViewChargePoint() {
   };
 
   const handleControlAction = (msg) => {
-    setActionFeedback(msg);
-    setTimeout(() => {
-      setActionFeedback(null);
-    }, 4000);
+    toast.success(msg, { code: 200 });
   };
+
+  useSocketEvents({
+    chargePointUpdated: (updatedCp) => {
+      if (updatedCp && (updatedCp.id === id || updatedCp.id === chargePoint?.id)) {
+        setChargePoint(prev => ({ ...prev, ...updatedCp }));
+      }
+    }
+  });
 
   useEffect(() => {
     if (!initialData && id) {
@@ -144,23 +152,39 @@ export default function ViewChargePoint() {
 
   const isOffline = cp.stage === 'Inactive' || cp.stage === 'Offline';
 
-  const rawConnectors = Array.isArray(cp.connectors) && cp.connectors.length > 0 
-    ? cp.connectors 
-    : ['15A (1)', '15A (2)', '15A (3)'];
+  let rawConnectors = [];
+  if (Array.isArray(cp.connectors) && cp.connectors.length > 0) {
+    rawConnectors = cp.connectors;
+  } else if (typeof cp.connectors === 'string' && cp.connectors.trim() !== '') {
+    try {
+      const parsed = JSON.parse(cp.connectors);
+      rawConnectors = Array.isArray(parsed) && parsed.length > 0 ? parsed : [cp.connectors];
+    } catch (e) {
+      rawConnectors = [cp.connectors];
+    }
+  } else {
+    rawConnectors = ['15A (1)', '15A (2)', '15A (3)'];
+  }
 
   const connectorRows = rawConnectors.map((c, index) => {
     const connId = index + 1;
     const typeStr = c.includes('CCS2') ? 'CCS2' : c.includes('Type2') ? 'Type2' : '15A';
     const qrStr = `CQ${(cp.code || 'XYZ').replace(/[^A-Z0-9]/gi, '')}${connId}1GYMY`.slice(0, 10).toUpperCase();
-    const currentAvailability = connectorStatusMap[connId] || 'Operative';
+
+    const currentOverride = connectorStatusMap[connId];
+    const isInoperative = currentOverride === 'Faulted' || (currentOverride === undefined && (cp.status === 'Faulted' || isOffline));
+
+    let currentAvailability = isInoperative ? 'Inoperative' : 'Operative';
+    let currentStatus = isInoperative ? 'Faulted' : (currentOverride || cp.status || 'Available');
+
     return {
       id: connId,
       type: typeStr,
       qrCode: qrStr,
       availability: currentAvailability,
-      status: currentAvailability === 'Inoperative' ? 'Inoperative' : 'Faulted',
-      error: currentAvailability === 'Inoperative' ? 'Unavailable' : 'OtherError',
-      vendorError: currentAvailability === 'Inoperative' ? 'ManuallyDisabled' : 'EmergencyPressed'
+      status: currentStatus,
+      error: currentStatus === 'Faulted' ? 'OtherError' : 'NoError',
+      vendorError: currentStatus === 'Faulted' ? 'EmergencyPressed' : 'None'
     };
   });
 
@@ -232,7 +256,7 @@ export default function ViewChargePoint() {
   ];
 
   const handleDownloadQR = () => {
-    alert(`Downloading QR Code bundle for ${cp.name}...`);
+    toast.success(`QR Code bundle downloaded for ${cp.name}`, { code: 200 });
   };
 
   return (
@@ -253,10 +277,18 @@ export default function ViewChargePoint() {
               {cp.name}
             </h1>
             <span className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-extrabold border shadow-xs ${
-              isOffline ? 'bg-rose-50/90 text-rose-600 border-rose-200/80 shadow-[0_0_12px_rgba(244,63,94,0.15)]' : 'bg-emerald-50/90 text-emerald-600 border-emerald-200/80 shadow-[0_0_12px_rgba(16,185,129,0.15)]'
+              cp.status === 'Available' ? 'bg-emerald-50/90 text-emerald-700 border-emerald-200/80 shadow-[0_0_12px_rgba(16,185,129,0.15)]' :
+              cp.status === 'Charging' ? 'bg-sky-50/90 text-sky-700 border-sky-200/80 shadow-[0_0_12px_rgba(14,165,233,0.15)]' :
+              cp.status === 'Preparing' ? 'bg-amber-50/90 text-amber-700 border-amber-200/80 shadow-[0_0_12px_rgba(245,158,11,0.15)]' :
+              'bg-rose-50/90 text-rose-700 border-rose-200/80 shadow-[0_0_12px_rgba(244,63,94,0.15)]'
             }`}>
-              <span className={`w-2 h-2 rounded-full mr-2 ${isOffline ? 'bg-rose-500' : 'bg-emerald-500 animate-pulse'}`} />
-              {isOffline ? 'Offline' : 'Online'}
+              <span className={`w-2 h-2 rounded-full mr-2 ${
+                cp.status === 'Available' ? 'bg-emerald-500' :
+                cp.status === 'Charging' ? 'bg-sky-500 animate-pulse' :
+                cp.status === 'Preparing' ? 'bg-amber-500' :
+                'bg-rose-500'
+              }`} />
+              {cp.status || 'Available'}
             </span>
           </div>
 
@@ -408,15 +440,20 @@ export default function ViewChargePoint() {
                           <td className="px-4 py-4 whitespace-nowrap">
                             <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold border ${
                               conn.availability === 'Inoperative'
-                                ? 'bg-rose-50 text-rose-600 border-rose-200'
-                                : 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                                ? 'bg-rose-50 text-rose-700 border-rose-200/80'
+                                : 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
                             }`}>
                               {conn.availability}
                             </span>
                           </td>
 
                           <td className="px-4 py-4 whitespace-nowrap">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-600 border border-rose-200">
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold border ${
+                              conn.status === 'Available' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' :
+                              conn.status === 'Charging' ? 'bg-sky-50 text-sky-700 border-sky-200/80' :
+                              conn.status === 'Preparing' ? 'bg-amber-50 text-amber-700 border-amber-200/80' :
+                              'bg-rose-50 text-rose-700 border-rose-200/80'
+                            }`}>
                               {conn.status}
                             </span>
                           </td>
@@ -440,20 +477,37 @@ export default function ViewChargePoint() {
                             <td colSpan="8" className="px-4 pt-1 pb-3">
                               <div className="flex items-center gap-3 pl-1">
                                 <button
-                                  onClick={(e) => {
+                                  onClick={async (e) => {
                                     e.stopPropagation();
-                                    const newAvail = conn.availability === 'Inoperative' ? 'Operative' : 'Inoperative';
-                                    setConnectorStatusMap(prev => ({ ...prev, [conn.id]: newAvail }));
-                                    handleControlAction(`Connector ${conn.id} availability changed to ${newAvail}.`);
+                                    const isCurrentlyInoperative = conn.availability === 'Inoperative' || conn.status === 'Faulted';
+                                    const newStatus = isCurrentlyInoperative ? 'Available' : 'Faulted';
+                                    const isStageDisabled = cp.stage === 'Inactive' || cp.stage === 'Maintenance';
+                                    const newStage = isStageDisabled && isCurrentlyInoperative ? 'Active' : (cp.stage || 'Active');
+                                    
+                                    setConnectorStatusMap(prev => ({ ...prev, [conn.id]: newStatus }));
+                                    
+                                    const targetId = cp.id || id;
+                                    if (targetId) {
+                                      try {
+                                        const updated = await updateChargePoint(targetId, { status: newStatus, stage: newStage });
+                                        if (updated) {
+                                          setChargePoint(prev => ({ ...prev, ...updated }));
+                                        }
+                                      } catch (err) {
+                                        console.error('Failed to update DB:', err);
+                                      }
+                                    }
+
+                                    handleControlAction(`Connector #${conn.id} availability updated to ${newStatus === 'Available' ? 'Operative' : 'Inoperative'}.`);
                                   }}
                                   className={`px-4 py-2 rounded-xl text-xs font-black shadow-xs transition-all cursor-pointer flex items-center gap-2 active:scale-95 border ${
-                                    conn.availability === 'Inoperative'
+                                    (conn.availability === 'Inoperative' || conn.status === 'Faulted')
                                       ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200/90 shadow-emerald-500/10'
                                       : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200/90 shadow-rose-500/10'
                                   }`}
                                 >
                                   <Power strokeWidth={2.5} className="w-3.5 h-3.5" />
-                                  <span>{conn.availability === 'Inoperative' ? 'Change to Operative' : 'Change to Inoperative'}</span>
+                                  <span>{(conn.availability === 'Inoperative' || conn.status === 'Faulted') ? 'Change to Operative' : 'Change to Inoperative'}</span>
                                 </button>
 
                                 <button
@@ -527,15 +581,6 @@ export default function ViewChargePoint() {
 
           {activeTab === 'control' && (
             <div className="space-y-6">
-              {actionFeedback && (
-                <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 rounded-2xl flex items-center justify-between shadow-xs animate-in fade-in duration-300">
-                  <div className="flex items-center gap-2.5 text-xs font-extrabold">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                    <span>{actionFeedback}</span>
-                  </div>
-                  <button onClick={() => setActionFeedback(null)} className="text-emerald-600 hover:text-emerald-800 text-xs font-bold cursor-pointer">✕</button>
-                </div>
-              )}
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] rounded-[24px] p-6 flex flex-col justify-between hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300">

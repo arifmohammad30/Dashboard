@@ -33,9 +33,11 @@ import Pagination from '../../components/ui/Pagination';
 import DeleteModal from '../../components/ui/DeleteModal';
 import FilterSection from '../../components/ui/FilterSection';
 import { getTariffs, addTariff, deleteTariff } from '../../services/tariffService';
+import { useToast } from '../../context/ToastContext';
 
 export default function TariffsList() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [searchParams] = useSearchParams();
   const initialSearch = searchParams.get('search') || '';
 
@@ -198,7 +200,6 @@ export default function TariffsList() {
     }
   };
 
-  // Delete Tariff
   const handleDeleteConfirm = async () => {
     if (!tariffToDelete) return;
     setIsDeleting(true);
@@ -207,30 +208,32 @@ export default function TariffsList() {
       setTariffs(prev => prev.filter(t => t.id !== tariffToDelete.id));
       setDeleteModalOpen(false);
       setTariffToDelete(null);
+      toast.success("Tariff structure deleted successfully", { code: 200 });
     } catch (err) {
       console.error("Failed to delete tariff:", err);
+      toast.error("Failed to delete tariff structure", { code: 500 });
     } finally {
       setIsDeleting(false);
     }
   };
 
   return (
-    <div className="flex flex-col gap-6 max-w-[1700px]">
+    <div className="flex flex-col gap-3.5 max-w-[1700px] w-full mx-auto pb-6">
       {/* Top Title & Actions Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2 mt-1">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 px-1 mt-0">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
             All Tariffs
           </h1>
-          <p className="text-sm text-stone-500 mt-1 font-medium ml-1">
+          <p className="text-xs text-stone-500 mt-0.5 font-medium ml-0.5">
             Configure, manage, and monitor your charging fee structures & rates.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <button
-            onClick={() => alert("Exporting tariffs data...")}
-            className="flex items-center gap-2 px-5 py-2.5 bg-white/60 hover:bg-white/80 border border-white/50 text-stone-700 font-bold rounded-2xl shadow-sm active:scale-95 transition-colors duration-200 text-sm cursor-pointer"
+            onClick={() => toast.success("Tariffs data exported successfully", { code: 200 })}
+            className="flex items-center gap-2 px-4.5 py-2 bg-white/60 hover:bg-white/80 border border-white/50 text-stone-700 font-bold rounded-xl shadow-xs active:scale-95 transition-colors duration-200 text-xs cursor-pointer"
           >
             <Download className="w-4 h-4 text-emerald-500" />
             Export
@@ -240,7 +243,7 @@ export default function TariffsList() {
           <div className="relative" ref={filterRef}>
             <button
               onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-white/60 hover:bg-white/80 border border-white/50 text-stone-700 font-bold rounded-2xl shadow-sm active:scale-95 transition-colors duration-200 text-sm cursor-pointer"
+              className="flex items-center gap-2 px-4.5 py-2 bg-white/60 hover:bg-white/80 border border-white/50 text-stone-700 font-bold rounded-xl shadow-xs active:scale-95 transition-colors duration-200 text-xs cursor-pointer"
             >
               <Filter className="w-4 h-4 text-violet-500" />
               Filter
@@ -271,7 +274,7 @@ export default function TariffsList() {
                 <div className="space-y-6">
                   <FilterSection
                     title="Tariff Type"
-                    options={['Default', 'ToD']}
+                    options={['Default', 'ToD', 'Event', 'SoC']}
                     selected={filters.type}
                     onChange={(val) => handleFilterChange('type', val)}
                   />
@@ -288,9 +291,9 @@ export default function TariffsList() {
 
           <button
             onClick={() => navigate('/tariffs/new')}
-            className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-md active:scale-95 transition-colors duration-200 text-sm border border-sky-400/50 cursor-pointer"
+            className="flex items-center gap-2 px-4.5 py-2 bg-gradient-to-r from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white font-bold rounded-xl shadow-sm active:scale-95 transition-colors duration-200 text-xs border border-orange-400/50 cursor-pointer"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4" />
             Add New Tariff
           </button>
         </div>
@@ -299,9 +302,9 @@ export default function TariffsList() {
       {/* Main Enterprise Table Container */}
       <div className="bg-[#F6F8FB] border border-stone-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col min-h-[500px]">
         {/* Top Info & Search Bar */}
-        <div className="px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white border-b border-stone-200/80">
-          <div className="flex items-center gap-2 text-xs text-stone-600 font-bold px-3 py-1.5 rounded-lg bg-[#F8FAFC] border border-stone-200/80 shadow-2xs">
-            <span className="font-extrabold text-stone-900 text-sm">{totalRecords}</span> total tariffs
+        <div className="px-5 py-2 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white border-b border-stone-200/80">
+          <div className="flex items-center gap-2 text-xs text-stone-600 font-bold px-3 py-1 rounded-lg bg-[#F8FAFC] border border-stone-200/80 shadow-2xs">
+            <span className="font-extrabold text-stone-900 text-xs">{totalRecords}</span> total tariffs
           </div>
 
           <div className="relative w-full sm:w-[400px] group">
@@ -418,7 +421,7 @@ export default function TariffsList() {
                       setTariffToView(t);
                       setViewModalOpen(true);
                     }}>
-                      <span className="text-sky-600 font-bold text-[13px] hover:underline hover:text-sky-700 transition-colors duration-200 cursor-pointer">
+                      <span className="text-sky-600 font-bold text-[13px] hover:text-sky-700 transition-colors duration-200 cursor-pointer">
                         {t.name}
                       </span>
                     </td>

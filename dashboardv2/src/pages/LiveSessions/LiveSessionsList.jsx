@@ -16,8 +16,10 @@ import {
 import Pagination from '../../components/ui/Pagination';
 import { apiClient } from '../../lib/apiClient';
 import { useSocketEvents } from '../../hooks/useSocketEvents';
+import { useToast } from '../../context/ToastContext';
 
 export default function LiveSessionsList() {
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState('Ongoing');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -77,23 +79,23 @@ export default function LiveSessionsList() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-5 max-w-[1400px] w-full mx-auto pb-10">
+    <div className="flex flex-col gap-3.5 max-w-[1400px] w-full mx-auto pb-6">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2 mt-1">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 px-1 mt-0">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
             Live Charging Sessions
           </h1>
-          <p className="text-sm text-stone-500 mt-1 font-medium ml-1">Monitor real-time ongoing, stopped, and failed sessions.</p>
+          <p className="text-xs text-stone-500 mt-0.5 font-medium ml-0.5">Monitor real-time ongoing, stopped, and failed sessions.</p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4">
-          <button className="flex items-center gap-2 px-5 py-2.5 bg-white/60 hover:bg-white/80 border border-white/50 text-stone-700 font-bold rounded-2xl shadow-sm active:scale-95 transition-colors duration-200 text-sm">
+        <div className="flex flex-wrap items-center gap-3">
+          <button className="flex items-center gap-2 px-4.5 py-2 bg-white/60 hover:bg-white/80 border border-white/50 text-stone-700 font-bold rounded-xl shadow-xs active:scale-95 transition-colors duration-200 text-xs cursor-pointer">
             Today
             <ChevronDown className="w-4 h-4 text-blue-500" />
           </button>
 
-          <button className="flex items-center gap-2 px-5 py-2.5 bg-white/60 hover:bg-white/80 border border-white/50 text-stone-700 font-bold rounded-2xl shadow-sm active:scale-95 transition-colors duration-200 text-sm">
+          <button className="flex items-center gap-2 px-4.5 py-2 bg-white/60 hover:bg-white/80 border border-white/50 text-stone-700 font-bold rounded-xl shadow-xs active:scale-95 transition-colors duration-200 text-xs cursor-pointer">
             <Filter className="w-4 h-4 text-violet-500" />
             Filter
           </button>
@@ -103,7 +105,7 @@ export default function LiveSessionsList() {
       {/* Main Enterprise Table Container */}
       <div className="bg-[#F6F8FB] border border-stone-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col min-h-[500px]">
         {/* Toolbar (#FFFFFF) */}
-        <div className="px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white border-b border-stone-200/80">
+        <div className="px-5 py-2 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white border-b border-stone-200/80">
 
           <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#F8FAFC] border border-stone-200/80 shadow-2xs">
             {tabs.map((tab) => (
@@ -196,7 +198,7 @@ export default function LiveSessionsList() {
                           {row.userInitials}
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-stone-900 font-bold text-sm tracking-tight group-hover:underline transition-colors">
+                          <span className="text-stone-900 font-bold text-sm tracking-tight transition-colors">
                             {row.userName}
                           </span>
                           <span className="text-stone-400 text-xs font-medium">
@@ -206,7 +208,7 @@ export default function LiveSessionsList() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-sky-600 font-bold text-[13px] hover:underline cursor-pointer">
+                      <span className="text-sky-600 font-bold text-[13px] hover:text-sky-700 cursor-pointer">
                         {row.stationName}
                       </span>
                     </td>
@@ -242,7 +244,7 @@ export default function LiveSessionsList() {
                     </td>
                     <td className="px-4 py-3 text-right pr-6 rounded-r-xl">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <button onClick={(e) => e.stopPropagation()} className="p-1.5 text-stone-500 bg-white/80 border border-stone-200 hover:bg-stone-600 hover:text-white rounded-xl shadow-xs transition active:scale-95 duration-200">
+                        <button onClick={(e) => { e.stopPropagation(); toast.info(`Session #${row.id} options`, { code: 200 }); }} className="p-1.5 text-stone-500 bg-white/80 border border-stone-200 hover:bg-stone-600 hover:text-white rounded-xl shadow-xs transition active:scale-95 duration-200 cursor-pointer">
                           <MoreVertical className="w-3.5 h-3.5" />
                         </button>
                       </div>

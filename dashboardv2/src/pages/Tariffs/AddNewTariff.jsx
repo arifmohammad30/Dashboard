@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { ArrowLeft, Plus, Loader2, Users, Layers, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Plus, Loader2, Users, CheckCircle2 } from 'lucide-react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -10,6 +10,7 @@ import Select from '../../components/ui/Select';
 import LabelWithInfo from '../../components/ui/LabelWithInfo';
 import FormCard from '../../components/ui/FormCard';
 import { addTariff } from '../../services/tariffService';
+import { useToast } from '../../context/ToastContext';
 
 const tariffSchema = z.object({
   type: z.string().min(1, 'Please select a Tariff Type'),
@@ -37,6 +38,7 @@ const tariffSchema = z.object({
 export default function AddNewTariff({ isViewMode = false, isEditMode = false }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const toast = useToast();
   const { id } = useParams();
   const tariffData = location.state?.tariff;
 
@@ -92,17 +94,16 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
       };
 
       await addTariff(payload);
-      alert(isEditMode ? 'Tariff updated successfully!' : 'Tariff added successfully!');
+      toast.success(isEditMode ? 'Tariff updated successfully!' : 'Tariff added successfully!', { code: isEditMode ? 200 : 201 });
       navigate('/tariffs');
     } catch (error) {
       console.error('Error saving tariff:', error);
-      alert('Failed to save tariff.');
+      toast.error('Failed to save tariff structure', { code: 500 });
     }
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 max-w-[1100px] mx-auto pb-12">
-      {/* Top Header */}
       <div className="flex items-center justify-between px-2">
         <div>
           <button
@@ -121,7 +122,18 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
               if (isViewMode) {
                 navigate('/tariffs');
               } else {
-                reset();
+                reset({
+                  type: '',
+                  applicableTo: 'All Fleets',
+                  name: '',
+                  costingType: '',
+                  chargingFee: '',
+                  chargingFeeUnit: '',
+                  gstPercentage: '',
+                  idleFee: '',
+                  stateTax: '',
+                  weight: ''
+                });
               }
             }}
             className="px-4 py-2 text-sm bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 font-medium rounded-lg shadow-xs transition-colors duration-200 cursor-pointer"
@@ -141,22 +153,19 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
         </div>
       </div>
 
-      {/* 2 Column Clean Form Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-        {/* Left Column */}
         <FormCard>
           <div>
             <LabelWithInfo label="Type" required info="Select Tariff Type" />
             <Select
               disabled={isViewMode}
               placeholder="Select Type"
-              options={['Default', 'ToD']}
+              options={['Default', 'ToD', 'Event', 'SoC']}
               {...register('type')}
               error={errors.type}
             />
           </div>
 
-          {/* Unique Segmented Control for Applicable to */}
           <div>
             <LabelWithInfo label="Applicable to" required />
             <div className="grid grid-cols-2 gap-3 mt-1.5 p-1 bg-stone-100/70 border border-stone-200/80 rounded-2xl">
@@ -170,7 +179,7 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
                     : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
                 }`}
               >
-                <Users className="w-3.5 h-3.5" />
+                <Users className={`w-3.5 h-3.5 transition-colors duration-200 ${selectedApplicableTo === 'All Fleets' ? 'text-orange-500' : 'text-stone-400'}`} />
                 All Fleets
               </button>
 
@@ -184,7 +193,7 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
                     : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
                 }`}
               >
-                <CheckCircle2 className="w-3.5 h-3.5" />
+                <CheckCircle2 className={`w-3.5 h-3.5 transition-colors duration-200 ${selectedApplicableTo === 'Selected Fleets' ? 'text-orange-500' : 'text-stone-400'}`} />
                 Selected Fleets
               </button>
             </div>
@@ -214,7 +223,6 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
           </div>
         </FormCard>
 
-        {/* Right Column */}
         <FormCard>
           <div>
             <LabelWithInfo label="Costing Type" required />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Search,
   Download,
@@ -19,17 +19,151 @@ import {
   MapPin,
   X,
   Info,
-  Check
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Building2,
+  Navigation,
+  Calendar,
+  Globe
 } from 'lucide-react';
 
 import Pagination from '../../components/ui/Pagination';
 import DeleteModal from '../../components/ui/DeleteModal';
+import TableActions from '../../components/ui/TableActions';
 
 import { getChargingStations, deleteChargingStation } from '../../services/chargingStationService';
 import { useTableData } from '../../hooks/useTableData';
 import { useSocketEvents } from '../../hooks/useSocketEvents';
+import { useToast } from '../../context/ToastContext';
+
+const ChargePointsCell = ({ station, navigate }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const popoverRef = React.useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (popoverRef.current && !popoverRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const cpList = station.chargePointsList || [];
+  const totalCount = cpList.length;
+
+  if (totalCount === 0) {
+    return (
+      <span className="text-stone-400 font-normal text-[11px] italic">
+        No charge points linked
+      </span>
+    );
+  }
+
+  const primaryCp = cpList[0];
+
+  return (
+    <div className="relative inline-block text-left" ref={popoverRef}>
+      <div className="flex flex-col min-w-0">
+        {/* Primary Charge Point Name */}
+        <span
+          onClick={(e) => {
+            e.stopPropagation();
+            if (primaryCp?.id) {
+              navigate(`/charge-points/${primaryCp.id}`);
+            } else if (primaryCp?.name) {
+              navigate(`/charge-points?search=${encodeURIComponent(primaryCp.name)}`);
+            }
+          }}
+          className="text-stone-900 font-semibold text-[12px] hover:text-emerald-600 transition-colors cursor-pointer truncate max-w-[170px]"
+          title={primaryCp?.name ? `Go to ${primaryCp.name}` : ''}
+        >
+          {primaryCp?.name}
+        </span>
+
+        {/* Subtle, unadorned relationship link */}
+        {totalCount > 1 ? (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(!isOpen);
+            }}
+            className="text-[11px] font-normal text-stone-500 hover:text-emerald-600 transition-colors flex items-center gap-0.5 cursor-pointer w-fit mt-0.5"
+          >
+            <span>{totalCount} linked charge points</span>
+            <ChevronRight className={`w-3 h-3 transition-transform duration-150 ${isOpen ? 'rotate-90 text-emerald-600' : 'text-stone-400'}`} />
+          </button>
+        ) : (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (primaryCp?.id) {
+                navigate(`/charge-points/${primaryCp.id}`);
+              } else if (primaryCp?.name) {
+                navigate(`/charge-points?search=${encodeURIComponent(primaryCp.name)}`);
+              }
+            }}
+            className="text-[11px] font-normal text-stone-400 hover:text-emerald-600 transition-colors flex items-center gap-0.5 cursor-pointer w-fit mt-0.5"
+          >
+            <span>1 linked charge point</span>
+            <ChevronRight className="w-3 h-3 text-stone-400" />
+          </button>
+        )}
+      </div>
+
+      {/* Enterprise Drawer Popover */}
+      {isOpen && (
+        <div className="absolute top-full left-0 mt-1.5 z-30 w-64 bg-white/98 backdrop-blur-xl border border-stone-200/90 shadow-[0_12px_32px_rgba(0,0,0,0.12)] rounded-2xl p-3 animate-in fade-in slide-in-from-top-1 duration-150">
+          <div className="flex items-center justify-between border-b border-stone-100 pb-2 mb-2 px-1">
+            <div>
+              <span className="text-[11px] font-semibold text-stone-800 uppercase tracking-wider block">
+                Linked Charge Points
+              </span>
+              <span className="text-[10px] text-stone-400 font-normal">
+                {station.name} ({totalCount})
+              </span>
+            </div>
+            <button onClick={() => setIsOpen(false)} className="text-stone-400 hover:text-stone-700 text-xs font-medium cursor-pointer">✕</button>
+          </div>
+
+          <div className="max-h-48 overflow-y-auto space-y-1 custom-scrollbar pr-0.5">
+            {cpList.map((cp, i) => (
+              <div
+                key={cp.id || i}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsOpen(false);
+                  if (cp.id) {
+                    navigate(`/charge-points/${cp.id}`);
+                  } else {
+                    navigate(`/charge-points?search=${encodeURIComponent(cp.name)}`);
+                  }
+                }}
+                className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-stone-50/80 hover:bg-emerald-50/80 border border-stone-100/80 hover:border-emerald-200 transition-colors cursor-pointer group/item text-xs"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                  <span className="font-semibold text-stone-800 group-hover/item:text-emerald-700 truncate text-[11px]">
+                    {cp.name}
+                  </span>
+                </div>
+                <span className="text-[9.5px] font-mono font-medium text-stone-400 group-hover/item:text-emerald-600 shrink-0 ml-1.5">
+                  {cp.code || `CP-${i + 1}`}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function ChargingStationsList() {
+  const navigate = useNavigate();
+  const toast = useToast();
   const [searchParams] = useSearchParams();
   const initialSearch = searchParams.get('search') || '';
 
@@ -93,9 +227,10 @@ export default function ChargingStationsList() {
       await deleteChargingStation(stationToDelete.id);
       setDeleteModalOpen(false);
       setStationToDelete(null);
+      toast.success("Charging station deleted successfully", { code: 200 });
     } catch (error) {
       console.error('Failed to delete charging station:', error);
-      alert('Failed to delete charging station.');
+      toast.error("Failed to delete charging station", { code: 500 });
     } finally {
       setIsDeleting(false);
     }
@@ -103,36 +238,39 @@ export default function ChargingStationsList() {
 
   const handleEditClick = (e, cs) => {
     e.stopPropagation();
-    alert('Edit station functionality coming soon!');
+    toast.info("Edit station feature coming soon!", { code: 200 });
   };
 
   return (
-    <div className="flex flex-col gap-5 max-w-[1400px] w-full mx-auto pb-10">
+    <div className="flex flex-col gap-3 max-w-[1400px] w-full mx-auto pb-6">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2 mt-1">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 px-1 mt-0">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
             Charging Stations
           </h1>
-          <p className="text-sm text-stone-500 mt-1 font-medium ml-1">Manage and monitor all your physical station locations.</p>
+          <p className="text-xs text-stone-500 mt-0.5 font-medium ml-0.5">Manage and monitor all your physical station locations.</p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4">
-          <button className="flex items-center gap-2 px-5 py-2.5 bg-white/60 hover:bg-white/80 border border-white/50 text-stone-700 font-bold rounded-2xl shadow-sm active:scale-95 transition-colors duration-200 text-sm">
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => toast.success("Charging stations report exported successfully", { code: 200 })}
+            className="flex items-center gap-2 px-4.5 py-2 bg-white/60 hover:bg-white/80 border border-white/50 text-stone-700 font-bold rounded-xl shadow-xs active:scale-95 transition-colors duration-200 text-xs cursor-pointer"
+          >
             <Download className="w-4 h-4 text-emerald-500" />
             Export
           </button>
 
-          <button className="flex items-center gap-2 px-5 py-2.5 bg-white/60 hover:bg-white/80 border border-white/50 text-stone-700 font-bold rounded-2xl shadow-sm active:scale-95 transition-colors duration-200 text-sm">
+          <button className="flex items-center gap-2 px-4.5 py-2 bg-white/60 hover:bg-white/80 border border-white/50 text-stone-700 font-bold rounded-xl shadow-xs active:scale-95 transition-colors duration-200 text-xs cursor-pointer">
             <Filter className="w-4 h-4 text-violet-500" />
             Filter
           </button>
 
           <button
             onClick={() => alert('Add Station coming soon')}
-            className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white font-bold rounded-2xl shadow-md active:scale-95 transition-colors duration-200 text-sm border border-orange-400/50"
+            className="flex items-center gap-2 px-4.5 py-2 bg-gradient-to-r from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white font-bold rounded-xl shadow-sm active:scale-95 transition-colors duration-200 text-xs border border-orange-400/50 cursor-pointer"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4" />
             Add Station
           </button>
         </div>
@@ -141,9 +279,9 @@ export default function ChargingStationsList() {
       {/* Main Enterprise Table Container */}
       <div className="bg-[#F6F8FB] border border-stone-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col min-h-[500px]">
         {/* Toolbar (#FFFFFF) */}
-        <div className="px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white border-b border-stone-200/80">
-          <div className="flex items-center gap-2 text-xs text-stone-600 font-bold px-3 py-1.5 rounded-lg bg-[#F8FAFC] border border-stone-200/80 shadow-2xs">
-            <span className="font-extrabold text-stone-900 text-sm">{totalItems}</span> total stations
+        <div className="px-5 py-2 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white border-b border-stone-200/80">
+          <div className="flex items-center gap-2 text-xs text-stone-600 font-bold px-3 py-1 rounded-lg bg-[#F8FAFC] border border-stone-200/80 shadow-2xs">
+            <span className="font-extrabold text-stone-900 text-xs">{totalItems}</span> total stations
           </div>
 
           <div className="relative w-full sm:w-[400px] group">
@@ -166,7 +304,10 @@ export default function ChargingStationsList() {
           <table className="w-full text-left text-sm border-separate border-spacing-y-1">
             <thead className="sticky top-0 z-20 shadow-2xs">
               <tr className="bg-[#F8FAFC] border-b border-stone-200/90">
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider rounded-l-xl whitespace-nowrap">
+                <th className="px-4 py-2.5 text-center font-bold text-stone-600 text-[11px] uppercase tracking-wider rounded-l-xl whitespace-nowrap">
+                  Actions
+                </th>
+                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Tag className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Name</div>
                 </th>
                 <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
@@ -176,16 +317,22 @@ export default function ChargingStationsList() {
                   <div className="flex items-center gap-1.5"><BatteryCharging className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Charge Points</div>
                 </th>
                 <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-1.5"><Activity className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Total Sessions</div>
+                  <div className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Total Capacity</div>
                 </th>
                 <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-1.5"><DollarSign className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Revenue Generated</div>
+                  <div className="flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Station Type</div>
                 </th>
                 <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Energy Delivered</div>
+                  <div className="flex items-center gap-1.5"><Navigation className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Mobility Type</div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-600 text-[11px] uppercase tracking-wider text-right pr-8 rounded-r-xl whitespace-nowrap">
-                  <div className="flex items-center justify-end gap-1.5"><Settings2 className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Actions</div>
+                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                  <div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Created On <span className="text-stone-400 font-bold ml-0.5">↓</span></div>
+                </th>
+                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                  <div className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Latitude</div>
+                </th>
+                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider rounded-r-xl whitespace-nowrap">
+                  <div className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Longitude</div>
                 </th>
               </tr>
             </thead>
@@ -193,7 +340,7 @@ export default function ChargingStationsList() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="7" className="px-5 py-24 text-center">
+                  <td colSpan="10" className="px-5 py-24 text-center">
                     <div className="text-orange-400 flex flex-col items-center">
                       <Loader2 className="w-10 h-10 animate-spin mb-4" />
                       <p className="text-sm font-bold text-stone-500">Loading charging stations...</p>
@@ -202,7 +349,7 @@ export default function ChargingStationsList() {
                 </tr>
               ) : stations.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="px-5 py-24 text-center">
+                  <td colSpan="10" className="px-5 py-24 text-center">
                     <div className="text-stone-500 flex flex-col items-center">
                       <div className="w-20 h-20 bg-white/40 border border-white/50 flex items-center justify-center mb-6">
                         <Search className="w-10 h-10 text-stone-400" />
@@ -219,40 +366,42 @@ export default function ChargingStationsList() {
                       setStationToView(row);
                       setViewModalOpen(true);
                     }}
-                    className="group bg-white hover:bg-[#F9FBFF] border border-stone-200/80 hover:border-slate-300 shadow-2xs transition-colors duration-150 rounded-xl cursor-pointer"
+                    className="group bg-white hover:bg-[#F9FBFF] border border-stone-200/80 hover:border-slate-300 shadow-2xs transition-colors duration-150 rounded-xl cursor-pointer text-xs"
                   >
-                    <td className="px-4 py-3 rounded-l-xl">
-                      <span className="text-stone-900 font-bold text-[13px] group-hover:underline cursor-pointer truncate max-w-[200px] inline-block transition-colors duration-200">
+                    <td className="px-4 py-3 text-center rounded-l-xl whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                      <TableActions
+                        onEdit={(e) => handleEditClick(e, row)}
+                        onDelete={(e) => handleDeleteClick(e, row)}
+                      />
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-stone-900 font-bold text-[13px] cursor-pointer truncate max-w-[200px] inline-block transition-colors duration-200 group-hover:text-emerald-600">
                         {row.name}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <span className="text-rose-500 text-[12px] font-bold font-mono">{row.code}</span>
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="text-emerald-600 font-bold pl-6 text-[13px]">{row.chargePoints}</div>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <ChargePointsCell station={row} navigate={navigate} />
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="text-stone-600 font-medium pl-6 text-[13px]">{row.totalSessions.toLocaleString()}</div>
+                    <td className="px-4 py-3 whitespace-nowrap font-medium text-stone-700">
+                      {row.totalCapacity || '-'}
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="text-stone-600 font-semibold pl-6 text-[13px]">₹{row.revenueGenerated.toLocaleString()}</div>
+                    <td className="px-4 py-3 whitespace-nowrap font-medium text-stone-600">
+                      {row.stationType || '-'}
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="text-stone-600 font-medium pl-6 text-[13px]">{row.energyDelivered.toLocaleString()} <span className="text-[10px] text-stone-400">kWh</span></div>
+                    <td className="px-4 py-3 whitespace-nowrap font-medium text-stone-600">
+                      {row.mobilityType || 'Stationary'}
                     </td>
-                    <td className="px-4 py-3 text-right pr-6 rounded-r-xl">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <button onClick={(e) => handleEditClick(e, row)} className="p-2 text-orange-500 bg-white/80 border border-orange-100 hover:bg-orange-500 hover:text-white rounded-xl shadow-sm transition active:scale-95 duration-200" title="Edit">
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button onClick={(e) => handleDeleteClick(e, row)} className="p-2 text-rose-500 bg-white/80 border border-rose-100 hover:bg-rose-500 hover:text-white rounded-xl shadow-sm transition active:scale-95 duration-200" title="Delete">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                        <button onClick={(e) => e.stopPropagation()} className="p-2 text-stone-500 bg-white/80 border border-stone-200 hover:bg-stone-600 hover:text-white rounded-xl shadow-sm transition active:scale-95 duration-200">
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-                      </div>
+                    <td className="px-4 py-3 whitespace-nowrap text-stone-500 font-mono text-[11px]">
+                      {row.createdOn || '-'}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap font-mono text-stone-600 text-[11px]">
+                      {row.latitude || '-'}
+                    </td>
+                    <td className="px-4 py-3 rounded-r-xl whitespace-nowrap font-mono text-stone-600 text-[11px]">
+                      {row.longitude || '-'}
                     </td>
                   </tr>
                 ))
@@ -297,9 +446,22 @@ export default function ChargingStationsList() {
             </div>
 
             <div className="grid grid-cols-2 gap-4 py-2">
-              <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
-                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Total Charge Points</span>
-                <span className="text-base font-black text-emerald-600">{stationToView.chargePoints}</span>
+              <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100 col-span-2">
+                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Associated Charge Point</span>
+                <button
+                  onClick={() => {
+                    setViewModalOpen(false);
+                    if (stationToView.chargePointId) {
+                      navigate(`/charge-points/${stationToView.chargePointId}`);
+                    } else {
+                      navigate(`/charge-points?search=${encodeURIComponent(stationToView.chargePointName || stationToView.name)}`);
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200/80 rounded-xl font-bold text-xs transition-colors duration-200 cursor-pointer group mt-1"
+                >
+                  <Zap className="w-4 h-4 text-emerald-500 group-hover:text-white transition-colors" />
+                  <span>{stationToView.chargePointName || `${stationToView.code}-CP1`}</span>
+                </button>
               </div>
 
               <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
