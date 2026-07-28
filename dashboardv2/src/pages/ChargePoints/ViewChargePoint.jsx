@@ -189,70 +189,13 @@ export default function ViewChargePoint() {
   });
 
   const tabs = [
-    { 
-      id: 'stats', 
-      label: 'Stats', 
-      icon: Activity, 
-      activeBorder: 'border-emerald-500', 
-      activeText: 'text-emerald-600', 
-      activeIcon: 'text-emerald-500',
-      badgeActive: 'bg-emerald-500 text-white'
-    },
-    { 
-      id: 'connectors', 
-      label: 'Connectors', 
-      icon: Plug, 
-      count: connectorRows.length,
-      activeBorder: 'border-sky-500', 
-      activeText: 'text-sky-600', 
-      activeIcon: 'text-sky-500',
-      badgeActive: 'bg-sky-500 text-white'
-    },
-    { 
-      id: 'logs', 
-      label: 'Logs', 
-      icon: ListFilter,
-      activeBorder: 'border-purple-500', 
-      activeText: 'text-purple-600', 
-      activeIcon: 'text-purple-500',
-      badgeActive: 'bg-purple-500 text-white'
-    },
-    { 
-      id: 'transactions', 
-      label: 'Charge Transactions', 
-      icon: Zap,
-      activeBorder: 'border-amber-500', 
-      activeText: 'text-amber-600', 
-      activeIcon: 'text-amber-500',
-      badgeActive: 'bg-amber-500 text-white'
-    },
-    { 
-      id: 'config', 
-      label: 'Configuration', 
-      icon: Settings,
-      activeBorder: 'border-indigo-500', 
-      activeText: 'text-indigo-600', 
-      activeIcon: 'text-indigo-500',
-      badgeActive: 'bg-indigo-500 text-white'
-    },
-    { 
-      id: 'control', 
-      label: 'Control', 
-      icon: Sliders,
-      activeBorder: 'border-orange-500', 
-      activeText: 'text-orange-600', 
-      activeIcon: 'text-orange-500',
-      badgeActive: 'bg-orange-500 text-white'
-    },
-    { 
-      id: 'tariffs', 
-      label: 'Tariffs', 
-      icon: Tag,
-      activeBorder: 'border-teal-500', 
-      activeText: 'text-teal-600', 
-      activeIcon: 'text-teal-500',
-      badgeActive: 'bg-teal-500 text-white'
-    },
+    { id: 'stats', label: 'Stats', icon: Activity },
+    { id: 'connectors', label: 'Connectors', icon: Plug, count: connectorRows.length },
+    { id: 'logs', label: 'Logs', icon: ListFilter },
+    { id: 'transactions', label: 'Charge Transactions', icon: Zap },
+    { id: 'config', label: 'Configuration', icon: Settings },
+    { id: 'control', label: 'Control', icon: Sliders },
+    { id: 'tariffs', label: 'Tariffs', icon: Tag },
   ];
 
   const handleDownloadQR = () => {
@@ -261,26 +204,28 @@ export default function ViewChargePoint() {
 
   return (
     <div className="flex flex-col gap-3 max-w-[1500px] w-full mx-auto h-[calc(100vh-115px)] overflow-hidden">
-      <div className="shrink-0 space-y-3">
+      <div className="shrink-0 space-y-2">
         <div>
           <button
             onClick={() => navigate('/charge-points')}
-            className="inline-flex items-center gap-2 text-sm font-bold text-stone-600 hover:text-orange-600 transition-colors cursor-pointer group"
+            className="inline-flex items-center gap-2.5 text-sm sm:text-base font-bold text-stone-800 hover:text-orange-600 transition-colors cursor-pointer group"
           >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to list
+            <ArrowLeft className="w-4.5 h-4.5 group-hover:-translate-x-1 transition-transform stroke-[2.25]" />
+            <span>Back to list</span>
           </button>
         </div>
 
-        <div className="bg-white/70 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] rounded-[28px] p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-0.5">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-black text-stone-900 tracking-tight">
               {cp.name}
             </h1>
-            <span className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-extrabold border shadow-xs ${
-              cp.status === 'Available' ? 'bg-emerald-50/90 text-emerald-700 border-emerald-200/80 shadow-[0_0_12px_rgba(16,185,129,0.15)]' :
-              cp.status === 'Charging' ? 'bg-sky-50/90 text-sky-700 border-sky-200/80 shadow-[0_0_12px_rgba(14,165,233,0.15)]' :
-              cp.status === 'Preparing' ? 'bg-amber-50/90 text-amber-700 border-amber-200/80 shadow-[0_0_12px_rgba(245,158,11,0.15)]' :
-              'bg-rose-50/90 text-rose-700 border-rose-200/80 shadow-[0_0_12px_rgba(244,63,94,0.15)]'
+
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border shadow-2xs ${
+              cp.status === 'Available' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+              cp.status === 'Charging' ? 'bg-sky-50 text-sky-700 border-sky-200' :
+              cp.status === 'Preparing' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+              'bg-rose-50 text-rose-700 border-rose-200'
             }`}>
               <span className={`w-2 h-2 rounded-full mr-2 ${
                 cp.status === 'Available' ? 'bg-emerald-500' :
@@ -292,36 +237,36 @@ export default function ViewChargePoint() {
             </span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
               onClick={() => setShowDetailsModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-white/70 hover:bg-white border border-stone-200/80 text-stone-700 font-bold rounded-xl text-xs shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 active:scale-95 cursor-pointer"
+              className="flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 font-semibold rounded-xl text-xs shadow-2xs transition-colors cursor-pointer"
             >
-              <Eye className="w-4 h-4 text-blue-500" />
-              Show Details
+              <Eye className="w-4 h-4 text-sky-500" />
+              <span>Show Details</span>
             </button>
 
             <button
               onClick={handleDownloadQR}
-              className="flex items-center gap-2 px-4 py-2 bg-white/70 hover:bg-white border border-stone-200/80 text-stone-700 font-bold rounded-xl text-xs shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 active:scale-95 cursor-pointer"
+              className="flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 font-semibold rounded-xl text-xs shadow-2xs transition-colors cursor-pointer"
             >
               <QrCode className="w-4 h-4 text-purple-500" />
-              Download QR Code
+              <span>Download QR Code</span>
             </button>
 
             <button
               onClick={() => navigate(`/charge-points/edit/${cp.id || id}`, { state: { chargePoint: cp } })}
-              className="flex items-center gap-2 px-4 py-2 bg-white/70 hover:bg-white border border-stone-200/80 text-stone-700 font-bold rounded-xl text-xs shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 active:scale-95 cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-xs shadow-xs transition-colors cursor-pointer"
             >
-              <Edit className="w-4 h-4 text-orange-500" />
-              Edit Details
+              <Edit className="w-4 h-4" />
+              <span>Edit Details</span>
             </button>
           </div>
         </div>
       </div>
 
       <div className="bg-white/70 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] rounded-[32px] overflow-hidden flex flex-col flex-1 min-h-0">
-        <div className="shrink-0 px-6 pt-3 pb-0 bg-white/60 backdrop-blur-xl border-b border-white/60 overflow-x-auto flex items-center gap-2 z-10">
+        <div className="shrink-0 px-6 pt-3 pb-0 bg-[#F8FAFC] border-b border-stone-200/80 overflow-x-auto flex items-center gap-2.5 z-10">
           {tabs.map((t) => {
             const Icon = t.icon;
             const isActive = activeTab === t.id;
@@ -329,19 +274,19 @@ export default function ViewChargePoint() {
               <button
                 key={t.id}
                 onClick={() => handleTabChange(t.id)}
-                className={`flex items-center gap-2.5 px-5 py-3.5 text-sm font-black transition-all duration-300 border-b-2 whitespace-nowrap cursor-pointer rounded-t-2xl relative ${
+                className={`flex items-center gap-3 px-5 py-3.5 text-sm font-bold transition-all duration-200 border-b-2 rounded-t-xl whitespace-nowrap cursor-pointer select-none relative -mb-[1px] ${
                   isActive
-                    ? `${t.activeBorder} ${t.activeText} bg-white/95 shadow-[0_-4px_12px_rgba(0,0,0,0.02)]`
-                    : 'border-transparent text-stone-700 hover:text-stone-900 hover:bg-white/50'
+                    ? 'border-b-2 border-b-orange-500 text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-xs font-extrabold'
+                    : 'border-transparent text-stone-500 hover:text-stone-800 hover:bg-stone-100/60'
                 }`}
               >
-                <Icon strokeWidth={2.5} className={`w-4 h-4 transition-transform duration-300 ${
-                  isActive ? `${t.activeIcon} scale-110` : 'text-stone-600 group-hover:text-stone-800'
+                <Icon strokeWidth={2.25} className={`w-4.5 h-4.5 transition-transform ${
+                  isActive ? 'text-orange-500 scale-105' : 'text-stone-400'
                 }`} />
-                <span className="font-black">{t.label}</span>
+                <span className="font-bold text-sm tracking-tight">{t.label}</span>
                 {t.count !== undefined && (
-                  <span className={`px-2 py-0.5 text-[11px] rounded-full font-black transition-colors ${
-                    isActive ? t.badgeActive : 'bg-stone-200 text-stone-700'
+                  <span className={`px-2.5 py-0.5 text-xs font-mono font-bold rounded-md transition-colors ${
+                    isActive ? 'bg-orange-100/80 text-orange-700 border border-orange-200/60' : 'bg-stone-100 text-stone-600 border border-stone-200/60'
                   }`}>
                     {t.count}
                   </span>
@@ -899,7 +844,18 @@ export default function ViewChargePoint() {
               <div><span className="text-stone-400 font-bold text-xs uppercase block">Code</span><span className="font-mono font-bold text-rose-500">{cp.code}</span></div>
               <div><span className="text-stone-400 font-bold text-xs uppercase block">CP ID</span><span className="font-mono font-bold text-orange-500">{cp.cpId}</span></div>
               <div><span className="text-stone-400 font-bold text-xs uppercase block">Manufacturer</span><span className="font-bold text-stone-800">{cp.manufacturer}</span></div>
-              <div><span className="text-stone-400 font-bold text-xs uppercase block">Charging Station</span><span className="font-bold text-stone-800">{cp.chargingStation}</span></div>
+              <div>
+                <span className="text-stone-400 font-bold text-xs uppercase block">Charging Station</span>
+                <button
+                  onClick={() => {
+                    setShowDetailsModal(false);
+                    navigate(`/charging-stations/${cp.chargingStationId || encodeURIComponent(cp.chargingStation)}`, { state: { station: { name: cp.chargingStation, id: cp.chargingStationId } } });
+                  }}
+                  className="font-bold text-sky-600 hover:text-sky-800 transition-colors duration-200 cursor-pointer text-left block"
+                >
+                  {cp.chargingStation}
+                </button>
+              </div>
               <div><span className="text-stone-400 font-bold text-xs uppercase block">Mode</span><span className="font-bold text-stone-800">{cp.mode}</span></div>
               <div><span className="text-stone-400 font-bold text-xs uppercase block">Stage</span><span className="font-bold text-stone-800">{cp.stage}</span></div>
               <div><span className="text-stone-400 font-bold text-xs uppercase block">Firmware</span><span className="font-mono font-bold text-stone-800">{cp.firmwareVersion}</span></div>

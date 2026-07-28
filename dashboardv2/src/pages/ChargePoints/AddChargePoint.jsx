@@ -229,7 +229,7 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
       {/* Forms layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         {/* Left Column */}
-        <FormCard>
+        <FormCard title="Basic Details">
           <div>
             <LabelWithInfo label="Name" required />
             <Input disabled={isViewMode} placeholder="" {...register('name')} error={errors.name} />
@@ -272,7 +272,7 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
         </FormCard>
 
         {/* Right Column */}
-        <FormCard>
+        <FormCard title="Other Details">
           <div>
             <LabelWithInfo label="Is this charger exclusive?" required info="Mark if only for exclusive use." />
             <Select disabled={isViewMode} options={['Exclusive', 'Shared']} {...register('exclusive')} error={errors.exclusive} />

@@ -238,7 +238,7 @@ export default function ChargingStationsList() {
 
   const handleEditClick = (e, cs) => {
     e.stopPropagation();
-    toast.info("Edit station feature coming soon!", { code: 200 });
+    navigate(`/charging-stations/edit/${cs.id}`, { state: { station: cs } });
   };
 
   return (
@@ -267,7 +267,7 @@ export default function ChargingStationsList() {
           </button>
 
           <button
-            onClick={() => alert('Add Station coming soon')}
+            onClick={() => navigate('/charging-stations/new')}
             className="flex items-center gap-2 px-4.5 py-2 bg-gradient-to-r from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white font-bold rounded-xl shadow-sm active:scale-95 transition-colors duration-200 text-xs border border-orange-400/50 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
@@ -363,8 +363,7 @@ export default function ChargingStationsList() {
                   <tr
                     key={row.id}
                     onClick={() => {
-                      setStationToView(row);
-                      setViewModalOpen(true);
+                      navigate(`/charging-stations/${row.id}`, { state: { station: row } });
                     }}
                     className="group bg-white hover:bg-[#F9FBFF] border border-stone-200/80 hover:border-slate-300 shadow-2xs transition-colors duration-150 rounded-xl cursor-pointer text-xs"
                   >

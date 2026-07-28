@@ -8,6 +8,8 @@ const ChargePointsList = lazy(() => import('./pages/ChargePoints/ChargePointsLis
 const AddNewChargePoint = lazy(() => import('./pages/ChargePoints/AddChargePoint'));
 const ViewChargePoint = lazy(() => import('./pages/ChargePoints/ViewChargePoint'));
 const ChargingStationsList = lazy(() => import('./pages/ChargingStations/ChargingStationsList'));
+const AddChargingStation = lazy(() => import('./pages/ChargingStations/AddChargingStation'));
+const ViewChargingStation = lazy(() => import('./pages/ChargingStations/ViewChargingStation'));
 const LiveSessionsList = lazy(() => import('./pages/LiveSessions/LiveSessionsList'));
 const TariffsList = lazy(() => import('./pages/Tariffs/TariffsList'));
 const AddNewTariff = lazy(() => import('./pages/Tariffs/AddNewTariff'));
@@ -47,6 +49,10 @@ function App() {
                 <Route path="/alerts" element={<DummyPage title="Alerts" />} />
                 <Route path="/abnormal-transactions" element={<DummyPage title="Abnormal Transactions" />} />
                 <Route path="/charging-stations" element={<ChargingStationsList />} />
+                <Route path="/charging-stations/new" element={<AddChargingStation />} />
+                <Route path="/charging-stations/edit/:id" element={<AddChargingStation isEditMode={true} />} />
+                <Route path="/charging-stations/view/:id" element={<AddChargingStation isViewMode={true} />} />
+                <Route path="/charging-stations/:id" element={<ViewChargingStation />} />
                 
                 <Route path="/charge-points" element={<ChargePointsList />} />
                 <Route path="/charge-points/new" element={<AddNewChargePoint />} />

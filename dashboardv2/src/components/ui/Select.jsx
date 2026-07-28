@@ -46,7 +46,6 @@ const Select = forwardRef(({
   const handleSelectOption = (opt) => {
     const val = typeof opt === 'object' ? opt.value : opt;
     setSelectedValue(val);
-    setIsOpen(false);
 
     if (hiddenSelectRef.current) {
       hiddenSelectRef.current.value = val;

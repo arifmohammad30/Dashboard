@@ -207,8 +207,13 @@ export default function LiveSessionsList() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3">
-                      <span className="text-sky-600 font-bold text-[13px] hover:text-sky-700 cursor-pointer">
+                    <td className="px-4 py-3" onClick={(e) => {
+                      e.stopPropagation();
+                      if (row.stationName) {
+                        navigate(`/charging-stations/${encodeURIComponent(row.stationName)}`, { state: { station: { name: row.stationName } } });
+                      }
+                    }}>
+                      <span className="text-sky-600 font-bold text-[13px] hover:text-sky-800 transition-colors duration-200 cursor-pointer">
                         {row.stationName}
                       </span>
                     </td>

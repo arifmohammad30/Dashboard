@@ -59,6 +59,18 @@ export const getChargingStations = async (page = 1, limit = 20, searchTerm = '')
   };
 };
 
+export const getChargingStationById = async (id) => {
+  try {
+    const data = await apiClient(`/charging-stations/${id}`);
+    if (data) return data;
+  } catch (error) {
+    console.warn("Backend API unavailable, using local stations store:", error);
+  }
+  const item = localStationsStore.find(cs => String(cs.id) === String(id));
+  if (item) return { ...item };
+  throw new Error("Charging Station not found");
+};
+
 export const createChargingStation = async (payload) => {
   try {
     return await apiClient('/charging-stations', {

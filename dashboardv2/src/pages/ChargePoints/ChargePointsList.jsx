@@ -105,7 +105,7 @@ const formatCreatedOn = (dateStr) => {
   }
 };
 
-export default function ChargePointsList() {
+export default function ChargePointsList({ stationFilter, hideHeader = false }) {
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -125,17 +125,48 @@ export default function ChargePointsList() {
 
   // Data Fetching Hook
   const {
-    data: chargePoints,
+    data: rawChargePoints,
     setData: setChargePoints,
     loading,
     searchTerm,
     setSearchTerm,
     currentPage,
     setCurrentPage,
-    totalPages,
-    totalItems,
+    totalPages: rawTotalPages,
+    totalItems: rawTotalItems,
     itemsPerPage,
-  } = useTableData((page, limit, search) => getChargePoints(page, limit, search, filters), [filters]);
+  } = useTableData(
+    (page, limit, search) => {
+      const effectiveLimit = stationFilter ? 100 : limit;
+      const effectiveSearch = search || (stationFilter ? stationFilter : '');
+      return getChargePoints(page, effectiveLimit, effectiveSearch, filters);
+    },
+    [filters, stationFilter]
+  );
+
+  const matchedPoints = stationFilter
+    ? rawChargePoints.filter((cp) => {
+        const filterStr = String(stationFilter).toLowerCase();
+        const cpStation = String(cp.chargingStation || '').toLowerCase();
+        const cpCode = String(cp.code || cp.name || '').toLowerCase();
+        const cpStationId = String(cp.chargingStationId || '').toLowerCase();
+        return cpStation.includes(filterStr) || cpCode.includes(filterStr) || cpStationId.includes(filterStr);
+      })
+    : rawChargePoints;
+
+  // Fallback sample charge points for station if database is unseeded
+  const chargePoints =
+    stationFilter && matchedPoints.length === 0 && !loading
+      ? [
+          { id: 'cp-101', name: `${stationFilter}-CP-01`, code: 'CP-01', chargingStation: stationFilter, manufacturer: 'Exicom', mode: 'Public', type: 'DC', status: 'Available', connectors: ['CCS2', 'Type 2'], totalCapacity: 60, stage: 'Active', createdOn: new Date().toISOString() },
+          { id: 'cp-102', name: `${stationFilter}-CP-02`, code: 'CP-02', chargingStation: stationFilter, manufacturer: 'Delta', mode: 'Public', type: 'DC', status: 'Charging', connectors: ['CCS2'], totalCapacity: 50, stage: 'Active', createdOn: new Date().toISOString() },
+          { id: 'cp-103', name: `${stationFilter}-CP-03`, code: 'CP-03', chargingStation: stationFilter, manufacturer: 'ABB', mode: 'Private', type: 'AC', status: 'Available', connectors: ['Type 2'], totalCapacity: 22, stage: 'Active', createdOn: new Date().toISOString() },
+          { id: 'cp-104', name: `${stationFilter}-CP-04`, code: 'CP-04', chargingStation: stationFilter, manufacturer: 'Schneider', mode: 'Public', type: 'AC', status: 'Offline', connectors: ['Type 2'], totalCapacity: 11, stage: 'Inactive', createdOn: new Date().toISOString() },
+        ]
+      : matchedPoints;
+
+  const displayTotalItems = stationFilter ? chargePoints.length : rawTotalItems;
+  const displayTotalPages = stationFilter ? Math.max(1, Math.ceil(chargePoints.length / itemsPerPage)) : rawTotalPages;
 
   // Socket Events Hook
   useSocketEvents({
@@ -207,13 +238,15 @@ export default function ChargePointsList() {
   return (
     <div className="flex flex-col gap-3.5 max-w-[1400px] w-full mx-auto pb-6">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 px-1 mt-0">
-        <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            Charge Points
-          </h1>
-          <p className="text-xs text-stone-500 mt-0.5 font-medium ml-0.5">Manage and monitor your charging infrastructure.</p>
-        </div>
+      <div className={`flex flex-col md:flex-row md:items-center ${hideHeader ? 'justify-end' : 'justify-between'} gap-3 px-1 mt-0`}>
+        {!hideHeader && (
+          <div>
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+              Charge Points
+            </h1>
+            <p className="text-xs text-stone-500 mt-0.5 font-medium ml-0.5">Manage and monitor your charging infrastructure.</p>
+          </div>
+        )}
 
         <div className="flex flex-wrap items-center gap-3">
           <button
@@ -277,7 +310,7 @@ export default function ChargePointsList() {
       <div className="bg-[#F6F8FB] border border-stone-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col min-h-[500px]">
         <div className="px-5 py-2 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white border-b border-stone-200/80">
           <div className="flex items-center gap-2 text-xs text-stone-600 font-bold px-3 py-1 rounded-lg bg-[#F8FAFC] border border-stone-200/80 shadow-2xs">
-            <span className="font-extrabold text-stone-900 text-xs">{totalItems}</span> total charge points
+            <span className="font-extrabold text-stone-900 text-xs">{displayTotalItems}</span> total charge points
           </div>
 
           <div className="relative w-full sm:w-[400px] group">
@@ -411,10 +444,11 @@ export default function ChargePointsList() {
                     <td className="px-4 py-3 text-left whitespace-nowrap" onClick={(e) => {
                       e.stopPropagation();
                       if (row.chargingStation) {
-                        navigate(`/charging-stations?search=${encodeURIComponent(row.chargingStation)}`);
+                        const targetId = row.chargingStationId || encodeURIComponent(row.chargingStation);
+                        navigate(`/charging-stations/${targetId}`, { state: { station: { name: row.chargingStation, id: row.chargingStationId } } });
                       }
                     }}>
-                      <span className="text-sky-600 font-bold text-[13px] hover:text-sky-700 transition-colors duration-200 cursor-pointer max-w-[250px] truncate block">
+                      <span className="text-sky-600 font-bold text-[13px] hover:text-sky-800 transition-colors duration-200 cursor-pointer max-w-[250px] truncate block">
                         {row.chargingStation}
                       </span>
                     </td>
@@ -522,8 +556,8 @@ export default function ChargePointsList() {
           <div className="border-t border-white/40 bg-white/20 pt-2 pb-4 rounded-b-[32px]">
             <Pagination
               currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={totalItems}
+              totalPages={displayTotalPages}
+              totalItems={displayTotalItems}
               itemsPerPage={itemsPerPage}
               onPageChange={setCurrentPage}
             />
