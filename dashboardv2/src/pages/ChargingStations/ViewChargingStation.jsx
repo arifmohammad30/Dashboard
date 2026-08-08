@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import BackButton from '../../components/ui/BackButton';
+import { filterTableData } from '../../utils/searchUtils';
 import {
   ArrowLeft,
   Search,
@@ -370,13 +372,7 @@ export default function ViewChargingStation() {
       {/* Top Header Bar */}
       <div className="shrink-0 space-y-2">
         <div>
-          <button
-            onClick={() => navigate('/charging-stations')}
-            className="inline-flex items-center gap-2.5 text-sm sm:text-base font-bold text-stone-800 hover:text-orange-600 transition-colors cursor-pointer group"
-          >
-            <ArrowLeft className="w-4.5 h-4.5 group-hover:-translate-x-1 transition-transform stroke-[2.25]" />
-            <span>Back to Charging Stations</span>
-          </button>
+          <BackButton to="/charging-stations" label="Back to Charging Stations" />
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-0.5">
@@ -410,36 +406,31 @@ export default function ViewChargingStation() {
 
       {/* Glass Container matching ViewChargePoint */}
       <div className="bg-white/70 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] rounded-[32px] overflow-hidden flex flex-col flex-1 min-h-0">
-        <div className="shrink-0 px-6 pt-3 pb-0 bg-[#F8FAFC] border-b border-stone-200/80 overflow-x-auto flex items-center gap-2.5 z-10">
+        <div className="shrink-0 px-6 pt-3 pb-0 bg-[#F8FAFC] border-b border-stone-200/80 overflow-x-auto md:overflow-x-visible flex items-center gap-2.5 z-10 scrollbar-none">
           <button
             onClick={() => setActiveTab('charge-points')}
-            className={`flex items-center gap-3 px-5.5 py-3.5 text-sm font-bold transition-all duration-200 border-b-2 rounded-t-xl whitespace-nowrap cursor-pointer select-none relative -mb-[1px] ${
-              activeTab === 'charge-points'
-                ? 'border-b-2 border-b-orange-500 text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-xs font-extrabold'
-                : 'border-transparent text-stone-500 hover:text-stone-800 hover:bg-stone-100/60'
-            }`}
+            className={`flex items-center gap-2.5 px-4.5 py-3 text-xs font-bold tracking-tight transition-all duration-200 border-b-2 rounded-t-xl whitespace-nowrap cursor-pointer select-none relative ${activeTab === 'charge-points'
+              ? 'border-b-2 border-b-orange-500 text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-xs font-extrabold'
+              : 'border-transparent text-stone-500 hover:text-stone-800 hover:bg-stone-100/60 font-medium'
+              }`}
           >
-            <BatteryCharging strokeWidth={2.25} className={`w-4.5 h-4.5 transition-transform ${
-              activeTab === 'charge-points' ? 'text-orange-500 scale-105' : 'text-stone-400'
-            }`} />
-            <span className="font-bold text-sm tracking-tight">Charge Points</span>
+            <BatteryCharging strokeWidth={2.25} className={`w-4 h-4 transition-transform ${activeTab === 'charge-points' ? 'text-orange-500 scale-105' : 'text-stone-400'
+              }`} />
+            <span className="font-bold text-xs tracking-tight">Charge Points</span>
           </button>
 
           <button
             onClick={() => setActiveTab('transactions')}
-            className={`flex items-center gap-3 px-5.5 py-3.5 text-sm font-bold transition-all duration-200 border-b-2 rounded-t-xl whitespace-nowrap cursor-pointer select-none relative -mb-[1px] ${
-              activeTab === 'transactions'
-                ? 'border-b-2 border-b-orange-500 text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-xs font-extrabold'
-                : 'border-transparent text-stone-500 hover:text-stone-800 hover:bg-stone-100/60'
-            }`}
+            className={`flex items-center gap-2.5 px-4.5 py-3 text-xs font-bold tracking-tight transition-all duration-200 border-b-2 rounded-t-xl whitespace-nowrap cursor-pointer select-none relative ${activeTab === 'transactions'
+              ? 'border-b-2 border-b-orange-500 text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-xs font-extrabold'
+              : 'border-transparent text-stone-500 hover:text-stone-800 hover:bg-stone-100/60 font-medium'
+              }`}
           >
-            <Activity strokeWidth={2.25} className={`w-4.5 h-4.5 transition-transform ${
-              activeTab === 'transactions' ? 'text-orange-500 scale-105' : 'text-stone-400'
-            }`} />
-            <span className="font-bold text-sm tracking-tight">Charge Transactions</span>
-            <span className={`px-2.5 py-0.5 text-xs font-mono font-bold rounded-md transition-colors ${
-              activeTab === 'transactions' ? 'bg-orange-100/80 text-orange-700 border border-orange-200/60' : 'bg-stone-100 text-stone-600 border border-stone-200/60'
-            }`}>
+            <Activity strokeWidth={2.25} className={`w-4 h-4 transition-transform ${activeTab === 'transactions' ? 'text-orange-500 scale-105' : 'text-stone-400'
+              }`} />
+            <span className="font-bold text-xs tracking-tight">Charge Transactions</span>
+            <span className={`px-2 py-0.5 text-[11px] font-mono font-bold rounded transition-colors ${activeTab === 'transactions' ? 'bg-orange-100/80 text-orange-700 border border-orange-200/60' : 'bg-stone-100 text-stone-600 border border-stone-200/60'
+              }`}>
               {transactions.length}
             </span>
           </button>
@@ -482,9 +473,8 @@ export default function ViewChargingStation() {
                                 setDateRange(opt);
                                 setIsDateDropdownOpen(false);
                               }}
-                              className={`w-full text-left px-4 py-2 text-xs font-semibold flex items-center justify-between cursor-pointer ${
-                                dateRange === opt ? 'bg-orange-50 text-orange-600 font-bold' : 'text-stone-700 hover:bg-stone-50'
-                              }`}
+                              className={`w-full text-left px-4 py-2 text-xs font-semibold flex items-center justify-between cursor-pointer ${dateRange === opt ? 'bg-orange-50 text-orange-600 font-bold' : 'text-stone-700 hover:bg-stone-50'
+                                }`}
                             >
                               <span>{opt}</span>
                               {dateRange === opt && <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>}
@@ -593,7 +583,7 @@ export default function ViewChargingStation() {
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
                             <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-stone-100 border border-stone-200/70 text-stone-700">
-                              {tx.connector}
+                              {typeof tx.connector === 'object' ? (tx.connector?.type || tx.connector?.name || tx.connector?.id || 'Connector') : (tx.connector || '-')}
                             </span>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">

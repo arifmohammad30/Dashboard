@@ -304,8 +304,8 @@ export default function ChargingStationsList() {
           <table className="w-full text-left text-sm border-separate border-spacing-y-1">
             <thead className="bg-[#F8FAFC] border-b border-stone-200/90 shadow-2xs">
               <tr className="bg-[#F8FAFC] border-b border-stone-200/90">
-                <th className="px-4 py-2.5 text-center font-bold text-stone-600 text-[11px] uppercase tracking-wider rounded-l-xl whitespace-nowrap">
-                  Actions
+                <th className="px-4 py-2.5 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider rounded-l-xl whitespace-nowrap">
+                  <div className="flex items-center justify-center gap-1.5"><Settings2 className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Actions</div>
                 </th>
                 <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Tag className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Name</div>

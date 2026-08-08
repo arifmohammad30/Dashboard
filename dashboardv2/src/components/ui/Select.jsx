@@ -10,6 +10,8 @@ const Select = forwardRef(({
   onBlur,
   disabled = false,
   name,
+  className = "",
+  buttonClassName = "",
   ...rest
 }, ref) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -101,15 +103,17 @@ const Select = forwardRef(({
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between py-2.5 px-4 bg-white border ${
+        className={`w-full flex items-center justify-between ${
+          buttonClassName || 'py-2.5 px-4 text-sm bg-white'
+        } border ${
           error ? 'border-rose-400 focus:ring-rose-200' : isOpen ? 'border-slate-800 ring-2 ring-slate-800/10' : 'border-stone-200 hover:border-stone-300'
-        } rounded-xl text-sm font-medium text-stone-800 shadow-2xs transition-all duration-200 outline-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer`}
+        } rounded-xl font-medium text-stone-800 shadow-2xs transition-all duration-200 outline-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${className}`}
       >
-        <span className={activeValue ? 'text-stone-900 font-semibold' : 'text-stone-400'}>
+        <span className={activeValue ? 'text-stone-900 font-bold' : 'text-stone-400'}>
           {currentDisplayLabel()}
         </span>
         <ChevronDown
-          className={`w-4 h-4 text-stone-400 transition-transform duration-200 ease-in-out shrink-0 ${
+          className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-200 ease-in-out shrink-0 ${
             isOpen ? 'rotate-180 text-sky-600' : ''
           }`}
         />

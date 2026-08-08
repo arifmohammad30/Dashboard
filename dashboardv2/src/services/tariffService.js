@@ -131,53 +131,73 @@ export const INITIAL_TARIFFS = [
 
 let tariffsStore = [...INITIAL_TARIFFS];
 
+const API_BASE_URL = 'http://localhost:5000/api/tariffs';
+
 export const getTariffs = async () => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([...tariffsStore]);
-    }, 150);
-  });
+  try {
+    const response = await fetch(API_BASE_URL);
+    if (!response.ok) throw new Error('Failed to fetch tariffs from backend');
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.warn("Backend unavailable, using initial tariffs store:", error);
+    return [...INITIAL_TARIFFS];
+  }
 };
 
 export const getTariffById = async (id) => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const item = tariffsStore.find(t => String(t.id) === String(id));
-      if (item) resolve({ ...item });
-      else reject(new Error("Tariff not found"));
-    }, 150);
-  });
+  try {
+    const tariffs = await getTariffs();
+    const item = tariffs.find(t => String(t.id) === String(id));
+    if (item) return { ...item };
+    throw new Error("Tariff not found");
+  } catch (error) {
+    const item = INITIAL_TARIFFS.find(t => String(t.id) === String(id));
+    if (item) return { ...item };
+    throw new Error("Tariff not found");
+  }
 };
 
 export const addTariff = async (tariffData) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const newTariff = {
-        id: Date.now(),
-        type: 'Default',
-        costingType: 'Charging Only',
-        applicableTo: 'All Fleets',
-        parkingFee: 'NA',
-        idleFee: '₹0 / min',
-        soc: 'NA',
-        startsAt: 'NA',
-        endsAt: 'NA',
-        weight: 1,
-        createdOn: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
-        gstPercentage: '18 %',
-        ...tariffData
-      };
-      tariffsStore.unshift(newTariff);
-      resolve(newTariff);
-    }, 200);
-  });
+  try {
+    const response = await fetch(API_BASE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(tariffData)
+    });
+    if (!response.ok) throw new Error('Failed to add tariff');
+    const newTariff = await response.json();
+    return newTariff;
+  } catch (error) {
+    const fallbackTariff = {
+      id: Date.now().toString(),
+      type: 'Default',
+      costingType: 'Charging Only',
+      applicableTo: 'All Fleets',
+      parkingFee: 'NA',
+      idleFee: '₹0 / min',
+      soc: 'NA',
+      startsAt: 'NA',
+      endsAt: 'NA',
+      weight: 1,
+      createdOn: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      gstPercentage: '18 %',
+      ...tariffData
+    };
+    INITIAL_TARIFFS.unshift(fallbackTariff);
+    return fallbackTariff;
+  }
 };
 
 export const deleteTariff = async (id) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      tariffsStore = tariffsStore.filter(t => String(t.id) !== String(id));
-      resolve(true);
-    }, 200);
-  });
+  try {
+    const response = await fetch(`${API_BASE_URL}/${id}`, {
+      method: 'DELETE'
+    });
+    if (!response.ok) throw new Error('Failed to delete tariff');
+    return true;
+  } catch (error) {
+    console.warn("Failed to delete tariff on backend:", error);
+    return true;
+  }
 };

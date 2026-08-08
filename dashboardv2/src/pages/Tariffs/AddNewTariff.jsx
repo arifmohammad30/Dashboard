@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import BackButton from '../../components/ui/BackButton';
 import { useForm } from 'react-hook-form';
 import { ArrowLeft, Plus, Loader2, Users, CheckCircle2 } from 'lucide-react';
 import { z } from 'zod';
@@ -106,13 +107,7 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 max-w-[1100px] mx-auto pb-12">
       <div className="flex items-center justify-between px-2">
         <div>
-          <button
-            type="button"
-            onClick={() => navigate('/tariffs')}
-            className="flex items-center gap-2 text-slate-900 hover:text-rose-600 transition-colors mb-2 font-bold text-sm cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to Tariffs
-          </button>
+          <BackButton to="/tariffs" label="Back to Tariffs" />
         </div>
 
         <div className="flex items-center gap-3">
@@ -173,11 +168,10 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
                 type="button"
                 disabled={isViewMode}
                 onClick={() => setValue('applicableTo', 'All Fleets', { shouldValidate: true })}
-                className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all duration-200 cursor-pointer ${
-                  selectedApplicableTo === 'All Fleets'
-                    ? 'bg-slate-900 text-white shadow-xs'
-                    : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
-                }`}
+                className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all duration-200 cursor-pointer ${selectedApplicableTo === 'All Fleets'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
+                  }`}
               >
                 <Users className={`w-3.5 h-3.5 transition-colors duration-200 ${selectedApplicableTo === 'All Fleets' ? 'text-orange-500' : 'text-stone-400'}`} />
                 All Fleets
@@ -187,11 +181,10 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
                 type="button"
                 disabled={isViewMode}
                 onClick={() => setValue('applicableTo', 'Selected Fleets', { shouldValidate: true })}
-                className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all duration-200 cursor-pointer ${
-                  selectedApplicableTo === 'Selected Fleets'
-                    ? 'bg-slate-900 text-white shadow-xs'
-                    : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
-                }`}
+                className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all duration-200 cursor-pointer ${selectedApplicableTo === 'Selected Fleets'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
+                  }`}
               >
                 <CheckCircle2 className={`w-3.5 h-3.5 transition-colors duration-200 ${selectedApplicableTo === 'Selected Fleets' ? 'text-orange-500' : 'text-stone-400'}`} />
                 Selected Fleets
@@ -245,9 +238,8 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
                   disabled={isViewMode}
                   placeholder="10"
                   {...register('chargingFee')}
-                  className={`w-full pl-7 pr-16 py-2.5 bg-white border border-stone-200 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:border-slate-800 transition ${
-                    errors.chargingFee ? 'border-rose-400' : ''
-                  }`}
+                  className={`w-full pl-7 pr-16 py-2.5 bg-white border border-stone-200 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:border-slate-800 transition ${errors.chargingFee ? 'border-rose-400' : ''
+                    }`}
                 />
                 <span className="absolute right-3 text-stone-400 text-xs font-medium pointer-events-none">per kWh</span>
               </div>
@@ -287,9 +279,8 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
                 disabled={isViewMode}
                 placeholder="0"
                 {...register('idleFee')}
-                className={`w-full pl-7 pr-16 py-2.5 bg-white border border-stone-200 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:border-slate-800 transition ${
-                  errors.idleFee ? 'border-rose-400' : ''
-                }`}
+                className={`w-full pl-7 pr-16 py-2.5 bg-white border border-stone-200 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:border-slate-800 transition ${errors.idleFee ? 'border-rose-400' : ''
+                  }`}
               />
               <span className="absolute right-3 text-stone-400 text-xs font-medium pointer-events-none">per min</span>
             </div>
@@ -307,9 +298,8 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
                 disabled={isViewMode}
                 placeholder="0"
                 {...register('stateTax')}
-                className={`w-full pl-7 py-2.5 bg-white border border-stone-200 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:border-slate-800 transition ${
-                  errors.stateTax ? 'border-rose-400' : ''
-                }`}
+                className={`w-full pl-7 py-2.5 bg-white border border-stone-200 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:border-slate-800 transition ${errors.stateTax ? 'border-rose-400' : ''
+                  }`}
               />
             </div>
             {errors.stateTax && (

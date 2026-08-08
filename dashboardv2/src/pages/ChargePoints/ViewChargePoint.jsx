@@ -1,5 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import BackButton from '../../components/ui/BackButton';
+import Select from '../../components/ui/Select';
+import ChargePointStatsTab from '../../components/ChargePointStatsTab';
+import ChargePointLogsTab from '../../components/ChargePointLogsTab';
 import {
   ArrowLeft,
   Edit,
@@ -27,6 +31,7 @@ import {
   Clock,
   DollarSign,
   QrCode,
+  Play,
   Shield,
   Layers,
   MapPin,
@@ -45,7 +50,7 @@ import { getChargePointById, updateChargePoint } from '../../services/chargePoin
 import { useSocketEvents } from '../../hooks/useSocketEvents';
 import { useToast } from '../../context/ToastContext';
 
-export default function ViewChargePoint() {
+export default function ViewChargePoint({ defaultTab }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
@@ -54,7 +59,7 @@ export default function ViewChargePoint() {
   const initialData = location.state?.chargePoint;
 
   const validTabs = ['stats', 'connectors', 'logs', 'transactions', 'config', 'control', 'tariffs'];
-  const tabFromUrl = searchParams.get('tab');
+  const tabFromUrl = searchParams.get('tab') || (location.pathname.endsWith('/logs') ? 'logs' : defaultTab);
   const activeTab = validTabs.includes(tabFromUrl) ? tabFromUrl : 'stats';
 
   const handleTabChange = (tabId) => {
@@ -87,6 +92,30 @@ export default function ViewChargePoint() {
   const [actionFeedback, setActionFeedback] = useState(null);
   const [openDropdownIds, setOpenDropdownIds] = useState({});
   const [connectorStatusMap, setConnectorStatusMap] = useState({});
+
+  const cpObj = chargePoint || initialData || {};
+  let rawConnArray = [];
+  if (Array.isArray(cpObj.connectors) && cpObj.connectors.length > 0) {
+    rawConnArray = cpObj.connectors;
+  } else if (typeof cpObj.connectors === 'string' && cpObj.connectors.trim() !== '') {
+    try {
+      const parsed = JSON.parse(cpObj.connectors);
+      rawConnArray = Array.isArray(parsed) && parsed.length > 0 ? parsed : [cpObj.connectors];
+    } catch (e) {
+      rawConnArray = [cpObj.connectors];
+    }
+  } else {
+    rawConnArray = ['15A (1)', '15A (2)', '15A (3)'];
+  }
+
+  const connectorIdOptions = useMemo(() => {
+    const opts = [{ value: 'All', label: 'All' }];
+    rawConnArray.forEach((_, idx) => {
+      const connId = String(idx + 1);
+      opts.push({ value: connId, label: connId });
+    });
+    return opts;
+  }, [rawConnArray.length]);
 
   const toggleRowDropdown = (id) => {
     setOpenDropdownIds(prev => ({ ...prev, [id]: !prev[id] }));
@@ -168,7 +197,8 @@ export default function ViewChargePoint() {
 
   const connectorRows = rawConnectors.map((c, index) => {
     const connId = index + 1;
-    const typeStr = c.includes('CCS2') ? 'CCS2' : c.includes('Type2') ? 'Type2' : '15A';
+    const cStr = typeof c === 'string' ? c : (c?.type || c?.name || String(c || ''));
+    const typeStr = cStr.includes('CCS2') ? 'CCS2' : cStr.includes('Type2') ? 'Type2' : (c?.type || '15A');
     const qrStr = `CQ${(cp.code || 'XYZ').replace(/[^A-Z0-9]/gi, '')}${connId}1GYMY`.slice(0, 10).toUpperCase();
 
     const currentOverride = connectorStatusMap[connId];
@@ -204,15 +234,9 @@ export default function ViewChargePoint() {
 
   return (
     <div className="flex flex-col gap-3 max-w-[1500px] w-full mx-auto h-[calc(100vh-115px)] overflow-hidden">
-      <div className="shrink-0 space-y-2">
+      <div className="shrink-0 space-y-2 px-1">
         <div>
-          <button
-            onClick={() => navigate('/charge-points')}
-            className="inline-flex items-center gap-2.5 text-sm sm:text-base font-bold text-stone-800 hover:text-orange-600 transition-colors cursor-pointer group"
-          >
-            <ArrowLeft className="w-4.5 h-4.5 group-hover:-translate-x-1 transition-transform stroke-[2.25]" />
-            <span>Back to list</span>
-          </button>
+          <BackButton to="/charge-points" label="Back to Charge Points" />
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-0.5">
@@ -221,18 +245,16 @@ export default function ViewChargePoint() {
               {cp.name}
             </h1>
 
-            <span className={`inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-medium border shadow-2xs ${
-              cp.status === 'Available' ? 'bg-emerald-50/90 text-emerald-800 border-emerald-200/60' :
-              cp.status === 'Charging' ? 'bg-blue-50/90 text-blue-700 border-blue-200/60' :
-              cp.status === 'Preparing' ? 'bg-amber-50/90 text-amber-800 border-amber-200/60' :
-              'bg-red-50/90 text-red-700 border-red-200/60'
-            }`}>
-              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                cp.status === 'Available' ? 'bg-emerald-500' :
-                cp.status === 'Charging' ? 'bg-blue-500 animate-pulse' :
-                cp.status === 'Preparing' ? 'bg-amber-500' :
-                'bg-red-500'
-              }`} />
+            <span className={`inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-medium border shadow-2xs ${cp.status === 'Available' ? 'bg-emerald-50/90 text-emerald-800 border-emerald-200/60' :
+                cp.status === 'Charging' ? 'bg-blue-50/90 text-blue-700 border-blue-200/60' :
+                  cp.status === 'Preparing' ? 'bg-amber-50/90 text-amber-800 border-amber-200/60' :
+                    'bg-red-50/90 text-red-700 border-red-200/60'
+              }`}>
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cp.status === 'Available' ? 'bg-emerald-500' :
+                  cp.status === 'Charging' ? 'bg-blue-500 animate-pulse' :
+                    cp.status === 'Preparing' ? 'bg-amber-500' :
+                      'bg-red-500'
+                }`} />
               {cp.status || 'Available'}
             </span>
           </div>
@@ -266,7 +288,7 @@ export default function ViewChargePoint() {
       </div>
 
       <div className="bg-white/80 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] rounded-2xl overflow-hidden flex flex-col flex-1 min-h-0">
-        <div className="shrink-0 px-5 pt-2 pb-0 bg-[#F8FAFC] border-b border-stone-200/80 overflow-x-auto flex items-center gap-1.5 z-10">
+        <div className="shrink-0 px-5 pt-2 pb-0 bg-[#F8FAFC] border-b border-stone-200/80 overflow-x-auto md:overflow-x-visible flex items-center gap-1.5 z-10 scrollbar-none">
           {tabs.map((t) => {
             const Icon = t.icon;
             const isActive = activeTab === t.id;
@@ -274,20 +296,17 @@ export default function ViewChargePoint() {
               <button
                 key={t.id}
                 onClick={() => handleTabChange(t.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold tracking-tight transition-all duration-150 border-b-2 rounded-t-xl whitespace-nowrap cursor-pointer select-none relative -mb-[1px] ${
-                  isActive
-                    ? 'border-orange-500 text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-2xs font-bold'
+                className={`flex items-center gap-2 px-4.5 py-3 text-xs font-bold tracking-tight transition-all duration-150 border-b-2 rounded-t-xl whitespace-nowrap cursor-pointer select-none relative ${isActive
+                    ? 'border-b-2 border-b-orange-500 text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-2xs font-extrabold'
                     : 'border-transparent text-stone-500 hover:text-stone-900 hover:bg-stone-100/60 font-medium'
-                }`}
+                  }`}
               >
-                <Icon strokeWidth={2.25} className={`w-4 h-4 transition-transform ${
-                  isActive ? 'text-orange-500 scale-105' : 'text-stone-400'
-                }`} />
+                <Icon strokeWidth={2.25} className={`w-4 h-4 transition-transform ${isActive ? 'text-orange-500 scale-105' : 'text-stone-400'
+                  }`} />
                 <span>{t.label}</span>
                 {t.count !== undefined && (
-                  <span className={`px-2 py-0.5 text-[11px] font-mono font-bold rounded transition-colors ${
-                    isActive ? 'bg-orange-100/80 text-orange-700 border border-orange-200/60' : 'bg-stone-100 text-stone-600 border border-stone-200/60'
-                  }`}>
+                  <span className={`px-2 py-0.5 text-[11px] font-mono font-bold rounded transition-colors ${isActive ? 'bg-orange-100/80 text-orange-700 border border-orange-200/60' : 'bg-stone-100 text-stone-600 border border-stone-200/60'
+                    }`}>
                     {t.count}
                   </span>
                 )}
@@ -333,11 +352,10 @@ export default function ViewChargePoint() {
                     const isExpanded = Boolean(openDropdownIds[conn.id]);
                     return (
                       <React.Fragment key={conn.id}>
-                        <tr className={`group border transition-all duration-200 rounded-2xl ${
-                          isExpanded 
-                            ? 'bg-sky-50/40 border-sky-200/80 shadow-xs' 
+                        <tr className={`group border transition-all duration-200 rounded-2xl ${isExpanded
+                            ? 'bg-sky-50/40 border-sky-200/80 shadow-xs'
                             : 'bg-white/40 hover:bg-white/80 border-white/30'
-                        }`}>
+                          }`}>
                           <td className="px-4 py-4 rounded-l-2xl whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               <button
@@ -345,17 +363,25 @@ export default function ViewChargePoint() {
                                   e.stopPropagation();
                                   toggleRowDropdown(conn.id);
                                 }}
-                                className={`p-1.5 rounded-lg transition-all duration-200 cursor-pointer ${
-                                  isExpanded
+                                className={`p-1.5 rounded-lg transition-all duration-200 cursor-pointer ${isExpanded
                                     ? 'bg-sky-500 text-white shadow-xs'
                                     : 'text-stone-600 hover:text-slate-900 hover:bg-white/80'
-                                }`}
+                                  }`}
                                 title="Connector Actions"
                               >
                                 <ChevronDown strokeWidth={2.5} className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                               </button>
 
-                              <button className="p-1.5 text-stone-600 hover:text-orange-500 rounded-lg hover:bg-white/80 transition cursor-pointer" title="Edit Connector">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/charge-points/${cp?.id || id}/connectors/${conn.id}/edit`, {
+                                    state: { conn, cpData: cp }
+                                  });
+                                }}
+                                className="p-1.5 text-stone-600 hover:text-orange-500 rounded-lg hover:bg-white/80 transition cursor-pointer"
+                                title="Edit Connector"
+                              >
                                 <Edit strokeWidth={2.5} className="w-3.5 h-3.5" />
                               </button>
                               <button className="p-1.5 text-stone-600 hover:text-purple-500 rounded-lg hover:bg-white/80 transition cursor-pointer" title="QR View">
@@ -369,11 +395,10 @@ export default function ViewChargePoint() {
                           </td>
 
                           <td className="px-4 py-4 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold border ${
-                              conn.type === 'CCS2' ? 'bg-sky-50/90 text-sky-700 border-sky-200/80' :
-                              conn.type === 'Type2' ? 'bg-purple-50/90 text-purple-700 border-purple-200/80' :
-                              'bg-amber-50/90 text-amber-700 border-amber-200/80'
-                            }`}>
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold border ${conn.type === 'CCS2' ? 'bg-sky-50/90 text-sky-700 border-sky-200/80' :
+                                conn.type === 'Type2' ? 'bg-purple-50/90 text-purple-700 border-purple-200/80' :
+                                  'bg-amber-50/90 text-amber-700 border-amber-200/80'
+                              }`}>
                               {conn.type}
                             </span>
                           </td>
@@ -383,31 +408,27 @@ export default function ViewChargePoint() {
                           </td>
 
                           <td className="px-4 py-4 whitespace-nowrap">
-                            <span className={`inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium border shadow-2xs ${
-                              conn.availability === 'Inoperative'
+                            <span className={`inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium border shadow-2xs ${conn.availability === 'Inoperative'
                                 ? 'bg-red-50/90 text-red-700 border-red-200/60'
                                 : 'bg-emerald-50/90 text-emerald-800 border-emerald-200/60'
-                            }`}>
-                              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                                conn.availability === 'Inoperative' ? 'bg-red-500' : 'bg-emerald-500'
-                              }`} />
+                              }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${conn.availability === 'Inoperative' ? 'bg-red-500' : 'bg-emerald-500'
+                                }`} />
                               {conn.availability}
                             </span>
                           </td>
 
                           <td className="px-4 py-4 whitespace-nowrap">
-                            <span className={`inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium border shadow-2xs ${
-                              conn.status === 'Available' ? 'bg-emerald-50/90 text-emerald-800 border-emerald-200/60' :
-                              conn.status === 'Charging' ? 'bg-blue-50/90 text-blue-700 border-blue-200/60' :
-                              conn.status === 'Preparing' ? 'bg-amber-50/90 text-amber-800 border-amber-200/60' :
-                              'bg-red-50/90 text-red-700 border-red-200/60'
-                            }`}>
-                              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                                conn.status === 'Available' ? 'bg-emerald-500' :
-                                conn.status === 'Charging' ? 'bg-blue-500 animate-pulse' :
-                                conn.status === 'Preparing' ? 'bg-amber-500' :
-                                'bg-red-500'
-                              }`} />
+                            <span className={`inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium border shadow-2xs ${conn.status === 'Available' ? 'bg-emerald-50/90 text-emerald-800 border-emerald-200/60' :
+                                conn.status === 'Charging' ? 'bg-blue-50/90 text-blue-700 border-blue-200/60' :
+                                  conn.status === 'Preparing' ? 'bg-amber-50/90 text-amber-800 border-amber-200/60' :
+                                    'bg-red-50/90 text-red-700 border-red-200/60'
+                              }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${conn.status === 'Available' ? 'bg-emerald-500' :
+                                  conn.status === 'Charging' ? 'bg-blue-500 animate-pulse' :
+                                    conn.status === 'Preparing' ? 'bg-amber-500' :
+                                      'bg-red-500'
+                                }`} />
                               {conn.status}
                             </span>
                           </td>
@@ -436,9 +457,9 @@ export default function ViewChargePoint() {
                                     const newStatus = isCurrentlyInoperative ? 'Available' : 'Faulted';
                                     const isStageDisabled = cp.stage === 'Inactive' || cp.stage === 'Maintenance';
                                     const newStage = isStageDisabled && isCurrentlyInoperative ? 'Active' : (cp.stage || 'Active');
-                                    
+
                                     setConnectorStatusMap(prev => ({ ...prev, [conn.id]: newStatus }));
-                                    
+
                                     const targetId = cp.id || id;
                                     if (targetId) {
                                       try {
@@ -453,11 +474,10 @@ export default function ViewChargePoint() {
 
                                     handleControlAction(`Connector #${conn.id} availability updated to ${newStatus === 'Available' ? 'Operative' : 'Inoperative'}.`);
                                   }}
-                                  className={`px-4 py-2 rounded-xl text-xs font-black shadow-xs transition-all cursor-pointer flex items-center gap-2 active:scale-95 border ${
-                                    (conn.availability === 'Inoperative' || conn.status === 'Faulted')
+                                  className={`px-4 py-2 rounded-xl text-xs font-black shadow-xs transition-all cursor-pointer flex items-center gap-2 active:scale-95 border ${(conn.availability === 'Inoperative' || conn.status === 'Faulted')
                                       ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200/90 shadow-emerald-500/10'
                                       : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200/90 shadow-rose-500/10'
-                                  }`}
+                                    }`}
                                 >
                                   <Power strokeWidth={2.5} className="w-3.5 h-3.5" />
                                   <span>{(conn.availability === 'Inoperative' || conn.status === 'Faulted') ? 'Change to Operative' : 'Change to Inoperative'}</span>
@@ -473,6 +493,19 @@ export default function ViewChargePoint() {
                                   <Activity strokeWidth={2.5} className="w-3.5 h-3.5" />
                                   <span>Get Connector Status</span>
                                 </button>
+
+                                {conn.availability !== 'Inoperative' && conn.status !== 'Faulted' && conn.status !== 'Offline' && conn.status !== 'Unavailable' && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleControlAction(`Remote Start Charging initiated for Connector #${conn.id}.`);
+                                    }}
+                                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs shadow-md shadow-emerald-600/20 transition-all cursor-pointer flex items-center gap-2 active:scale-95"
+                                  >
+                                    <Play strokeWidth={2.5} className="w-3.5 h-3.5 fill-current" />
+                                    <span>Start Charging</span>
+                                  </button>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -486,32 +519,11 @@ export default function ViewChargePoint() {
           )}
 
           {activeTab === 'stats' && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white/50 border border-white/70 p-6 rounded-2xl shadow-xs">
-                <div className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">Total Energy Delivered</div>
-                <div className="text-3xl font-extrabold text-emerald-600">{cp.energyDelivered || 42.44} kWh</div>
-              </div>
-              <div className="bg-white/50 border border-white/70 p-6 rounded-2xl shadow-xs">
-                <div className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">Total Revenue Generated</div>
-                <div className="text-3xl font-extrabold text-amber-600">₹{cp.revenueGenerated || 579.95}</div>
-              </div>
-              <div className="bg-white/50 border border-white/70 p-6 rounded-2xl shadow-xs">
-                <div className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">Total Charging Sessions</div>
-                <div className="text-3xl font-extrabold text-indigo-600">{cp.totalSessions || 2}</div>
-              </div>
-            </div>
+            <ChargePointStatsTab cp={cp} />
           )}
 
           {activeTab === 'logs' && (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center pb-2 border-b border-stone-200/50">
-                <h3 className="font-extrabold text-stone-800 text-sm">Real-time OCPP Logs</h3>
-                <span className="text-xs text-stone-500 font-medium">Live Event Stream</span>
-              </div>
-              <div className="bg-stone-900 text-emerald-400 font-mono text-xs p-5 rounded-2xl min-h-[100px] shadow-inner flex items-center justify-center text-stone-500">
-                <p className="font-bold text-stone-400">No active log entries recorded.</p>
-              </div>
-            </div>
+            <ChargePointLogsTab cp={cp} />
           )}
 
           {activeTab === 'transactions' && (
@@ -534,9 +546,9 @@ export default function ViewChargePoint() {
 
           {activeTab === 'control' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs hover:border-stone-300 transition-all flex flex-col justify-between">
+              <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
                 <div>
-                  <h3 className="text-sm font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-sm font-extrabold text-slate-900 pb-3 mb-4 border-b border-stone-200/80 flex items-center gap-2">
                     <RotateCcw className="w-4 h-4 text-orange-500" /> Reset Charge Point
                   </h3>
                   <div className="flex flex-wrap items-center gap-3">
@@ -556,9 +568,9 @@ export default function ViewChargePoint() {
                 </div>
               </div>
 
-              <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs hover:border-stone-300 transition-all flex flex-col justify-between">
+              <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
                 <div className="space-y-3">
-                  <h3 className="text-sm font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-sm font-extrabold text-slate-900 pb-3 mb-4 border-b border-stone-200/80 flex items-center gap-2">
                     <Cpu className="w-4 h-4 text-sky-500" /> Update Charge Point firmware
                   </h3>
                   <div>
@@ -583,7 +595,22 @@ export default function ViewChargePoint() {
                 </div>
                 <div className="pt-4">
                   <button
-                    onClick={() => handleControlAction('Firmware update scheduled successfully.')}
+                    onClick={async () => {
+                      const newVersion = firmwareUrl.trim() || 'v2.1.0';
+                      setChargePoint(prev => ({ ...prev, firmwareVersion: newVersion }));
+
+                      const targetId = cp.id || id;
+                      if (targetId) {
+                        try {
+                          await updateChargePoint(targetId, { firmwareVersion: newVersion });
+                        } catch (err) {
+                          console.error("Failed to update firmware version in DB:", err);
+                        }
+                      }
+
+                      toast.success(`Firmware URL updated to "${newVersion}" for Charge Point #${targetId}`, { code: 200 });
+                      handleControlAction(`Firmware version updated to ${newVersion}. Notification sent.`);
+                    }}
                     className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow-2xs transition-all cursor-pointer flex items-center gap-2"
                   >
                     <Send className="w-3.5 h-3.5" /> Update
@@ -591,41 +618,37 @@ export default function ViewChargePoint() {
                 </div>
               </div>
 
-              <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs hover:border-stone-300 transition-all flex flex-col justify-between">
+              <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
                 <div className="space-y-3">
-                  <h3 className="text-sm font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-sm font-extrabold text-slate-900 pb-3 mb-4 border-b border-stone-200/80 flex items-center gap-2">
                     <KeyRound className="w-4 h-4 text-purple-500" /> Charge Point local ID Tag list management
                   </h3>
                   <div>
                     <label className="text-xs font-bold text-stone-600 mb-1.5 block">Update type <span className="text-rose-500">*</span></label>
-                    <div className="relative">
-                      <select
-                        value={localTagUpdateType}
-                        onChange={(e) => setLocalTagUpdateType(e.target.value)}
-                        className="w-full px-3.5 pr-8 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-bold focus:bg-white focus:border-slate-800 focus:outline-none appearance-none transition-all cursor-pointer"
-                      >
-                        <option value="">Select an Update Type</option>
-                        <option value="Differential">Differential</option>
-                        <option value="Full">Full</option>
-                      </select>
-                      <ChevronDown strokeWidth={2.5} className="w-3.5 h-3.5 text-stone-500 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" />
-                    </div>
+                    <Select
+                      options={[
+                        { value: 'Differential', label: 'Differential' },
+                        { value: 'Full', label: 'Full' }
+                      ]}
+                      value={localTagUpdateType}
+                      onChange={(e) => setLocalTagUpdateType(e.target.value)}
+                      placeholder="Select an Update Type"
+                      buttonClassName="py-2 px-3.5 text-xs bg-stone-50"
+                    />
                   </div>
                   <div>
                     <label className="text-xs font-bold text-stone-600 mb-1.5 block">ID Tags</label>
-                    <div className="relative">
-                      <select
-                        value={localTagIdTags}
-                        onChange={(e) => setLocalTagIdTags(e.target.value)}
-                        className="w-full px-3.5 pr-8 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-bold focus:bg-white focus:border-slate-800 focus:outline-none appearance-none transition-all cursor-pointer"
-                      >
-                        <option value="">Select ID Tags</option>
-                        <option value="TAG-001">TAG-001 (VIP Access)</option>
-                        <option value="TAG-002">TAG-002 (Fleet Access)</option>
-                        <option value="TAG-003">TAG-003 (Operator Key)</option>
-                      </select>
-                      <ChevronDown strokeWidth={2.5} className="w-3.5 h-3.5 text-stone-500 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" />
-                    </div>
+                    <Select
+                      options={[
+                        { value: 'TAG-001', label: 'TAG-001 (VIP Access)' },
+                        { value: 'TAG-002', label: 'TAG-002 (Fleet Access)' },
+                        { value: 'TAG-003', label: 'TAG-003 (Operator Key)' }
+                      ]}
+                      value={localTagIdTags}
+                      onChange={(e) => setLocalTagIdTags(e.target.value)}
+                      placeholder="Select ID Tags"
+                      buttonClassName="py-2 px-3.5 text-xs bg-stone-50"
+                    />
                   </div>
                 </div>
                 <div className="pt-4">
@@ -638,45 +661,37 @@ export default function ViewChargePoint() {
                 </div>
               </div>
 
-              <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs hover:border-stone-300 transition-all flex flex-col justify-between">
+              <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
                 <div className="space-y-3">
-                  <h3 className="text-sm font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-sm font-extrabold text-slate-900 pb-3 mb-4 border-b border-stone-200/80 flex items-center gap-2">
                     <Zap className="w-4 h-4 text-amber-500" /> Send trigger message to Charge Point
                   </h3>
                   <div>
                     <label className="text-xs font-bold text-stone-600 mb-1.5 block">Trigger message <span className="text-rose-500">*</span></label>
-                    <div className="relative">
-                      <select
-                        value={triggerMessage}
-                        onChange={(e) => setTriggerMessage(e.target.value)}
-                        className="w-full px-3.5 pr-8 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-bold focus:bg-white focus:border-slate-800 focus:outline-none appearance-none transition-all cursor-pointer"
-                      >
-                        <option value="">Select a trigger message</option>
-                        <option value="BootNotification">BootNotification</option>
-                        <option value="DiagnosticsStatusNotification">DiagnosticsStatusNotification</option>
-                        <option value="FirmwareStatusNotification">FirmwareStatusNotification</option>
-                        <option value="Heartbeat">Heartbeat</option>
-                        <option value="MeterValues">MeterValues</option>
-                        <option value="StatusNotification">StatusNotification</option>
-                      </select>
-                      <ChevronDown strokeWidth={2.5} className="w-3.5 h-3.5 text-stone-500 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" />
-                    </div>
+                    <Select
+                      options={[
+                        { value: 'BootNotification', label: 'BootNotification' },
+                        { value: 'DiagnosticsStatusNotification', label: 'DiagnosticsStatusNotification' },
+                        { value: 'FirmwareStatusNotification', label: 'FirmwareStatusNotification' },
+                        { value: 'Heartbeat', label: 'Heartbeat' },
+                        { value: 'MeterValues', label: 'MeterValues' },
+                        { value: 'StatusNotification', label: 'StatusNotification' }
+                      ]}
+                      value={triggerMessage}
+                      onChange={(e) => setTriggerMessage(e.target.value)}
+                      placeholder="Select a trigger message"
+                      buttonClassName="py-2 px-3.5 text-xs bg-stone-50"
+                    />
                   </div>
                   <div>
                     <label className="text-xs font-bold text-stone-600 mb-1.5 block">Connector Id <span className="text-rose-500">*</span></label>
-                    <div className="relative">
-                      <select
-                        value={triggerConnectorId}
-                        onChange={(e) => setTriggerConnectorId(e.target.value)}
-                        className="w-full px-3.5 pr-8 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-bold focus:bg-white focus:border-slate-800 focus:outline-none appearance-none transition-all cursor-pointer"
-                      >
-                        <option value="All">All</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                      </select>
-                      <ChevronDown strokeWidth={2.5} className="w-3.5 h-3.5 text-stone-500 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" />
-                    </div>
+                    <Select
+                      options={connectorIdOptions}
+                      value={triggerConnectorId}
+                      onChange={(e) => setTriggerConnectorId(e.target.value)}
+                      placeholder="Select Connector Id"
+                      buttonClassName="py-2 px-3.5 text-xs bg-stone-50"
+                    />
                   </div>
                 </div>
                 <div className="pt-4">
@@ -689,9 +704,9 @@ export default function ViewChargePoint() {
                 </div>
               </div>
 
-              <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs hover:border-stone-300 transition-all flex flex-col justify-between">
+              <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
                 <div className="space-y-3">
-                  <h3 className="text-sm font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-sm font-extrabold text-slate-900 pb-3 mb-4 border-b border-stone-200/80 flex items-center gap-2">
                     <FileText className="w-4 h-4 text-emerald-500" /> Get Diagnostics Report
                   </h3>
                   <div>
@@ -757,9 +772,9 @@ export default function ViewChargePoint() {
                 </div>
               </div>
 
-              <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs hover:border-stone-300 transition-all flex flex-col justify-between">
+              <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
                 <div className="space-y-3">
-                  <h3 className="text-sm font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-sm font-extrabold text-slate-900 pb-3 mb-4 border-b border-stone-200/80 flex items-center gap-2">
                     <Database className="w-4 h-4 text-indigo-500" /> Send data transfer message to Charge Point
                   </h3>
                   <div>
@@ -803,9 +818,9 @@ export default function ViewChargePoint() {
                 </div>
               </div>
 
-              <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs hover:border-stone-300 transition-all flex flex-col justify-between col-span-1 lg:col-span-2">
+              <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs flex flex-col justify-between col-span-1 lg:col-span-2">
                 <div>
-                  <h3 className="text-sm font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-sm font-extrabold text-slate-900 pb-3 mb-4 border-b border-stone-200/80 flex items-center gap-2">
                     <Trash2 className="w-4 h-4 text-rose-500" /> Send clear cache message to Charge Point
                   </h3>
                   <div>
@@ -822,10 +837,33 @@ export default function ViewChargePoint() {
           )}
 
           {activeTab === 'tariffs' && (
-            <div className="bg-white/50 border border-white/70 p-6 rounded-2xl space-y-3">
-              <h4 className="font-extrabold text-stone-800 text-sm">Assigned Tariff Profile</h4>
-              <p className="text-xs text-stone-500 font-bold">Profile: {cp.tariffProfiles || 'Standard Rate'}</p>
-              <div className="text-2xl font-extrabold text-orange-600">₹15.00 / kWh</div>
+            <div className="bg-white/70 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] rounded-[28px] p-6 space-y-4">
+              <div className="flex items-center justify-between border-b border-stone-200/80 pb-3 mb-2">
+                <div className="flex items-center gap-2">
+                  <Tag className="w-4 h-4 text-orange-500" />
+                  <h4 className="font-extrabold text-stone-800 text-sm uppercase tracking-wider">Assigned Tariff Profile</h4>
+                </div>
+                <span className="px-2.5 py-0.5 text-xs font-mono font-bold bg-orange-50 text-orange-700 border border-orange-200/60 rounded-full">
+                  Active Profile
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-stone-50/80 hover:bg-orange-50/50 border border-stone-200/80 hover:border-orange-300 rounded-2xl transition-all duration-200 group/tariff">
+                <div className="space-y-1">
+                  <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider block">Tariff Name</span>
+                  <button
+                    onClick={() => {
+                      const tariffName = cp.tariffProfiles || 'Standard Rate';
+                      navigate(`/tariffs?search=${encodeURIComponent(tariffName)}`);
+                    }}
+                    className="text-base font-extrabold text-stone-900 group-hover/tariff:text-orange-600 transition-colors cursor-pointer flex items-center gap-2 text-left"
+                    title="Click to view full tariff details in Tariffs list"
+                  >
+                    <span>{cp.tariffProfiles || 'Standard Rate'}</span>
+                    <ChevronRight className="w-4 h-4 text-stone-400 group-hover/tariff:text-orange-500 group-hover/tariff:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>

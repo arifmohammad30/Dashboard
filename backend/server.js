@@ -50,7 +50,7 @@ async function seedLiveSessions() {
 }
 seedLiveSessions();
 
-app.get('/api/livesessions', async (req, res) => {
+app.get(['/api/live-sessions', '/api/livesessions'], async (req, res) => {
   try {
     const sessions = await prisma.liveSession.findMany({
       orderBy: { createdAt: 'desc' }
@@ -62,7 +62,7 @@ app.get('/api/livesessions', async (req, res) => {
   }
 });
 
-app.get('/api/chargepoints/filters', async (req, res) => {
+app.get(['/api/charge-points/filters', '/api/chargepoints/filters'], async (req, res) => {
   try {
     const locations = await prisma.chargePoint.findMany({ select: { chargingStation: true }, distinct: ['chargingStation'] });
     const manufacturers = await prisma.chargePoint.findMany({ select: { manufacturer: true }, distinct: ['manufacturer'] });
@@ -72,7 +72,7 @@ app.get('/api/chargepoints/filters', async (req, res) => {
     res.json({
       locations: locations.map(l => l.chargingStation).sort(),
       manufacturers: manufacturers.map(m => m.manufacturer).sort(),
-      statuses: statuses.map(s => s.stage).sort(),
+      statuses: ['Available', 'Charging', 'Faulted', 'Preparing'],
       types: types.map(t => t.type).sort(),
     });
   } catch (error) {
@@ -81,7 +81,7 @@ app.get('/api/chargepoints/filters', async (req, res) => {
   }
 });
 
-app.get('/api/chargepoints', async (req, res) => {
+app.get(['/api/charge-points', '/api/chargepoints'], async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -112,17 +112,20 @@ app.get('/api/chargepoints', async (req, res) => {
     });
 
     if (searchTerm) {
-      const normalizedSearch = searchTerm.replace(/\s+/g, '').toLowerCase();
+      const searchTokens = searchTerm.trim().toLowerCase().split(/\s+/).filter(Boolean);
       allData = allData.filter(cp => {
-        const name = (cp.name || '').replace(/\s+/g, '').toLowerCase();
-        const station = (cp.chargingStation || '').replace(/\s+/g, '').toLowerCase();
-        const code = (cp.code || '').replace(/\s+/g, '').toLowerCase();
-        const manufacturer = (cp.manufacturer || '').replace(/\s+/g, '').toLowerCase();
+        const searchableText = [
+          cp.name,
+          cp.chargingStation,
+          cp.code,
+          cp.manufacturer,
+          cp.stage,
+          cp.type,
+          cp.model,
+          cp.tariffProfile
+        ].join(' ').toLowerCase();
 
-        return name.includes(normalizedSearch) ||
-          station.includes(normalizedSearch) ||
-          code.includes(normalizedSearch) ||
-          manufacturer.includes(normalizedSearch);
+        return searchTokens.every(token => isTokenMatchedServer(searchableText, token));
       });
     }
 
@@ -153,11 +156,18 @@ function formatChargePointData(cp, idx = 0) {
     methods = [];
   }
 
-  let parsedConnectors = [];
-  try {
-    parsedConnectors = cp.connectors ? JSON.parse(cp.connectors) : null;
-  } catch (e) {
-    parsedConnectors = null;
+  let parsedConnectors = null;
+  if (cp.connectors) {
+    if (Array.isArray(cp.connectors)) {
+      parsedConnectors = cp.connectors;
+    } else if (typeof cp.connectors === 'string') {
+      try {
+        const parsed = JSON.parse(cp.connectors);
+        parsedConnectors = Array.isArray(parsed) ? parsed : [parsed];
+      } catch (e) {
+        parsedConnectors = [cp.connectors];
+      }
+    }
   }
 
   const cpIdPresets = [
@@ -211,11 +221,15 @@ function formatChargePointData(cp, idx = 0) {
   const defaultStages = ['Active', 'Inactive', 'Maintenance'];
 
   const resolvedStage = cp.stage || defaultStages[idx % defaultStages.length];
+  const isStageDisabled = resolvedStage === 'Inactive' || resolvedStage === 'Maintenance';
+  const resolvedStatus = (isStageDisabled || cp.availability === 'Inoperative')
+    ? 'Faulted'
+    : (cp.status && cp.status !== 'Faulted' ? cp.status : 'Available');
 
   return {
     ...cp,
     stage: resolvedStage,
-    status: cp.status || (resolvedStage === 'Inactive' ? 'Offline' : (idx % 4 === 0 ? 'Offline' : 'Online')),
+    status: resolvedStatus,
     cpId: resolvedCpId,
     thirdPartyCpId: cp.thirdPartyCpId || 'NA',
     oem: cp.oem || cp.manufacturer || defaultOems[idx % defaultOems.length],
@@ -235,7 +249,7 @@ function formatChargePointData(cp, idx = 0) {
   };
 }
 
-app.get('/api/chargepoints/:id', async (req, res) => {
+app.get(['/api/charge-points/:id', '/api/chargepoints/:id'], async (req, res) => {
   try {
     const { id } = req.params;
     const cp = await prisma.chargePoint.findUnique({
@@ -252,7 +266,7 @@ app.get('/api/chargepoints/:id', async (req, res) => {
   }
 });
 
-app.post('/api/chargepoints', async (req, res) => {
+app.post(['/api/charge-points', '/api/chargepoints'], async (req, res) => {
   try {
     const payload = req.body;
 
@@ -287,31 +301,37 @@ app.post('/api/chargepoints', async (req, res) => {
   }
 });
 
-app.put('/api/chargepoints/:id', async (req, res) => {
+app.put(['/api/charge-points/:id', '/api/chargepoints/:id'], async (req, res) => {
   try {
     const { id } = req.params;
     const payload = req.body;
 
+    const dataToUpdate = {};
+    if (payload.name !== undefined) dataToUpdate.name = payload.name;
+    if (payload.chargingStation !== undefined) dataToUpdate.chargingStation = payload.chargingStation;
+    if (payload.manufacturer !== undefined) dataToUpdate.manufacturer = payload.manufacturer;
+    if (payload.mode !== undefined) dataToUpdate.mode = payload.mode;
+    if (payload.code !== undefined) dataToUpdate.code = payload.code;
+    if (payload.accessibility !== undefined) dataToUpdate.accessibility = payload.accessibility;
+    if (payload.stage !== undefined) dataToUpdate.stage = payload.stage;
+    if (payload.status !== undefined) dataToUpdate.status = payload.status;
+    if (payload.connectors !== undefined) dataToUpdate.connectors = typeof payload.connectors === 'string' ? payload.connectors : JSON.stringify(payload.connectors);
+    if (payload.exclusive !== undefined) dataToUpdate.exclusive = payload.exclusive;
+    if (payload.gracePeriod !== undefined) dataToUpdate.gracePeriod = payload.gracePeriod !== null ? parseInt(payload.gracePeriod) : null;
+    if (payload.tariffProfiles !== undefined) dataToUpdate.tariffProfiles = payload.tariffProfiles;
+    if (payload.settlementProfile !== undefined) dataToUpdate.settlementProfile = payload.settlementProfile;
+    if (payload.type !== undefined) dataToUpdate.type = payload.type;
+    if (payload.supportedChargingMethods !== undefined) dataToUpdate.chargingMethods = JSON.stringify(payload.supportedChargingMethods);
+
     const updatedCp = await prisma.chargePoint.update({
       where: { id },
-      data: {
-        name: payload.name,
-        chargingStation: payload.chargingStation,
-        manufacturer: payload.manufacturer,
-        mode: payload.mode,
-        code: payload.code,
-        accessibility: payload.accessibility,
-        stage: payload.stage,
-        exclusive: payload.exclusive,
-        gracePeriod: payload.gracePeriod !== null && payload.gracePeriod !== undefined ? parseInt(payload.gracePeriod) : null,
-        tariffProfiles: payload.tariffProfiles,
-        settlementProfile: payload.settlementProfile || '',
-        type: payload.type || 'NA',
-        chargingMethods: JSON.stringify(payload.supportedChargingMethods || [])
-      }
+      data: dataToUpdate
     });
 
-    const formattedCp = { ...updatedCp, chargingMethods: JSON.parse(updatedCp.chargingMethods) };
+    let methods = [];
+    try { methods = JSON.parse(updatedCp.chargingMethods); } catch (e) {}
+
+    const formattedCp = { ...updatedCp, chargingMethods: methods };
     io.emit('chargePointUpdated', formattedCp);
     res.json(formattedCp);
   } catch (error) {
@@ -335,22 +355,94 @@ app.delete('/api/chargepoints/:id', async (req, res) => {
   }
 });
 
+const LOCATION_HUBS = [
+  { id: '1', name: 'Location 1 Hub', code: 'HUB-001', chargePoints: 8, totalSessions: 1240, revenueGenerated: 48500, energyDelivered: 12400, totalCapacity: '111.00 kW', stationType: 'Public', mobilityType: 'Stationary', createdOn: 'Jul 25, 2026 10:23 am', latitude: '17.286609', longitude: '78.364512' },
+  { id: '2', name: 'Location 2 Hub', code: 'HUB-002', chargePoints: 6, totalSessions: 980, revenueGenerated: 36200, energyDelivered: 9100, totalCapacity: '60.00 kW', stationType: 'Commercial', mobilityType: 'Stationary', createdOn: 'Jul 07, 2026 05:55 pm', latitude: '28.442523', longitude: '77.102490' },
+  { id: '3', name: 'Location 3 Hub', code: 'HUB-003', chargePoints: 12, totalSessions: 2100, revenueGenerated: 84000, energyDelivered: 21500, totalCapacity: '150.00 kW', stationType: 'Public', mobilityType: 'Stationary', createdOn: 'Jul 07, 2026 05:51 pm', latitude: '28.442523', longitude: '77.102490' },
+  { id: '4', name: 'Location 4 Hub', code: 'HUB-004', chargePoints: 4, totalSessions: 450, revenueGenerated: 18000, energyDelivered: 4500, totalCapacity: '45.00 kW', stationType: 'Private', mobilityType: 'Stationary', createdOn: 'Jul 04, 2026 04:06 pm', latitude: '19.098970', longitude: '72.877655' },
+  { id: '5', name: 'Location 5 Hub', code: 'HUB-005', chargePoints: 10, totalSessions: 1650, revenueGenerated: 62000, energyDelivered: 15800, totalCapacity: '120.00 kW', stationType: 'Public', mobilityType: 'Stationary', createdOn: 'Jul 04, 2026 04:02 pm', latitude: '19.099899', longitude: '72.878120' },
+  { id: '6', name: 'Location 6 Hub', code: 'HUB-006', chargePoints: 6, totalSessions: 890, revenueGenerated: 31000, energyDelivered: 8200, totalCapacity: '60.00 kW', stationType: 'Commercial', mobilityType: 'Stationary', createdOn: 'Jul 04, 2026 10:54 am', latitude: '28.517055', longitude: '77.210415' },
+  { id: '7', name: 'Location 7 Hub', code: 'HUB-007', chargePoints: 14, totalSessions: 2400, revenueGenerated: 95000, energyDelivered: 24100, totalCapacity: '180.00 kW', stationType: 'Public', mobilityType: 'Stationary', createdOn: 'Jun 29, 2026 02:15 pm', latitude: '17.454825', longitude: '78.372100' },
+  { id: '8', name: 'Location 8 Hub', code: 'HUB-008', chargePoints: 5, totalSessions: 620, revenueGenerated: 23000, energyDelivered: 6000, totalCapacity: '50.00 kW', stationType: 'Commercial', mobilityType: 'Stationary', createdOn: 'Jun 25, 2026 11:30 am', latitude: '12.971598', longitude: '77.594562' },
+  { id: '9', name: 'Location 9 Hub', code: 'HUB-009', chargePoints: 9, totalSessions: 1420, revenueGenerated: 54000, energyDelivered: 13900, totalCapacity: '90.00 kW', stationType: 'Public', mobilityType: 'Stationary', createdOn: 'Jun 20, 2026 09:40 am', latitude: '13.082680', longitude: '80.270718' },
+  { id: '10', name: 'Location 10 Hub', code: 'HUB-010', chargePoints: 16, totalSessions: 2950, revenueGenerated: 112000, energyDelivered: 28900, totalCapacity: '200.00 kW', stationType: 'Public', mobilityType: 'Stationary', createdOn: 'Jun 15, 2026 03:20 pm', latitude: '22.572646', longitude: '88.363895' },
+  { id: '11', name: 'Location 11 Hub', code: 'HUB-011', chargePoints: 8, totalSessions: 1100, revenueGenerated: 42000, energyDelivered: 10800, totalCapacity: '80.00 kW', stationType: 'Commercial', mobilityType: 'Stationary', createdOn: 'Jun 10, 2026 01:10 pm', latitude: '18.520430', longitude: '73.856744' },
+  { id: '12', name: 'Location 12 Hub', code: 'HUB-012', chargePoints: 6, totalSessions: 780, revenueGenerated: 29000, energyDelivered: 7500, totalCapacity: '60.00 kW', stationType: 'Public', mobilityType: 'Stationary', createdOn: 'Jun 05, 2026 10:05 am', latitude: '23.022505', longitude: '72.571362' },
+  { id: '13', name: 'Location 13 Hub', code: 'HUB-013', chargePoints: 10, totalSessions: 1750, revenueGenerated: 68000, energyDelivered: 17100, totalCapacity: '120.00 kW', stationType: 'Public', mobilityType: 'Stationary', createdOn: 'May 30, 2026 04:50 pm', latitude: '26.912434', longitude: '75.787271' },
+  { id: '14', name: 'Location 14 Hub', code: 'HUB-014', chargePoints: 7, totalSessions: 910, revenueGenerated: 34000, energyDelivered: 8900, totalCapacity: '70.00 kW', stationType: 'Commercial', mobilityType: 'Stationary', createdOn: 'May 25, 2026 11:15 am', latitude: '30.733315', longitude: '76.779419' },
+  { id: '15', name: 'Location 15 Hub', code: 'HUB-015', chargePoints: 12, totalSessions: 2050, revenueGenerated: 81000, energyDelivered: 20200, totalCapacity: '150.00 kW', stationType: 'Public', mobilityType: 'Stationary', createdOn: 'May 20, 2026 02:40 pm', latitude: '15.299326', longitude: '74.123996' },
+  { id: '16', name: 'Location 16 Hub', code: 'HUB-016', chargePoints: 4, totalSessions: 390, revenueGenerated: 15500, energyDelivered: 3800, totalCapacity: '40.00 kW', stationType: 'Private', mobilityType: 'Stationary', createdOn: 'May 15, 2026 08:30 am', latitude: '9.931233', longitude: '76.267304' },
+  { id: '17', name: 'Location 17 Hub', code: 'HUB-017', chargePoints: 8, totalSessions: 1280, revenueGenerated: 49000, energyDelivered: 12600, totalCapacity: '80.00 kW', stationType: 'Public', mobilityType: 'Stationary', createdOn: 'May 10, 2026 05:25 pm', latitude: '21.170240', longitude: '72.831061' },
+  { id: '18', name: 'Location 18 Hub', code: 'HUB-018', chargePoints: 15, totalSessions: 2700, revenueGenerated: 104000, energyDelivered: 26500, totalCapacity: '180.00 kW', stationType: 'Public', mobilityType: 'Stationary', createdOn: 'May 05, 2026 12:00 pm', latitude: '26.846708', longitude: '80.946159' },
+  { id: '19', name: 'Location 19 Hub', code: 'HUB-019', chargePoints: 6, totalSessions: 840, revenueGenerated: 32500, energyDelivered: 8300, totalCapacity: '60.00 kW', stationType: 'Commercial', mobilityType: 'Stationary', createdOn: 'May 01, 2026 09:10 am', latitude: '25.594095', longitude: '85.137566' },
+  { id: '20', name: 'Location 20 Hub', code: 'HUB-020', chargePoints: 11, totalSessions: 1890, revenueGenerated: 73000, energyDelivered: 18400, totalCapacity: '130.00 kW', stationType: 'Public', mobilityType: 'Stationary', createdOn: 'Apr 25, 2026 03:45 pm', latitude: '20.296059', longitude: '85.824539' },
+];
+
 app.get('/api/charging-stations', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 20;
     const searchTerm = req.query.search || '';
 
-    let allData = await prisma.chargingStation.findMany({
-      orderBy: { createdAt: 'desc' }
+    const dbStations = await prisma.chargingStation.findMany({
+      orderBy: { createdAt: 'asc' }
+    });
+
+    const dbChargePoints = await prisma.chargePoint.findMany({
+      select: { id: true, name: true, chargingStation: true, code: true }
+    });
+
+    const stationCpMap = new Map();
+    for (let i = 0; i < dbChargePoints.length; i++) {
+      const cp = dbChargePoints[i];
+      if (cp.chargingStation) {
+        const key = cp.chargingStation.toLowerCase().trim();
+        if (!stationCpMap.has(key)) {
+          stationCpMap.set(key, []);
+        }
+        stationCpMap.get(key).push(cp);
+      }
+    }
+
+    let allData = dbStations.map((cs) => {
+      const csNameKey = cs.name.toLowerCase().trim();
+      let matchingCps = stationCpMap.get(csNameKey) || [];
+
+      if (matchingCps.length === 0) {
+        matchingCps = dbChargePoints.filter(cp =>
+          cp.chargingStation && (
+            cp.chargingStation.toLowerCase().includes(csNameKey) ||
+            csNameKey.includes(cp.chargingStation.toLowerCase())
+          )
+        );
+      }
+
+      const mainCp = matchingCps[0] || null;
+
+      return {
+        ...cs,
+        chargePoints: matchingCps.length || cs.chargePoints,
+        chargePointName: mainCp ? mainCp.name : '',
+        chargePointId: mainCp ? mainCp.id : null,
+        chargePointsList: matchingCps,
+        createdOn: cs.createdAt ? new Date(cs.createdAt).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'
+      };
     });
 
     if (searchTerm) {
-      const normalizedSearch = searchTerm.replace(/\s+/g, '').toLowerCase();
+      const searchTokens = searchTerm.trim().toLowerCase().split(/\s+/).filter(Boolean);
       allData = allData.filter(cs => {
-        const name = (cs.name || '').replace(/\s+/g, '').toLowerCase();
-        const code = (cs.code || '').replace(/\s+/g, '').toLowerCase();
-        return name.includes(normalizedSearch) || code.includes(normalizedSearch);
+        const searchableText = [
+          cs.name,
+          cs.code,
+          cs.chargePointName,
+          cs.stationType,
+          cs.mobilityType,
+          cs.totalCapacity,
+          ...(cs.chargePointsList || []).map(cp => `${cp.name} ${cp.code}`)
+        ].join(' ').toLowerCase();
+
+        return searchTokens.every(token => isTokenMatchedServer(searchableText, token));
       });
     }
 
@@ -362,10 +454,10 @@ app.get('/api/charging-stations', async (req, res) => {
       total,
       page,
       limit,
-      totalPages: Math.ceil(total / limit)
+      totalPages: Math.max(1, Math.ceil(total / limit))
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching charging stations:", error);
     res.status(500).json({ error: "Failed to fetch charging stations" });
   }
 });
@@ -380,16 +472,21 @@ app.post('/api/charging-stations', async (req, res) => {
       data: {
         name: payload.name,
         code: payload.code,
-        chargePoints: parseInt(payload.chargePoints) || 0,
+        chargePoints: parseInt(payload.chargePoints) || 5,
         totalSessions: parseInt(payload.totalSessions) || 0,
         revenueGenerated: parseFloat(payload.revenueGenerated) || 0,
         energyDelivered: parseFloat(payload.energyDelivered) || 0,
+        totalCapacity: payload.totalCapacity || '120 kW',
+        stationType: payload.stationType || 'Public Fast Hub',
+        mobilityType: payload.mobilityType || 'Stationary',
+        latitude: parseFloat(payload.latitude) || 19.0760,
+        longitude: parseFloat(payload.longitude) || 72.8777,
       }
     });
     io.emit('chargingStationAdded', newCs);
     res.status(201).json(newCs);
   } catch (error) {
-    console.error(error);
+    console.error("Error creating charging station:", error);
     res.status(500).json({ error: "Failed to create charging station" });
   }
 });
@@ -403,7 +500,7 @@ app.put('/api/charging-stations/:id', async (req, res) => {
       data: {
         name: payload.name,
         code: payload.code,
-        chargePoints: parseInt(payload.chargePoints) || 0,
+        chargePoints: parseInt(payload.chargePoints) || 5,
         totalSessions: parseInt(payload.totalSessions) || 0,
         revenueGenerated: parseFloat(payload.revenueGenerated) || 0,
         energyDelivered: parseFloat(payload.energyDelivered) || 0,
@@ -412,7 +509,7 @@ app.put('/api/charging-stations/:id', async (req, res) => {
     io.emit('chargingStationUpdated', updatedCs);
     res.json(updatedCs);
   } catch (error) {
-    console.error(error);
+    console.error("Error updating charging station:", error);
     res.status(500).json({ error: "Failed to update charging station" });
   }
 });
@@ -424,10 +521,92 @@ app.delete('/api/charging-stations/:id', async (req, res) => {
     io.emit('chargingStationDeleted', id);
     res.json({ success: true, message: "Charging station deleted" });
   } catch (error) {
-    console.error(error);
+    console.error("Error deleting charging station:", error);
     res.status(500).json({ error: "Failed to delete charging station" });
   }
 });
+
+// Tariffs API Endpoints
+app.get('/api/tariffs', async (req, res) => {
+  try {
+    const tariffs = await prisma.tariff.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+    const formatted = tariffs.map(t => ({
+      id: t.id,
+      name: t.name,
+      code: t.code,
+      type: t.type || 'Default',
+      costingType: 'Charging Only',
+      applicableTo: 'All Fleets',
+      chargingFee: `₹${t.baseRate.toFixed(2)} / kWh`,
+      parkingFee: 'NA',
+      idleFee: '₹0 / min',
+      soc: 'NA',
+      startsAt: 'NA',
+      endsAt: 'NA',
+      weight: 1,
+      createdOn: t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-',
+      gstPercentage: `${t.gstPercentage}%`
+    }));
+    res.json(formatted);
+  } catch (error) {
+    console.error("Error fetching tariffs:", error);
+    res.status(500).json({ error: "Failed to fetch tariffs" });
+  }
+});
+
+app.post('/api/tariffs', async (req, res) => {
+  try {
+    const payload = req.body;
+    const newTariff = await prisma.tariff.create({
+      data: {
+        name: payload.name,
+        code: payload.code || `TAR-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
+        type: payload.type || 'Default',
+        baseRate: parseFloat(payload.baseRate) || 15.0,
+        gstPercentage: parseFloat(payload.gstPercentage) || 18.0,
+        description: payload.description || ''
+      }
+    });
+    res.status(201).json(newTariff);
+  } catch (error) {
+    console.error("Error creating tariff:", error);
+    res.status(500).json({ error: "Failed to create tariff" });
+  }
+});
+
+app.delete('/api/tariffs/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.tariff.delete({ where: { id } });
+    res.json({ success: true, message: "Tariff deleted" });
+  } catch (error) {
+    console.error("Error deleting tariff:", error);
+    res.status(500).json({ error: "Failed to delete tariff" });
+  }
+});
+
+function isTokenMatchedServer(text, token) {
+  if (!text || !token) return false;
+  const lowerText = text.toLowerCase();
+  const lowerToken = token.toLowerCase();
+
+  if (lowerText === lowerToken) return true;
+
+  const escaped = lowerToken.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const wordBoundaryRegex = new RegExp(`(?:^|\\b|\\s|_|-)${escaped}(?:$|\\b|\\s|_|-)`, 'i');
+
+  if (wordBoundaryRegex.test(lowerText)) {
+    return true;
+  }
+
+  if (lowerToken.length >= 4 && !/^\d+$/.test(lowerToken)) {
+    return lowerText.includes(lowerToken);
+  }
+
+  return false;
+}
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {

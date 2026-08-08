@@ -42,6 +42,15 @@ import { useTableData } from '../../hooks/useTableData';
 import { useSocketEvents } from '../../hooks/useSocketEvents';
 import { useToast } from '../../context/ToastContext';
 
+const getConnectorText = (conn) => {
+  if (!conn) return '-';
+  if (typeof conn === 'string') return conn;
+  if (typeof conn === 'object') {
+    return conn.type || conn.name || conn.connectorType || conn.id || 'Connector';
+  }
+  return String(conn);
+};
+
 const ConnectorBadgesCell = ({ connectors }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -52,7 +61,7 @@ const ConnectorBadgesCell = ({ connectors }) => {
   if (connectors.length === 1) {
     return (
       <span className="px-2.5 py-0.5 rounded-md text-[11px] font-mono font-semibold bg-stone-100 text-stone-700 border border-stone-200/80 whitespace-nowrap inline-block">
-        {connectors[0]}
+        {getConnectorText(connectors[0])}
       </span>
     );
   }
@@ -76,7 +85,7 @@ const ConnectorBadgesCell = ({ connectors }) => {
               key={index}
               className="px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-stone-50 text-stone-700 border border-stone-200/80 whitespace-nowrap text-left"
             >
-              {c}
+              {getConnectorText(c)}
             </span>
           ))}
         </div>

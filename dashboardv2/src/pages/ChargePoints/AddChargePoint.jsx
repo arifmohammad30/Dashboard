@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import BackButton from '../../components/ui/BackButton';
 import { useForm } from 'react-hook-form';
 import { ArrowLeft, Plus, Loader2 } from 'lucide-react';
 import { z } from 'zod';
@@ -180,10 +181,7 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
       {/* Header */}
       <div className="flex items-center justify-between px-2">
         <div>
-          <button type="button" onClick={() => navigate('/charge-points')} className="flex items-center gap-2 text-slate-900 hover:text-rose-600 transition-colors mb-2 font-bold text-md">
-            <ArrowLeft className="w-4 h-4" /> Back to Charge Points
-          </button>
-
+          <BackButton to="/charge-points" label="Back to Charge Points" />
         </div>
         <div className="flex items-center gap-4">
           <button

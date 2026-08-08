@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Search,
@@ -34,6 +34,7 @@ import DeleteModal from '../../components/ui/DeleteModal';
 import FilterSection from '../../components/ui/FilterSection';
 import { getTariffs, addTariff, deleteTariff } from '../../services/tariffService';
 import { useToast } from '../../context/ToastContext';
+import { filterTableData } from '../../utils/searchUtils';
 
 export default function TariffsList() {
   const navigate = useNavigate();
@@ -116,19 +117,23 @@ export default function TariffsList() {
 
   const activeFiltersCount = Object.values(filters).reduce((acc, curr) => acc + curr.length, 0);
 
-  // Filter & Search Logic
-  const filteredTariffs = tariffs.filter((t) => {
-    const term = searchTerm.toLowerCase();
-    const matchesSearch = !searchTerm ||
-      t.name.toLowerCase().includes(term) ||
-      t.costingType.toLowerCase().includes(term) ||
-      t.chargingFee.toLowerCase().includes(term);
+  // Advanced Tokenized Search & Filtering Engine
+  const filteredTariffs = useMemo(() => {
+    const categoryFiltered = tariffs.filter((t) => {
+      const matchesType = filters.type.length === 0 || filters.type.includes(t.type);
+      const matchesGst = filters.gstPercentage.length === 0 || filters.gstPercentage.some(g => t.gstPercentage.includes(g));
+      return matchesType && matchesGst;
+    });
 
-    const matchesType = filters.type.length === 0 || filters.type.includes(t.type);
-    const matchesGst = filters.gstPercentage.length === 0 || filters.gstPercentage.some(g => t.gstPercentage.includes(g));
-
-    return matchesSearch && matchesType && matchesGst;
-  });
+    return filterTableData(categoryFiltered, searchTerm, [
+      'name',
+      'code',
+      'type',
+      'costingType',
+      'chargingFee',
+      'gstPercentage'
+    ]);
+  }, [tariffs, searchTerm, filters]);
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);

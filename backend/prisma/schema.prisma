@@ -36,6 +36,7 @@ model ChargePoint {
   qrCodeId          String?
   firmwareVersion   String?  @default("2.0.2")
   connectors        String?  // JSON array string
+  status            String?  @default("Available")
   totalCapacity     String?  @default("-")
 
   createdAt         DateTime @default(now())
@@ -44,15 +45,33 @@ model ChargePoint {
 
 model ChargingStation {
   id               String   @id @default(uuid())
-  name             String
+  name             String   @unique
   code             String   @unique
-  chargePoints     Int
-  totalSessions    Int
-  revenueGenerated Float
-  energyDelivered  Float
+  chargePoints     Int      @default(5)
+  totalCapacity    String?  @default("120 kW")
+  stationType      String?  @default("Public Fast Hub")
+  mobilityType     String?  @default("Stationary")
+  latitude         Float?   @default(19.0760)
+  longitude        Float?   @default(72.8777)
+  totalSessions    Int      @default(0)
+  revenueGenerated Float    @default(0.0)
+  energyDelivered  Float    @default(0.0)
 
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+
+model Tariff {
+  id            String   @id @default(uuid())
+  name          String
+  code          String   @unique
+  type          String   @default("Default")
+  baseRate      Float    @default(15.0)
+  gstPercentage Float    @default(18.0)
+  description   String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model LiveSession {

@@ -7,10 +7,12 @@ import ProtectedRoute from './components/ProtectedRoute';
 const ChargePointsList = lazy(() => import('./pages/ChargePoints/ChargePointsList'));
 const AddNewChargePoint = lazy(() => import('./pages/ChargePoints/AddChargePoint'));
 const ViewChargePoint = lazy(() => import('./pages/ChargePoints/ViewChargePoint'));
+const UpdateConnector = lazy(() => import('./pages/ChargePoints/UpdateConnector'));
 const ChargingStationsList = lazy(() => import('./pages/ChargingStations/ChargingStationsList'));
 const AddChargingStation = lazy(() => import('./pages/ChargingStations/AddChargingStation'));
 const ViewChargingStation = lazy(() => import('./pages/ChargingStations/ViewChargingStation'));
 const LiveSessionsList = lazy(() => import('./pages/LiveSessions/LiveSessionsList'));
+const SessionLogsView = lazy(() => import('./pages/LiveSessions/SessionLogsView'));
 const TariffsList = lazy(() => import('./pages/Tariffs/TariffsList'));
 const AddNewTariff = lazy(() => import('./pages/Tariffs/AddNewTariff'));
 const Login = lazy(() => import('./pages/Login/Login'));
@@ -46,6 +48,7 @@ function App() {
                 <Route path="/analytics" element={<DummyPage title="Analytics" />} />
                 <Route path="/reports" element={<DummyPage title="Reports" />} />
                 <Route path="/live-sessions" element={<LiveSessionsList />} />
+                <Route path="/live-sessions/:id/logs" element={<SessionLogsView />} />
                 <Route path="/alerts" element={<DummyPage title="Alerts" />} />
                 <Route path="/abnormal-transactions" element={<DummyPage title="Abnormal Transactions" />} />
                 <Route path="/charging-stations" element={<ChargingStationsList />} />
@@ -58,6 +61,8 @@ function App() {
                 <Route path="/charge-points/new" element={<AddNewChargePoint />} />
                 <Route path="/charge-points/edit/:id" element={<AddNewChargePoint isEditMode={true} />} />
                 <Route path="/charge-points/view/:id" element={<AddNewChargePoint isViewMode={true} />} />
+                <Route path="/charge-points/:id/connectors/:connectorId/edit" element={<UpdateConnector />} />
+                <Route path="/charge-points/:id/logs" element={<ViewChargePoint defaultTab="logs" />} />
                 <Route path="/charge-points/:id" element={<ViewChargePoint />} />
                 
                 <Route path="/tariffs" element={<TariffsList />} />

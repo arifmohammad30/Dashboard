@@ -1,6 +1,6 @@
 import React, { forwardRef, useState, useRef, useEffect } from 'react';
 
-const Input = forwardRef(({ placeholder, icon, type = "text", error, className = "", onChange, onInput, onKeyUp, value, defaultValue, ...rest }, ref) => {
+const Input = forwardRef(({ placeholder, icon, suffix, type = "text", error, className = "", onChange, onInput, onKeyUp, value, defaultValue, ...rest }, ref) => {
   const inputRef = useRef(null);
 
   const getIsFilled = (e) => {
@@ -80,10 +80,15 @@ const Input = forwardRef(({ placeholder, icon, type = "text", error, className =
           error ? 'neo-form-error' : ''
         } placeholder:text-stone-400 sm:text-sm sm:leading-6 text-stone-800 outline-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
           icon ? 'pl-10' : 'px-5'
-        } ${className}`}
+        } ${suffix ? 'pr-12' : ''} ${className}`}
         placeholder={placeholder || " "}
         {...rest}
       />
+      {suffix && (
+        <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none z-10">
+          <span className="text-stone-400 text-xs font-semibold">{suffix}</span>
+        </div>
+      )}
       {error && <p className="mt-2 text-xs font-bold text-pink-500">{error.message || (typeof error === 'string' ? error : 'Invalid field')}</p>}
     </div>
   );

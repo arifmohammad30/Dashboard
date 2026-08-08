@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import BackButton from '../../components/ui/BackButton';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { ArrowLeft, Plus, Loader2, Trash2, Clock } from 'lucide-react';
 import { z } from 'zod';
@@ -294,15 +295,7 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
       {/* Header Bar */}
       <div className="flex items-center justify-between px-2">
         <div>
-          <button
-            type="button"
-            onClick={() => navigate('/charging-stations')}
-            className="inline-flex items-center gap-2.5 text-sm sm:text-base font-bold text-stone-800 hover:text-orange-600 transition-colors mb-2 cursor-pointer group"
-          >
-            <ArrowLeft className="w-4.5 h-4.5 group-hover:-translate-x-1 transition-transform stroke-[2.25]" />
-            <span>Back to Charging Stations</span>
-          </button>
-
+          <BackButton to="/charging-stations" label="Back to Charging Stations" />
         </div>
 
         <div className="flex items-center gap-4">
