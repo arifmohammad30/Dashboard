@@ -8,16 +8,13 @@ export default function DashboardLayout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const location = useLocation();
-  const isOverviewPage = location.pathname === '/' || location.pathname === '/overview';
+
   const isChargePointsPage = location.pathname.startsWith('/charge-points');
   const isChargingStationsPage = location.pathname.startsWith('/charging-stations');
   const isLiveSessionsPage = location.pathname.startsWith('/live-sessions');
+  const isSessionHistoryPage = location.pathname.startsWith('/session-history');
   const isTariffsPage = location.pathname.startsWith('/tariffs');
   const isAnalyticsPage = location.pathname.startsWith('/analytics');
-  const isReportsPage = location.pathname.startsWith('/reports');
-  const isAlertsPage = location.pathname.startsWith('/alerts');
-  const isAbnormalPage = location.pathname.startsWith('/abnormal-transactions');
-  const isBillsPage = location.pathname.startsWith('/bills');
   const isTelematicsPage = location.pathname.startsWith('/telematics-devices');
 
   const { logout, user } = useAuth();
@@ -47,12 +44,11 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div className="flex h-screen w-full overflow-hidden text-stone-800 relative z-0 bg-orange-50/50">
-      {/* Sunset Animated Mesh Gradient Background (GPU Compositor Layer Promoted) */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10 transform-gpu translate-z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-orange-500/20 blur-[80px] transform-gpu translate-z-0" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-rose-500/15 blur-[80px] transform-gpu translate-z-0" />
-        <div className="absolute top-[30%] right-[20%] w-[40%] h-[40%] rounded-full bg-amber-400/20 blur-[70px] transform-gpu translate-z-0" />
-        <div className="absolute bottom-[20%] left-[20%] w-[35%] h-[35%] rounded-full bg-yellow-400/15 blur-[70px] transform-gpu translate-z-0" />
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-orange-500/20 blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-rose-500/15 blur-[120px]" />
+        <div className="absolute top-[30%] right-[20%] w-[40%] h-[40%] rounded-full bg-amber-400/20 blur-[100px]" />
+        <div className="absolute bottom-[20%] left-[20%] w-[35%] h-[35%] rounded-full bg-yellow-400/15 blur-[100px]" />
       </div>
 
       {isSidebarOpen && (
@@ -79,23 +75,17 @@ export default function DashboardLayout({ children }) {
             <div className="font-semibold uppercase text-[17px] text-slate-800 tracking-tight hidden sm:block">
               {isChargePointsPage ? 'Charge Point Management' :
                 isChargingStationsPage ? 'Charging Station Management' :
-                  isLiveSessionsPage ? 'Live Session Management' :
+                  (isLiveSessionsPage || isSessionHistoryPage) ? 'Session Management' :
                     isTariffsPage ? 'Tariff Management' :
                       isAnalyticsPage ? 'Analytics & Intelligence' :
-                        isReportsPage ? 'Reports & Audits' :
-                          isAlertsPage ? 'System Alerts' :
-                            isAbnormalPage ? 'Abnormal Transactions' :
-                              isBillsPage ? 'Billing & Invoices' :
-                                isTelematicsPage ? 'Telematics Management' : ''}
+                        isTelematicsPage ? 'Telematics Management' : ''}
             </div>
           </div>
           <div className="flex items-center gap-4">
-            {/* Thick Border Notification Button */}
             <button className="w-10 h-10 rounded-2xl bg-white/90 border-2 border-stone-300 hover:border-slate-800 transition cursor-pointer outline-none flex items-center justify-center shadow-2xs active:scale-95">
               <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
             </button>
 
-            {/* Thick Border Profile Button */}
             <div className="relative" ref={userMenuRef}>
               <div
                 className={`w-10 h-10 rounded-full bg-stone-100/80 hover:bg-stone-200/80 border-2 transition-colors duration-200 flex items-center justify-center cursor-pointer shadow-2xs active:scale-95 ${

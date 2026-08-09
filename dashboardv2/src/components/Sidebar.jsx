@@ -12,7 +12,9 @@ import {
   Receipt,
   Cpu,
   Menu,
-  LogOut
+  LogOut,
+  History,
+  Radio
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -22,14 +24,14 @@ const navGroups = [
     items: [
       { name: 'Analytics', icon: BarChart, path: '/analytics' },
       { name: 'Reports', icon: FileText, path: '/reports' },
-      { name: 'Live Sessions', icon: Activity, path: '/live-sessions' },
       { name: 'Alerts', icon: Bell, path: '/alerts' },
     ],
   },
   {
-    title: 'Operations',
+    title: 'Sessions',
     items: [
-      { name: 'Abnormal Transactions', icon: AlertTriangle, path: '/abnormal-transactions' },
+      { name: 'Active Sessions', icon: Radio, path: '/live-sessions' },
+      { name: 'Session History', icon: History, path: '/session-history' },
     ],
   },
   {
@@ -40,6 +42,12 @@ const navGroups = [
       { name: 'Tariffs', icon: CreditCard, path: '/tariffs' },
       { name: 'Bills', icon: Receipt, path: '/bills' },
       { name: 'Telematics Devices', icon: Cpu, path: '/telematics-devices' },
+    ],
+  },
+  {
+    title: 'Operations',
+    items: [
+      { name: 'Abnormal Transactions', icon: AlertTriangle, path: '/abnormal-transactions' },
     ],
   },
 ];
@@ -66,7 +74,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-6 px-4 space-y-8">
+      <div className="flex-1 overflow-y-auto py-6 px-4 space-y-8 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {navGroups.map((group, idx) => (
           <div key={idx}>
             <h2 className="px-3 text-[11px] font-black text-slate-300 uppercase tracking-widest mb-3 opacity-100">
@@ -96,8 +104,6 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                       {({ isActive }) => (
                         <>
                           <div className={`absolute inset-y-0 left-0 w-full bg-gradient-to-r from-indigo-500/25 to-transparent transition-transform duration-700 ease-out z-0 ${isActive ? 'translate-x-0' : '-translate-x-full'}`}></div>
-
-
 
                           <div className="flex items-center gap-3 relative z-10">
                             <Icon

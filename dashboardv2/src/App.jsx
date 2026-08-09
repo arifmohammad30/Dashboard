@@ -12,6 +12,7 @@ const ChargingStationsList = lazy(() => import('./pages/ChargingStations/Chargin
 const AddChargingStation = lazy(() => import('./pages/ChargingStations/AddChargingStation'));
 const ViewChargingStation = lazy(() => import('./pages/ChargingStations/ViewChargingStation'));
 const LiveSessionsList = lazy(() => import('./pages/LiveSessions/LiveSessionsList'));
+const SessionHistoryList = lazy(() => import('./pages/LiveSessions/SessionHistoryList'));
 const SessionLogsView = lazy(() => import('./pages/LiveSessions/SessionLogsView'));
 const TariffsList = lazy(() => import('./pages/Tariffs/TariffsList'));
 const AddNewTariff = lazy(() => import('./pages/Tariffs/AddNewTariff'));
@@ -48,6 +49,7 @@ function App() {
                 <Route path="/analytics" element={<DummyPage title="Analytics" />} />
                 <Route path="/reports" element={<DummyPage title="Reports" />} />
                 <Route path="/live-sessions" element={<LiveSessionsList />} />
+                <Route path="/session-history" element={<SessionHistoryList />} />
                 <Route path="/live-sessions/:id/logs" element={<SessionLogsView />} />
                 <Route path="/alerts" element={<DummyPage title="Alerts" />} />
                 <Route path="/abnormal-transactions" element={<DummyPage title="Abnormal Transactions" />} />

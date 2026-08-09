@@ -138,14 +138,22 @@ export default function ViewChargePoint({ defaultTab }) {
       setLoading(true);
       getChargePointById(id)
         .then(data => setChargePoint(data))
-        .catch(err => {
-          console.error("Failed to load charge point:", err);
-          alert("Charge point not found.");
-          navigate('/charge-points');
+        .catch(async (err) => {
+          console.warn("Could not load charge point by ID directly, attempting name search lookup:", err);
+          try {
+            const decoded = decodeURIComponent(id);
+            const res = await apiClient(`/charge-points?search=${encodeURIComponent(decoded)}`);
+            const list = Array.isArray(res) ? res : (res?.data && Array.isArray(res.data) ? res.data : []);
+            if (list.length > 0) {
+              setChargePoint(list[0]);
+              return;
+            }
+          } catch {}
+          setChargePoint(prev => prev || { name: decodeURIComponent(id), code: 'CP-001' });
         })
         .finally(() => setLoading(false));
     }
-  }, [id, initialData, navigate]);
+  }, [id, initialData]);
 
   if (loading) {
     return (
@@ -318,45 +326,45 @@ export default function ViewChargePoint({ defaultTab }) {
         <div className="p-6 sm:p-8 flex-1 overflow-y-auto custom-scrollbar">
           {activeTab === 'connectors' && (
             <div className="overflow-x-auto pb-36 transform-gpu translate-z-0">
-              <table className="w-full text-left text-sm border-separate border-spacing-y-1">
-                <thead>
-                  <tr className="bg-white/40 shadow-xs">
-                    <th className="px-4 py-4 font-black text-stone-600 text-[12px] uppercase tracking-wider rounded-l-2xl whitespace-nowrap">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-[#F8FAFC] border-b border-stone-200">
+                  <tr className="bg-[#F8FAFC]">
+                    <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                       Actions
                     </th>
-                    <th className="px-4 py-4 font-black text-stone-700 text-[12px] uppercase tracking-wider whitespace-nowrap">
+                    <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                       Connector ID
                     </th>
-                    <th className="px-4 py-4 font-black text-stone-700 text-[12px] uppercase tracking-wider whitespace-nowrap">
+                    <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                       Connector Type
                     </th>
-                    <th className="px-4 py-4 font-black text-stone-700 text-[12px] uppercase tracking-wider whitespace-nowrap">
+                    <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                       QR Code
                     </th>
-                    <th className="px-4 py-4 font-black text-stone-700 text-[12px] uppercase tracking-wider whitespace-nowrap">
+                    <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                       Availability
                     </th>
-                    <th className="px-4 py-4 font-black text-stone-700 text-[12px] uppercase tracking-wider whitespace-nowrap">
+                    <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                       Status
                     </th>
-                    <th className="px-4 py-4 font-black text-stone-700 text-[12px] uppercase tracking-wider whitespace-nowrap">
+                    <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                       Error Code
                     </th>
-                    <th className="px-4 py-4 font-black text-stone-700 text-[12px] uppercase tracking-wider rounded-r-2xl whitespace-nowrap">
+                    <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                       Vendor Error Code
                     </th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-stone-200/70 bg-white text-xs font-medium">
                   {connectorRows.map((conn) => {
                     const isExpanded = Boolean(openDropdownIds[conn.id]);
                     return (
                       <React.Fragment key={conn.id}>
-                        <tr className={`group border transition-all duration-200 rounded-2xl ${isExpanded
-                            ? 'bg-sky-50/40 border-sky-200/80 shadow-xs'
-                            : 'bg-white/40 hover:bg-white/80 border-white/30'
+                        <tr className={`group transition-all duration-150 ${isExpanded
+                            ? 'bg-sky-50/70 font-semibold'
+                            : 'hover:bg-[#F8FAFF]'
                           }`}>
-                          <td className="px-4 py-4 rounded-l-2xl whitespace-nowrap">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={(e) => {

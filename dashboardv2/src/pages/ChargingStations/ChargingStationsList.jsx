@@ -241,6 +241,45 @@ export default function ChargingStationsList() {
     navigate(`/charging-stations/edit/${cs.id}`, { state: { station: cs } });
   };
 
+  const handleExportCSV = () => {
+    try {
+      if (!stations || stations.length === 0) {
+        toast.warning("No charging station records to export", { title: "Export Warning", code: 400 });
+        return;
+      }
+
+      const headers = ["ID", "Station Name", "Code", "Charge Points", "Capacity", "Type", "Mobility"];
+      const rows = stations.map(s => [
+        `"${s.id}"`,
+        `"${s.name || ''}"`,
+        `"${s.code || ''}"`,
+        `"${s.chargePointsCount || (s.chargePoints ? s.chargePoints.length : 0)}"`,
+        `"${s.totalCapacity || ''}"`,
+        `"${s.stationType || ''}"`,
+        `"${s.mobilityType || 'Stationary'}"`
+      ]);
+
+      const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `charging_stations_export_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success(`Successfully exported ${stations.length} charging station records to CSV`, {
+        title: 'Backend Export Complete',
+        code: 200
+      });
+    } catch (err) {
+      console.error("Export error:", err);
+      toast.error("Failed to export charging station records", { title: "Export Error", code: 500 });
+    }
+  };
+
   return (
     <div className="flex flex-col gap-3 max-w-[1400px] w-full mx-auto pb-6">
       {/* Header Section */}
@@ -254,7 +293,7 @@ export default function ChargingStationsList() {
 
         <div className="flex flex-wrap items-center gap-3">
           <button
-            onClick={() => toast.success("Charging stations report exported successfully", { code: 200 })}
+            onClick={handleExportCSV}
             className="flex items-center gap-2 px-4.5 py-2 bg-white/60 hover:bg-white/80 border border-white/50 text-stone-700 font-bold rounded-xl shadow-xs active:scale-95 transition-colors duration-200 text-xs cursor-pointer"
           >
             <Download className="w-4 h-4 text-emerald-500" />
@@ -277,7 +316,7 @@ export default function ChargingStationsList() {
       </div>
 
       {/* Main Enterprise Table Container */}
-      <div className="bg-[#F6F8FB] border border-stone-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col min-h-[500px]">
+      <div className="bg-white border border-stone-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col min-h-[500px]">
         {/* Toolbar (#FFFFFF) */}
         <div className="px-5 py-2 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white border-b border-stone-200/80">
           <div className="flex items-center gap-2 text-xs text-stone-600 font-bold px-3 py-1 rounded-lg bg-[#F8FAFC] border border-stone-200/80 shadow-2xs">
@@ -300,44 +339,44 @@ export default function ChargingStationsList() {
         </div>
 
         {/* Table Section */}
-        <div className="overflow-x-auto flex-1 px-1.5 sm:px-2 pb-6 pt-0 transform-gpu translate-z-0">
-          <table className="w-full text-left text-sm border-separate border-spacing-y-1">
-            <thead className="bg-[#F8FAFC] border-b border-stone-200/90 shadow-2xs">
-              <tr className="bg-[#F8FAFC] border-b border-stone-200/90">
-                <th className="px-4 py-2.5 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider rounded-l-xl whitespace-nowrap">
+        <div className="overflow-x-auto flex-1 transform-gpu translate-z-0">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead className="bg-[#F8FAFC] border-b border-stone-200">
+              <tr className="bg-[#F8FAFC]">
+                <th className="px-4 py-3 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-1.5"><Settings2 className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Actions</div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Tag className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Name</div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Hash className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Code</div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><BatteryCharging className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Charge Points</div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Total Capacity</div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Station Type</div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Navigation className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Mobility Type</div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Created On <span className="text-stone-400 font-bold ml-0.5">↓</span></div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Latitude</div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider rounded-r-xl whitespace-nowrap">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Longitude</div>
                 </th>
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="divide-y divide-stone-200/70 bg-white text-xs font-medium">
               {loading ? (
                 <tr>
                   <td colSpan="10" className="px-5 py-24 text-center">
@@ -365,9 +404,9 @@ export default function ChargingStationsList() {
                     onClick={() => {
                       navigate(`/charging-stations/${row.id}`, { state: { station: row } });
                     }}
-                    className="group bg-white hover:bg-[#F9FBFF] border border-stone-200/80 hover:border-slate-300 shadow-2xs transition-colors duration-150 rounded-xl cursor-pointer text-xs"
+                    className="group hover:bg-[#F8FAFF] transition-colors duration-150 cursor-pointer"
                   >
-                    <td className="px-4 py-3 text-center rounded-l-xl whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                    <td className="px-4 py-3 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       <TableActions
                         onEdit={(e) => handleEditClick(e, row)}
                         onDelete={(e) => handleDeleteClick(e, row)}
@@ -399,7 +438,7 @@ export default function ChargingStationsList() {
                     <td className="px-4 py-3 whitespace-nowrap font-mono text-stone-600 text-[11px]">
                       {row.latitude || '-'}
                     </td>
-                    <td className="px-4 py-3 rounded-r-xl whitespace-nowrap font-mono text-stone-600 text-[11px]">
+                    <td className="px-4 py-3 whitespace-nowrap font-mono text-stone-600 text-[11px]">
                       {row.longitude || '-'}
                     </td>
                   </tr>

@@ -50,21 +50,21 @@ export default function DataTable({
       </div>
 
       {/* Table Content */}
-      <div className="flex-1 overflow-x-auto p-6 scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent">
-        <table className="min-w-full border-separate border-spacing-y-3">
-          <thead>
+      <div className="flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent transform-gpu translate-z-0">
+        <table className="min-w-full border-collapse text-xs">
+          <thead className="bg-[#F8FAFC] border-b border-stone-200">
             <tr>
               {columns.map((col, index) => (
                 <th 
                   key={index} 
-                  className={`px-4 py-2 text-left text-[11px] font-extrabold text-stone-400 uppercase tracking-widest ${col.className || ''}`}
+                  className={`px-4 py-3 text-left text-[11px] font-bold text-stone-700 uppercase tracking-wider ${col.className || ''}`}
                 >
                   {col.label}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="relative">
+          <tbody className="divide-y divide-stone-200/70 bg-white text-xs font-medium">
             {loading ? (
               <tr>
                 <td colSpan={columns.length} className="px-6 py-20 text-center">

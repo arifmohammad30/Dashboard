@@ -170,8 +170,16 @@ export default function ViewChargingStation() {
             setStation((prev) => prev || { name: decodedId, code: 'HUB-001' });
           }
         })
-        .catch((err) => {
-          console.warn("Could not fetch station by numeric ID, using fallback station name:", err);
+        .catch(async (err) => {
+          console.warn("Could not fetch station by ID, attempting name search lookup:", err);
+          try {
+            const res = await apiClient(`/charging-stations?search=${encodeURIComponent(decodedId)}`);
+            const list = Array.isArray(res) ? res : (res?.data && Array.isArray(res.data) ? res.data : []);
+            if (list.length > 0) {
+              setStation(list[0]);
+              return;
+            }
+          } catch {}
           setStation((prev) => prev || { name: decodedId, code: 'HUB-001' });
         })
         .finally(() => setLoading(false));
@@ -487,12 +495,12 @@ export default function ViewChargingStation() {
                 </div>
               </div>
 
-              {/* Transactions Table with 20 Columns matching main application theme */}
-              <div className="overflow-x-auto flex-1 p-2 custom-scrollbar transform-gpu translate-z-0">
-                <table className="w-full text-left text-xs border-separate border-spacing-y-1.5 min-w-[2200px]">
-                  <thead>
-                    <tr className="bg-[#F8FAFC]/90 border-b border-stone-200/80">
-                      <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider rounded-l-xl whitespace-nowrap">
+                        {/* Transactions Table with 20 Columns matching main application theme */}
+              <div className="overflow-x-auto flex-1 custom-scrollbar transform-gpu translate-z-0">
+                <table className="w-full text-left text-xs border-collapse min-w-[2200px]">
+                  <thead className="bg-[#F8FAFC] border-b border-stone-200">
+                    <tr className="bg-[#F8FAFC]">
+                      <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                         <div className="flex items-center gap-1.5"><Hash className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Txn Id</div>
                       </th>
                       <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
@@ -526,36 +534,36 @@ export default function ViewChargingStation() {
                         <div className="flex items-center gap-1.5"><AlertCircle className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Stop reason by charger</div>
                       </th>
                       <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                        <div className="flex items-center gap-1.5"><Gauge className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Meter Start</div>
+                        <div className="flex items-center gap-1.5"><AlertCircle className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Stop reason by system</div>
                       </th>
                       <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                        <div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Started at</div>
+                        <div className="flex items-center gap-1.5"><Tag className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Tariff Plan</div>
                       </th>
                       <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                        <div className="flex items-center gap-1.5"><User className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Started by</div>
+                        <div className="flex items-center gap-1.5"><UserIcon className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Tagged EV User</div>
                       </th>
                       <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                        <div className="flex items-center gap-1.5"><Gauge className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Meter Stop</div>
+                        <div className="flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Payment Gateway</div>
                       </th>
                       <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                        <div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Stopped at</div>
+                        <div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Start Time</div>
                       </th>
                       <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                        <div className="flex items-center gap-1.5"><User className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Stopped by</div>
+                        <div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Stop Time</div>
                       </th>
                       <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                        <div className="flex items-center gap-1.5"><Tag className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Tariffs</div>
+                        <div className="flex items-center gap-1.5"><Cpu className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> OCPP Protocol</div>
                       </th>
                       <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                        <div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Created On</div>
+                        <div className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Auth Method</div>
                       </th>
-                      <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider rounded-r-xl whitespace-nowrap">
-                        <div className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> UBC</div>
+                      <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                        <div className="flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Payment Mode</div>
                       </th>
                     </tr>
                   </thead>
 
-                  <tbody>
+                  <tbody className="divide-y divide-stone-200/70 bg-white text-xs font-medium">
                     {transactions.length === 0 ? (
                       <tr>
                         <td colSpan="20" className="px-5 py-16 text-center text-stone-500 font-bold text-xs">
@@ -566,9 +574,9 @@ export default function ViewChargingStation() {
                       transactions.map((tx, idx) => (
                         <tr
                           key={tx.txnId + idx}
-                          className="bg-white hover:bg-[#F9FBFF] border border-stone-200/80 shadow-2xs transition-colors duration-150 rounded-xl text-xs"
+                          className="hover:bg-[#F8FAFF] transition-colors duration-150 text-xs"
                         >
-                          <td className="px-4 py-3 rounded-l-xl font-mono font-bold text-sky-600 whitespace-nowrap">
+                          <td className="px-4 py-3 font-mono font-bold text-sky-600 whitespace-nowrap">
                             {tx.txnId}
                           </td>
                           <td

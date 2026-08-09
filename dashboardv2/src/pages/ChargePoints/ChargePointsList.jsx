@@ -244,6 +244,46 @@ export default function ChargePointsList({ stationFilter, hideHeader = false }) 
     navigate(`/charge-points/edit/${cp.id}`, { state: { chargePoint: cp } });
   };
 
+  const handleExportCSV = () => {
+    try {
+      if (!chargePoints || chargePoints.length === 0) {
+        toast.warning("No charge point records available to export", { title: "Export Warning", code: 400 });
+        return;
+      }
+
+      const headers = ["ID", "Charge Point Name", "Code", "Charging Station", "Status", "Connectors", "Power", "Protocol"];
+      const rows = chargePoints.map(cp => [
+        `"${cp.id}"`,
+        `"${cp.name || ''}"`,
+        `"${cp.code || ''}"`,
+        `"${cp.chargingStation || ''}"`,
+        `"${cp.status || 'Available'}"`,
+        `"${cp.connectorsCount || (cp.connectors ? cp.connectors.length : 1)}"`,
+        `"${cp.power || ''}"`,
+        `"${cp.protocol || 'OCPP 1.6J'}"`
+      ]);
+
+      const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `charge_points_export_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success(`Successfully exported ${chargePoints.length} charge point records to CSV`, {
+        title: 'Backend Export Complete',
+        code: 200
+      });
+    } catch (err) {
+      console.error("Export error:", err);
+      toast.error("Failed to export charge point records", { title: "Export Error", code: 500 });
+    }
+  };
+
   return (
     <div className="flex flex-col gap-3.5 max-w-[1400px] w-full mx-auto pb-6">
       {/* Header Section */}
@@ -259,7 +299,7 @@ export default function ChargePointsList({ stationFilter, hideHeader = false }) 
 
         <div className="flex flex-wrap items-center gap-3">
           <button
-            onClick={() => toast.success("Charge points report exported successfully", { code: 200 })}
+            onClick={handleExportCSV}
             className="flex items-center gap-2 px-4.5 py-2 bg-white/60 hover:bg-white/80 border border-white/50 text-stone-700 font-bold rounded-xl shadow-xs active:scale-95 transition-colors duration-200 text-xs cursor-pointer"
           >
             <Download className="w-4 h-4 text-emerald-500" />
@@ -316,7 +356,7 @@ export default function ChargePointsList({ stationFilter, hideHeader = false }) 
       </div>
 
       {/* Main Enterprise Table Container */}
-      <div className="bg-[#F6F8FB] border border-stone-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col min-h-[500px]">
+      <div className="bg-white border border-stone-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col min-h-[500px]">
         <div className="px-5 py-2 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white border-b border-stone-200/80">
           <div className="flex items-center gap-2 text-xs text-stone-600 font-bold px-3 py-1 rounded-lg bg-[#F8FAFC] border border-stone-200/80 shadow-2xs">
             <span className="font-extrabold text-stone-900 text-xs">{displayTotalItems}</span> total charge points
@@ -338,71 +378,71 @@ export default function ChargePointsList({ stationFilter, hideHeader = false }) 
         </div>
 
         {/* Table Section */}
-        <div className="overflow-x-auto flex-1 px-1.5 sm:px-2 pb-6 pt-0 transform-gpu translate-z-0">
-          <table className="w-full text-left text-sm border-separate border-spacing-y-1">
-            <thead className="bg-[#F8FAFC] border-b border-stone-200/90 shadow-2xs">
-              <tr className="bg-[#F8FAFC] border-b border-stone-200/90">
-                <th className="px-4 py-2.5 text-center font-bold text-stone-600 text-[11px] uppercase tracking-wider rounded-l-xl whitespace-nowrap">
+        <div className="overflow-x-auto flex-1 transform-gpu translate-z-0">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead className="bg-[#F8FAFC] border-b border-stone-200">
+              <tr className="bg-[#F8FAFC]">
+                <th className="px-4 py-3 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-1.5"><Settings2 className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Actions</div>
                 </th>
-                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Tag className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Name</div>
                 </th>
-                <th className="px-4 py-2.5 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-1.5"><Hash className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Code</div>
                 </th>
-                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Charge Station</div>
                 </th>
-                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Activity className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Status</div>
                 </th>
-                <th className="px-4 py-2.5 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-1.5"><Clock className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Last Active</div>
                 </th>
-                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Stage</div>
                 </th>
-                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Type</div>
                 </th>
-                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Plug className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Connector (Connector Id)</div>
                 </th>
-                <th className="px-4 py-2.5 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-1.5"><Gauge className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Total Capacity</div>
                 </th>
-                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Mode</div>
                 </th>
-                <th className="px-4 py-2.5 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-1.5"><Factory className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> OEM</div>
                 </th>
-                <th className="px-4 py-2.5 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-1.5"><Cpu className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Firmware Version</div>
                 </th>
-                <th className="px-4 py-2.5 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-1.5"><Hash className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> CP ID</div>
                 </th>
-                <th className="px-4 py-2.5 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-1.5"><Hash className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Third Party CP ID</div>
                 </th>
-                <th className="px-4 py-2.5 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-1.5"><QrCode className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> QR Code ID</div>
                 </th>
-                <th className="px-4 py-2.5 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-1.5"><Tag className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Tariff Profile</div>
                 </th>
-                <th className="px-4 py-2.5 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-1.5"><Smartphone className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Mobility Type</div>
                 </th>
-                <th className="px-4 py-2.5 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider rounded-r-xl whitespace-nowrap">
+                <th className="px-4 py-3 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Created On</div>
                 </th>
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="divide-y divide-stone-200/70 bg-white text-xs font-medium">
               {loading ? (
                 <tr>
                   <td colSpan="19" className="px-4 py-12 text-center">
@@ -425,8 +465,8 @@ export default function ChargePointsList({ stationFilter, hideHeader = false }) 
                 </tr>
               ) : (
                 chargePoints.map((row) => (
-                  <tr key={row.id} onClick={() => navigate(`/charge-points/${row.id}`, { state: { chargePoint: row } })} className="group bg-white hover:bg-[#F9FBFF] border border-stone-200/80 hover:border-slate-300 shadow-2xs transition-colors duration-150 rounded-xl cursor-pointer">
-                    <td className="px-4 py-3 text-center rounded-l-xl whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                  <tr key={row.id} onClick={() => navigate(`/charge-points/${row.id}`, { state: { chargePoint: row } })} className="group hover:bg-[#F8FAFF] transition-colors duration-150 cursor-pointer">
+                    <td className="px-4 py-3 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       <TableActions
                         onEdit={(e) => handleEditClick(e, row)}
                         onDelete={(e) => handleDeleteClick(e, row)}

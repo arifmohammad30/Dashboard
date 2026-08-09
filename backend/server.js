@@ -27,23 +27,78 @@ app.use(express.json());
 
 async function seedLiveSessions() {
   try {
-    const count = await prisma.liveSession.count();
-    if (count !== 9) {
-      await prisma.liveSession.deleteMany({});
-      const mockData = [
-        { userInitials: 'B', userColor: 'bg-indigo-100 text-indigo-700', userName: 'B108901020', station: 'Lodha The Park, Mumbai', chargePoint: 'EVRE Lodha The Park AC1', connector: 'Type2 (1)', status: 'Ongoing' },
-        { userInitials: 'J', userColor: 'bg-purple-100 text-purple-700', userName: 'Jothi viknesh', station: 'Sobha Chrysanthemum, Bengaluru', chargePoint: 'EVRE Sobha Chrysanthemum AC1', connector: '15A (2)', status: 'Ongoing' },
-        { userInitials: 'A', userColor: 'bg-fuchsia-100 text-fuchsia-700', userName: 'Athiljit', station: 'Sobha Chrysanthemum, Bengaluru', chargePoint: 'Sobha Chrysanthemum 10D AC2', connector: 'Type2 (1)', status: 'Ongoing' },
-        { userInitials: 'P', userColor: 'bg-pink-100 text-pink-700', userName: 'Priya R', station: 'Orion Mall, Bengaluru', chargePoint: 'Orion Fast DC1', connector: 'CCS2 (1)', status: 'Ongoing' },
-        { userInitials: 'R', userColor: 'bg-rose-100 text-rose-700', userName: 'Rahul M', station: 'Cyber Hub Charging Station', chargePoint: 'EVRE Cyber Hub DC1', connector: 'CCS2 (1)', status: 'Failed' },
-        { userInitials: 'M', userColor: 'bg-emerald-100 text-emerald-700', userName: 'Mohit Sharma', station: 'Phoenix Marketcity, Pune', chargePoint: 'Phoenix Fast DC2', connector: 'CCS2 (2)', status: 'Failed' },
-        { userInitials: 'S', userColor: 'bg-amber-100 text-amber-700', userName: 'Sarah K', station: 'Nexus Mall, Koramangala', chargePoint: 'Nexus Mall AC3', connector: 'Type2 (1)', status: 'Stopped' },
-        { userInitials: 'V', userColor: 'bg-cyan-100 text-cyan-700', userName: 'Vikram Singh', station: 'Lodha The Park, Mumbai', chargePoint: 'EVRE Lodha The Park AC2', connector: 'Type2 (1)', status: 'Stopped' },
-        { userInitials: 'D', userColor: 'bg-sky-100 text-sky-700', userName: 'Deepak T', station: 'Nexus Mall, Koramangala', chargePoint: 'Nexus Mall DC1', connector: 'CCS2 (2)', status: 'Stopped' }
-      ];
-      await prisma.liveSession.createMany({ data: mockData });
-      console.log("[Mock Database] Seeded 9 initial live sessions.");
+    let dbStations = await prisma.chargingStation.findMany({ orderBy: { createdAt: 'asc' } });
+    let dbCps = await prisma.chargePoint.findMany({ orderBy: { createdAt: 'asc' } });
+
+    // If database is empty of stations, create 5 initial real stations & charge points
+    if (dbStations.length === 0) {
+      for (let s = 1; s <= 6; s++) {
+        const cs = await prisma.chargingStation.create({
+          data: {
+            name: `Location ${s} Hub`,
+            code: `CS-LOC-${s.toString().padStart(2, '0')}`,
+            chargePoints: 5,
+            totalCapacity: '120 kW',
+            stationType: 'Public Fast Hub'
+          }
+        });
+        dbStations.push(cs);
+
+        for (let cpIdx = 1; cpIdx <= 2; cpIdx++) {
+          const globalIdx = (s - 1) * 2 + cpIdx;
+          const cp = await prisma.chargePoint.create({
+            data: {
+              name: `Charge Point Station ${globalIdx} ${cpIdx % 2 === 0 ? 'DC' : 'AC'}`,
+              chargingStation: cs.name,
+              manufacturer: 'Siemens',
+              mode: 'Public',
+              code: `CP-${(1000 + globalIdx).toString()}`,
+              accessibility: 'Public',
+              stage: 'Active',
+              exclusive: 'Shared',
+              tariffProfiles: 'Standard Rate',
+              settlementProfile: 'Standard Rate',
+              type: cpIdx % 2 === 0 ? 'DC' : 'AC',
+              chargingMethods: JSON.stringify([{ id: 'soc', label: 'SoC', selected: true, value: '80' }]),
+              mobilityType: 'Stationary',
+              firmwareVersion: '2.0.2'
+            }
+          });
+          dbCps.push(cp);
+        }
+      }
     }
+
+    // Always ensure live sessions map to REAL existing stations and charge points
+    await prisma.liveSession.deleteMany({});
+    const users = [
+      { initials: 'B', color: 'bg-indigo-100 text-indigo-700', name: 'B108901020', status: 'Ongoing' },
+      { initials: 'J', color: 'bg-purple-100 text-purple-700', name: 'Jothi viknesh', status: 'Ongoing' },
+      { initials: 'A', color: 'bg-fuchsia-100 text-fuchsia-700', name: 'Athiljit', status: 'Ongoing' },
+      { initials: 'P', color: 'bg-pink-100 text-pink-700', name: 'Priya R', status: 'Ongoing' },
+      { initials: 'R', color: 'bg-rose-100 text-rose-700', name: 'Rahul M', status: 'Failed' },
+      { initials: 'M', color: 'bg-emerald-100 text-emerald-700', name: 'Mohit Sharma', status: 'Failed' },
+      { initials: 'S', color: 'bg-amber-100 text-amber-700', name: 'Sarah K', status: 'Stopped' },
+      { initials: 'V', color: 'bg-cyan-100 text-cyan-700', name: 'Vikram Singh', status: 'Stopped' },
+      { initials: 'D', color: 'bg-sky-100 text-sky-700', name: 'Deepak T', status: 'Stopped' }
+    ];
+
+    const mockData = users.map((u, idx) => {
+      const cs = dbStations[idx % dbStations.length];
+      const cp = dbCps[idx % dbCps.length];
+      return {
+        userInitials: u.initials,
+        userColor: u.color,
+        userName: u.name,
+        station: cs.name,
+        chargePoint: cp.name,
+        connector: 'Type2 (1)',
+        status: u.status
+      };
+    });
+
+    await prisma.liveSession.createMany({ data: mockData });
+    console.log("[Mock Database] Seeded 9 live sessions linked to real stations & charge points.");
   } catch (error) {
     console.error("Failed to seed live sessions:", error);
   }

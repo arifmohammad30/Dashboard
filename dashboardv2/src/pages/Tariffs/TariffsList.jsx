@@ -222,6 +222,44 @@ export default function TariffsList() {
     }
   };
 
+  const handleExportCSV = () => {
+    try {
+      if (!tariffsList || tariffsList.length === 0) {
+        toast.warning("No tariff records available to export", { title: "Export Warning", code: 400 });
+        return;
+      }
+
+      const headers = ["ID", "Tariff Name", "Code", "Type", "Base Rate (₹/kWh)", "Tax (%)"];
+      const rows = tariffsList.map(t => [
+        `"${t.id}"`,
+        `"${t.name || ''}"`,
+        `"${t.code || ''}"`,
+        `"${t.tariffType || t.type || 'Flat Rate'}"`,
+        `"${t.rate || t.baseRate || '0'}"`,
+        `"${t.gstPercentage || t.tax || '18'}"`
+      ]);
+
+      const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `tariffs_export_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success(`Successfully exported ${tariffsList.length} tariff structures to CSV`, {
+        title: 'Backend Export Complete',
+        code: 200
+      });
+    } catch (err) {
+      console.error("Export error:", err);
+      toast.error("Failed to export tariff structures", { title: "Export Error", code: 500 });
+    }
+  };
+
   return (
     <div className="flex flex-col gap-3.5 max-w-[1700px] w-full mx-auto pb-6">
       {/* Top Title & Actions Bar */}
@@ -237,7 +275,7 @@ export default function TariffsList() {
 
         <div className="flex flex-wrap items-center gap-3">
           <button
-            onClick={() => toast.success("Tariffs data exported successfully", { code: 200 })}
+            onClick={handleExportCSV}
             className="flex items-center gap-2 px-4.5 py-2 bg-white/60 hover:bg-white/80 border border-white/50 text-stone-700 font-bold rounded-xl shadow-xs active:scale-95 transition-colors duration-200 text-xs cursor-pointer"
           >
             <Download className="w-4 h-4 text-emerald-500" />
@@ -305,7 +343,7 @@ export default function TariffsList() {
       </div>
 
       {/* Main Enterprise Table Container */}
-      <div className="bg-[#F6F8FB] border border-stone-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col min-h-[500px]">
+      <div className="bg-white border border-stone-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col min-h-[500px]">
         {/* Top Info & Search Bar */}
         <div className="px-5 py-2 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white border-b border-stone-200/80">
           <div className="flex items-center gap-2 text-xs text-stone-600 font-bold px-3 py-1 rounded-lg bg-[#F8FAFC] border border-stone-200/80 shadow-2xs">
@@ -328,56 +366,56 @@ export default function TariffsList() {
         </div>
 
         {/* Table Section */}
-        <div className="overflow-x-auto flex-1 px-1.5 sm:px-2 pb-6 pt-0 transform-gpu translate-z-0">
-          <table className="w-full text-left text-sm border-separate border-spacing-y-1">
-            <thead className="bg-[#F8FAFC] border-b border-stone-200/90 shadow-2xs">
-              <tr className="bg-[#F8FAFC] border-b border-stone-200/90">
-                <th className="px-4 py-2.5 text-center font-bold text-stone-600 text-[11px] uppercase tracking-wider rounded-l-xl whitespace-nowrap">
+        <div className="overflow-x-auto flex-1 transform-gpu translate-z-0">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead className="bg-[#F8FAFC] border-b border-stone-200">
+              <tr className="bg-[#F8FAFC]">
+                <th className="px-4 py-3 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center justify-center gap-1.5"><Settings2 className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Actions</div>
                 </th>
-                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Tag className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Name</div>
                 </th>
-                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Layers className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Type</div>
                 </th>
-                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Costing Type</div>
                 </th>
-                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Applicable To</div>
                 </th>
-                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><IndianRupee className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Charging Fee</div>
                 </th>
-                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Car className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Parking Fee</div>
                 </th>
-                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Idle Fee</div>
                 </th>
-                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Gauge className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> SoC</div>
                 </th>
-                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Play className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Starts At</div>
                 </th>
-                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Square className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Ends At</div>
                 </th>
-                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Layers className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Weight</div>
                 </th>
-                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Created On</div>
                 </th>
-                <th className="px-4 py-2.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider rounded-r-xl whitespace-nowrap">
+                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Percent className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> GST Percentage</div>
                 </th>
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="divide-y divide-stone-200/70 bg-white text-xs font-medium">
               {loading ? (
                 <tr>
                   <td colSpan="14" className="px-4 py-12 text-center">
@@ -402,10 +440,10 @@ export default function TariffsList() {
                 paginatedTariffs.map((t) => (
                   <tr
                     key={t.id}
-                    className="group bg-white hover:bg-[#F9FBFF] border border-stone-200/80 hover:border-slate-300 shadow-2xs transition-colors duration-150 rounded-xl cursor-pointer"
+                    className="group hover:bg-[#F8FAFF] transition-colors duration-150 cursor-pointer"
                   >
                     {/* Actions Column (Edit Only - Visible on Hover) */}
-                    <td className="px-4 py-3 text-center rounded-l-xl whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                    <td className="px-4 py-3 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                         <button
                           onClick={(e) => {

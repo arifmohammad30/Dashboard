@@ -5,6 +5,7 @@ import {
   Search,
   Filter,
   ChevronDown,
+  ChevronRight,
   MoreVertical,
   User as UserIcon,
   MapPin,
@@ -26,30 +27,64 @@ import { useSocketEvents } from '../../hooks/useSocketEvents';
 import { useToast } from '../../context/ToastContext';
 import { filterTableData } from '../../utils/searchUtils';
 
-// Build name→id lookup maps from station & charge point lists
+// Build name→id lookup maps and full entity stores from station & charge point APIs
 function useLookupMaps() {
   const [stationMap, setStationMap] = useState({});
   const [cpMap, setCpMap] = useState({});
+  const [rawStations, setRawStations] = useState([]);
+  const [rawChargePoints, setRawChargePoints] = useState([]);
 
   useEffect(() => {
     apiClient('/api/charging-stations')
-      .then(data => {
+      .then(res => {
+        const list = Array.isArray(res) ? res : (res?.data && Array.isArray(res.data) ? res.data : []);
+        setRawStations(list);
         const map = {};
-        (data || []).forEach(s => { if (s.name) map[s.name.trim().toLowerCase()] = s.id; });
+        list.forEach(s => {
+          if (s.name) map[s.name.trim().toLowerCase()] = s.id;
+          if (s.code) map[s.code.trim().toLowerCase()] = s.id;
+        });
         setStationMap(map);
       })
       .catch(() => {});
 
     apiClient('/api/charge-points')
-      .then(data => {
+      .then(res => {
+        const list = Array.isArray(res) ? res : (res?.data && Array.isArray(res.data) ? res.data : []);
+        setRawChargePoints(list);
         const map = {};
-        (data || []).forEach(cp => { if (cp.name) map[cp.name.trim().toLowerCase()] = cp.id; });
+        list.forEach(cp => {
+          if (cp.name) map[cp.name.trim().toLowerCase()] = cp.id;
+          if (cp.code) map[cp.code.trim().toLowerCase()] = cp.id;
+        });
         setCpMap(map);
       })
       .catch(() => {});
   }, []);
 
-  return { stationMap, cpMap };
+  const resolveStation = (nameOrId) => {
+    if (!nameOrId) return null;
+    const clean = String(nameOrId).trim().toLowerCase();
+    let found = rawStations.find(s => String(s.id) === String(nameOrId));
+    if (found) return found;
+    found = rawStations.find(s => s.name?.trim().toLowerCase() === clean);
+    if (found) return found;
+    found = rawStations.find(s => s.name?.trim().toLowerCase().includes(clean) || clean.includes(s.name?.trim().toLowerCase()));
+    return found || null;
+  };
+
+  const resolveChargePoint = (nameOrId) => {
+    if (!nameOrId) return null;
+    const clean = String(nameOrId).trim().toLowerCase();
+    let found = rawChargePoints.find(cp => String(cp.id) === String(nameOrId));
+    if (found) return found;
+    found = rawChargePoints.find(cp => cp.name?.trim().toLowerCase() === clean);
+    if (found) return found;
+    found = rawChargePoints.find(cp => cp.name?.trim().toLowerCase().includes(clean) || clean.includes(cp.name?.trim().toLowerCase()));
+    return found || null;
+  };
+
+  return { stationMap, cpMap, resolveStation, resolveChargePoint };
 }
 
 // Compact Popover Component for SoC Breakdown (matching Charge Transactions tab)
@@ -152,7 +187,7 @@ const MeterValuesPopoverCell = ({ row }) => {
 export default function LiveSessionsList() {
   const navigate = useNavigate();
   const toast = useToast();
-  const { stationMap, cpMap } = useLookupMaps();
+  const { stationMap, cpMap, resolveStation, resolveChargePoint } = useLookupMaps();
   const [activeTab, setActiveTab] = useState('Ongoing');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -182,18 +217,19 @@ export default function LiveSessionsList() {
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const getConnectorLabel = (conn) => {
-    if (!conn) return '15A (1) · Charging';
+    if (!conn) return '15A (1)';
     const cStr = typeof conn === 'object' ? (conn.type || conn.name || 'Type2') : String(conn);
-    return `${cStr} · Charging`;
+    return cStr;
   };
 
   const getTxId = (id) => 10715700 + (id * 31);
   const getBillCode = (id) => `OLSB14I${(10 + id * 3).toString(36).toUpperCase()}YY`;
 
   const filteredSessions = useMemo(() => {
-    const tabFiltered = sessions.filter(session => session.status === activeTab);
+    // Only show active Ongoing sessions in Live Sessions page
+    const ongoingOnly = sessions.filter(session => session.status === 'Ongoing');
     
-    return filterTableData(tabFiltered, debouncedSearchTerm, [
+    return filterTableData(ongoingOnly, debouncedSearchTerm, [
       'userName',
       'userInitials',
       'station',
@@ -203,7 +239,7 @@ export default function LiveSessionsList() {
       (r) => getTxId(r.id),
       (r) => getBillCode(r.id)
     ]);
-  }, [sessions, activeTab, debouncedSearchTerm]);
+  }, [sessions, debouncedSearchTerm]);
 
   const totalItems = filteredSessions.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
@@ -219,115 +255,104 @@ export default function LiveSessionsList() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 px-1 mt-0">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            Live Charging Sessions
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            Active Live Sessions
           </h1>
-          <p className="text-xs text-stone-500 mt-0.5 font-medium ml-0.5">Monitor real-time ongoing, stopped, and failed sessions.</p>
+          <p className="text-xs text-stone-500 mt-0.5 font-medium ml-0.5">
+            Real-time active charging sessions currently streaming telemetry from charge points.
+          </p>
         </div>
-
         <div className="flex flex-wrap items-center gap-3">
-          <button className="flex items-center gap-2 px-4.5 py-2 bg-white/60 hover:bg-white/80 border border-white/50 text-stone-700 font-bold rounded-xl shadow-xs active:scale-95 transition-colors duration-200 text-xs cursor-pointer">
-            Today
-            <ChevronDown className="w-4 h-4 text-blue-500" />
-          </button>
-
-          <button className="flex items-center gap-2 px-4.5 py-2 bg-white/60 hover:bg-white/80 border border-white/50 text-stone-700 font-bold rounded-xl shadow-xs active:scale-95 transition-colors duration-200 text-xs cursor-pointer">
-            <Filter className="w-4 h-4 text-violet-500" />
-            Filter
+          <button
+            onClick={() => navigate('/session-history')}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 font-bold border border-stone-200 shadow-2xs rounded-xl text-xs cursor-pointer transition-all duration-150 active:scale-95 group"
+          >
+            <span>Session History</span>
+            <ChevronRight className="w-3.5 h-3.5 text-stone-400 group-hover:text-slate-700 group-hover:translate-x-0.5 transition-all" />
           </button>
         </div>
       </div>
 
-      {/* Tabs & Search */}
-      <div className="bg-white/70 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] rounded-[32px] overflow-hidden flex flex-col flex-1 min-h-0">
+      {/* Main Enterprise Table Container */}
+      <div className="bg-white border border-stone-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col flex-1 min-h-[500px]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border-b border-stone-200/80 bg-[#F8FAFC]">
-          {/* Reverted Original Tabs Styling */}
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#F8FAFC] border border-stone-200/80 shadow-2xs">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => {
-                  setActiveTab(tab);
-                  setCurrentPage(1);
-                }}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold border transition-colors duration-150 cursor-pointer ${
-                  activeTab === tab
-                    ? tab === 'Ongoing'
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 shadow-2xs'
-                      : tab === 'Failed'
-                        ? 'bg-rose-50 text-rose-700 border-rose-200/80 shadow-2xs'
-                        : 'bg-amber-50 text-amber-700 border-amber-200/80 shadow-2xs'
-                    : 'bg-transparent text-stone-600 border-transparent hover:bg-stone-100/70 hover:text-stone-900'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
+          {/* Active Live Status Pill with Radar Pinging Pulse */}
+          <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-2xs text-xs font-extrabold w-fit">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <span>Live Stream Monitoring</span>
+            <span className="bg-emerald-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full ml-1">{filteredSessions.length} Active</span>
           </div>
 
+          {/* Search Box matching Charge Points and Charging Stations list page */}
           <div className="relative w-full sm:w-[400px] group">
             <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-stone-400 group-focus-within:text-stone-900 transition-colors z-10">
               <Search className="w-5 h-5" />
             </div>
+
             <input
               type="text"
+              placeholder="Search user, station, CP..."
               value={searchTerm}
-              onChange={handleSearch}
-              placeholder="Search sessions..."
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full pl-14 pr-5 py-2.5 bg-white border border-stone-200/90 shadow-2xs focus:border-stone-900 focus:ring-1 focus:ring-stone-900/10 rounded-2xl text-xs font-medium focus:outline-none text-stone-800 placeholder:text-stone-400 transition-colors duration-150"
             />
           </div>
         </div>
 
         {/* Scrollable Table Container */}
-        <div className="overflow-x-auto flex-1 px-1.5 sm:px-2 pb-6 pt-0 transform-gpu translate-z-0">
-          <table className="w-full text-left text-sm border-separate border-spacing-y-1">
-            <thead className="bg-[#F8FAFC] border-b border-stone-200/90 shadow-2xs">
-              <tr className="bg-[#F8FAFC] border-b border-stone-200/90">
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider rounded-l-xl text-center whitespace-nowrap">
+        <div className="overflow-x-auto flex-1 transform-gpu translate-z-0">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead className="bg-[#F8FAFC] border-b border-stone-200">
+              <tr className="bg-[#F8FAFC]">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider text-center whitespace-nowrap">
                   <div className="flex items-center justify-center gap-1.5"><Settings2 className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Actions</div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><UserIcon className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> User</div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Charging Station</div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Charge Point</div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Plug className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Connector</div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Activity className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Charge Transaction Status</div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><BatteryCharging className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> SoC</div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Meter Values</div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Hash className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Charge Transaction</div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><FileText className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Bill</div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Layers className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Fleet</div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Bill Status</div>
                 </th>
-                <th className="px-4 py-2.5 font-bold text-stone-700 text-[11px] uppercase tracking-wider rounded-r-xl whitespace-nowrap">
+                <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Payment Mode</div>
                 </th>
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="divide-y divide-stone-200/70 bg-white text-xs font-medium">
               {loading ? (
                 <tr>
                   <td colSpan="13" className="px-5 py-24 text-center">
@@ -351,9 +376,8 @@ export default function LiveSessionsList() {
               ) : (
                 paginatedSessions.map((row) => {
                   return (
-                    <tr key={row.id} className="group bg-white hover:bg-[#F9FBFF] border border-stone-200/80 hover:border-slate-300 shadow-2xs transition-colors duration-150 rounded-xl text-xs">
-                      {/* Actions Column (First Column, View Logs on Row Hover) */}
-                      <td className="px-4 py-3 text-center rounded-l-xl whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                    <tr key={row.id} className="group hover:bg-[#F8FAFF] transition-colors duration-150 text-xs">
+                      <td className="px-4 py-3 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                           <button
                             onClick={(e) => {
@@ -361,7 +385,7 @@ export default function LiveSessionsList() {
                               navigate(`/live-sessions/${row.id}/logs`, { state: { session: row } });
                             }}
                             className="px-2.5 py-1 text-sky-600 bg-sky-50 border border-sky-200/80 hover:bg-sky-500 hover:text-white rounded-lg shadow-2xs text-[11px] font-bold transition-all active:scale-95 duration-150 cursor-pointer flex items-center gap-1.5"
-                            title="View OCPP Logs"
+                            title="Inspect Live Telemetry Logs"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                             <span>View Logs</span>
@@ -369,7 +393,6 @@ export default function LiveSessionsList() {
                         </div>
                       </td>
 
-                      {/* Clean User Profile Cell */}
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-extrabold bg-[#F8FAFC] text-purple-700 border border-stone-200/80 shrink-0">
@@ -381,87 +404,91 @@ export default function LiveSessionsList() {
                         </div>
                       </td>
 
-                      {/* Charging Station → /charging-stations/:id */}
-                      <td className="px-4 py-3 whitespace-nowrap" onClick={(e) => {
-                        e.stopPropagation();
-                        if (!row.station) return;
-                        const sid = stationMap[row.station.trim().toLowerCase()];
-                        if (sid) {
-                          navigate(`/charging-stations/${sid}`);
-                        } else {
-                          navigate(`/charging-stations?search=${encodeURIComponent(row.station)}`);
-                        }
-                      }}>
-                        <span className="text-sky-600 font-bold text-[12px] hover:text-sky-800 transition-colors cursor-pointer max-w-[220px] truncate inline-block">
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!row.station) return;
+                            const targetStation = resolveStation(row.station);
+                            const targetId = targetStation?.id || stationMap[row.station.trim().toLowerCase()] || encodeURIComponent(row.station);
+                            const stationObj = targetStation || { name: row.station, id: targetId };
+                            navigate(`/charging-stations/${targetId}`, { state: { station: stationObj } });
+                          }}
+                          className="text-slate-500 font-bold text-[13px] group-hover:text-slate-950 transition-colors duration-150 cursor-pointer max-w-[220px] truncate inline-block"
+                        >
                           {row.station}
                         </span>
                       </td>
 
-                      {/* Charge Point → /charge-points/:id */}
-                      <td className="px-4 py-3 whitespace-nowrap" onClick={(e) => {
-                        e.stopPropagation();
-                        if (!row.chargePoint) return;
-                        const cpid = cpMap[row.chargePoint.trim().toLowerCase()];
-                        if (cpid) {
-                          navigate(`/charge-points/${cpid}`);
-                        } else {
-                          navigate(`/charge-points?search=${encodeURIComponent(row.chargePoint)}`);
-                        }
-                      }}>
-                        <span className="text-sky-600 font-bold text-[12px] hover:text-sky-800 transition-colors cursor-pointer max-w-[200px] truncate inline-block">
+                      {/* Charge Point Link (text-[13px] matching list page, color-only hover transition) */}
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!row.chargePoint) return;
+                            const targetCP = resolveChargePoint(row.chargePoint);
+                            const targetId = targetCP?.id || cpMap[row.chargePoint.trim().toLowerCase()] || encodeURIComponent(row.chargePoint);
+                            const cpObj = targetCP || { name: row.chargePoint, id: targetId };
+                            navigate(`/charge-points/${targetId}`, { state: { chargePoint: cpObj } });
+                          }}
+                          className="text-slate-500 font-bold text-[13px] group-hover:text-sky-700 transition-colors duration-150 cursor-pointer max-w-[200px] truncate inline-block"
+                        >
                           {row.chargePoint}
                         </span>
                       </td>
 
-                      {/* Connector */}
+                      {/* Connector (Neutral reduced radius badge) */}
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-sky-50 text-sky-700 border border-sky-200/80 whitespace-nowrap">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-mono font-medium bg-stone-100/90 text-stone-700 border border-stone-200/80 whitespace-nowrap">
                           {getConnectorLabel(row.connector)}
                         </span>
                       </td>
 
-                      {/* Charge Transaction Status */}
+                      {/* Charge Transaction Status (Definitive Enterprise Badge System) */}
                       <td className="px-4 py-3 whitespace-nowrap">
                         {row.status === 'Ongoing' && (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-2xs">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                            Ongoing
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[11px] font-semibold bg-emerald-50/80 text-emerald-800 border border-emerald-200/80 shadow-2xs">
+                            <span className="relative flex h-1.5 w-1.5">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                            </span>
+                            <span>Ongoing</span>
                           </span>
                         )}
                         {row.status === 'Failed' && (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200/60 shadow-2xs">
-                            <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span>
-                            Failed
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[11px] font-semibold bg-rose-50/80 text-rose-800 border border-rose-200/80 shadow-2xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
+                            <span>Failed</span>
                           </span>
                         )}
-                        {row.status === 'Stopped' && (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-stone-100 text-stone-600 border border-stone-200/80 shadow-2xs">
-                            <span className="w-1.5 h-1.5 rounded-full bg-stone-400 shrink-0"></span>
-                            Stopped
+                        {(row.status === 'Stopped' || row.status === 'Completed') && (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[11px] font-semibold bg-slate-50 text-slate-700 border border-slate-200 shadow-2xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                            <span>Completed</span>
                           </span>
                         )}
                       </td>
 
-                      {/* SoC (Matching Charge Transactions Tab Popover) */}
+                      {/* SoC */}
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <SocPopoverCell initialSoc="-" currentSoc="-" />
+                        <SocPopoverCell initialSoc={row.initialSoc} currentSoc={row.currentSoc} />
                       </td>
 
-                      {/* Meter Values (Matching Charge Transactions Tab Popover) */}
+                      {/* Meter Values */}
                       <td className="px-4 py-3 whitespace-nowrap">
                         <MeterValuesPopoverCell row={row} />
                       </td>
 
                       {/* Charge Transaction */}
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="text-sky-600 font-bold font-mono text-xs hover:underline cursor-pointer">
+                        <span className="text-sky-700 font-bold font-mono text-xs hover:text-sky-900 transition-colors cursor-pointer">
                           {getTxId(row.id)}
                         </span>
                       </td>
 
                       {/* Bill */}
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="text-sky-600 font-bold font-mono text-xs hover:underline cursor-pointer">
+                        <span className="text-sky-700 font-bold font-mono text-xs hover:text-sky-900 transition-colors cursor-pointer">
                           {getBillCode(row.id)}
                         </span>
                       </td>
