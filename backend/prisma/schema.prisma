@@ -7,83 +7,163 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model ChargePoint {
-  id                String   @id @default(uuid())
-  name              String
-  chargingStation   String
-  manufacturer      String
-  mode              String
-  code              String   @unique
-  accessibility     String
-  stage             String
-  exclusive         String
-  gracePeriod       Int?
-  tariffProfiles    String
-  settlementProfile String
-  type              String
-  chargingMethods   String   // Storing the array as a JSON string
-
-  // Extended columns for EV Dashboard v2
-  cpId              String?
-  thirdPartyCpId    String?  @default("NA")
-  oem               String?  @default("EVRE")
-  zone              String?  @default("-")
-  lastActive        String?
-  totalSessions     Int?     @default(0)
-  energyDelivered   Float?   @default(0.0)
-  revenueGenerated  Float?   @default(0.0)
-  mobilityType      String?  @default("Stationary")
-  qrCodeId          String?
-  firmwareVersion   String?  @default("2.0.2")
-  connectors        String?  // JSON array string
-  status            String?  @default("Available")
-  totalCapacity     String?  @default("-")
-
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-}
-
 model ChargingStation {
-  id               String   @id @default(uuid())
-  name             String   @unique
-  code             String   @unique
-  chargePoints     Int      @default(5)
-  totalCapacity    String?  @default("120 kW")
-  stationType      String?  @default("Public Fast Hub")
-  mobilityType     String?  @default("Stationary")
-  latitude         Float?   @default(19.0760)
-  longitude        Float?   @default(72.8777)
-  totalSessions    Int      @default(0)
-  revenueGenerated Float    @default(0.0)
-  energyDelivered  Float    @default(0.0)
+  id               String        @id @default(uuid())
+  name             String        @unique
+  code             String        @unique
+  chargePointsCount Int          @default(5)
+  totalCapacity    String?       @default("120 kW")
+  stationType      String?       @default("Public Fast Hub")
+  mobilityType     String?       @default("Stationary")
+  latitude         Float?        @default(19.0760)
+  longitude        Float?        @default(72.8777)
+  totalSessions    Int           @default(0)
+  revenueGenerated Float         @default(0.0)
+  energyDelivered  Float         @default(0.0)
 
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  // Relational fields
+  chargePoints     ChargePoint[]
+  liveSessions     LiveSession[]
+
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 }
 
 model Tariff {
-  id            String   @id @default(uuid())
+  id            String        @id @default(uuid())
   name          String
-  code          String   @unique
-  type          String   @default("Default")
-  baseRate      Float    @default(15.0)
-  gstPercentage Float    @default(18.0)
+  code          String        @unique
+  type          String        @default("Default")
+  baseRate      Float         @default(15.0)
+  gstPercentage Float         @default(18.0)
   description   String?
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  // Relational fields
+  chargePoints  ChargePoint[]
+  liveSessions  LiveSession[]
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model ChargePoint {
+  id                String          @id @default(uuid())
+  name              String
+  code              String          @unique
+  manufacturer      String
+  mode              String
+  accessibility     String
+  stage             String          @default("Active")
+  exclusive         String          @default("Shared")
+  gracePeriod       Int?
+  tariffProfiles    String?
+  settlementProfile String?
+  type              String          @default("AC")
+  chargingMethods   String          // Storing JSON array string
+
+  // Extended fields
+  cpId              String?
+  thirdPartyCpId    String?         @default("NA")
+  oem               String?         @default("EVRE")
+  zone              String?         @default("-")
+  lastActive        String?
+  totalSessions     Int?            @default(0)
+  energyDelivered   Float?          @default(0.0)
+  revenueGenerated  Float?          @default(0.0)
+  mobilityType      String?         @default("Stationary")
+  qrCodeId          String?
+  firmwareVersion   String?         @default("2.0.2")
+  status            String?         @default("Available")
+  totalCapacity     String?         @default("-")
+
+  // Foreign Key Relationships
+  chargingStationId String
+  chargingStation   ChargingStation @relation(fields: [chargingStationId], references: [id], onDelete: Cascade)
+
+  tariffId          String?
+  tariff            Tariff?         @relation(fields: [tariffId], references: [id])
+
+  connectors        Connector[]
+  liveSessions      LiveSession[]
+
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+model Connector {
+  id            String      @id @default(uuid())
+  connectorId   Int         @default(1)
+  type          String      @default("Type2")
+  maxPower      Float?      @default(22.0)
+  status        String      @default("Available")
+
+  // Foreign Key to ChargePoint
+  chargePointId String
+  chargePoint   ChargePoint @relation(fields: [chargePointId], references: [id], onDelete: Cascade)
+
+  liveSessions  LiveSession[]
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model User {
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  initials     String
+  color        String        @default("bg-indigo-100 text-indigo-700")
+
+  liveSessions LiveSession[]
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model LiveSession {
-  id            Int      @id @default(autoincrement())
-  userInitials  String
-  userColor     String
-  userName      String
-  station       String
-  chargePoint   String
-  connector     String
-  status        String
+  id                String          @id @default(uuid())
+  status            String          @default("Ongoing") // Ongoing, Completed, Failed, Stopped
+  initialSoc        Float?          @default(10)
+  currentSoc        Float?          @default(55)
+  kwhDelivered      Float           @default(0.0)
+  totalCost         Float           @default(0.0)
+  chargeTxCode      String?
+  billCode          String?
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  // Foreign Keys
+  userId            String
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  chargingStationId String
+  chargingStation   ChargingStation @relation(fields: [chargingStationId], references: [id], onDelete: Cascade)
+
+  chargePointId     String
+  chargePoint       ChargePoint     @relation(fields: [chargePointId], references: [id], onDelete: Cascade)
+
+  connectorId       String?
+  connector         Connector?      @relation(fields: [connectorId], references: [id])
+
+  tariffId          String?
+  tariff            Tariff?         @relation(fields: [tariffId], references: [id])
+
+  logs              SessionLog[]
+
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 }
+
+model SessionLog {
+  id            String      @id @default(uuid())
+  command       String
+  direction     String      @default("INBOUND") // INBOUND or OUTBOUND
+  messageId     String?
+  logType       String      @default("OCPP 1.6J")
+  summary       String
+  body          String      // JSON string representation
+
+  sessionId     String
+  session       LiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime    @default(now())
+}
+
