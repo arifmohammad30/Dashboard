@@ -1,4 +1,4 @@
-import prisma from '../../prisma.js';
+import prisma from '../prisma.js';
 import { createSessionTemplate } from './mockSessionTemplate.js';
 import { io as ioClient } from 'socket.io-client';
 
@@ -59,13 +59,10 @@ async function simulateChargePoint(cp, driverPool, cpIndex) {
     gstPercentage: 18.0
   };
 
-  // Run 3 sequential sessions per ChargePoint
   for (let sessionNum = 1; sessionNum <= 3; sessionNum++) {
-    // Select dynamic driver from driver pool
     const driverIndex = (cpIndex * 3 + (sessionNum - 1)) % driverPool.length;
     const driver = driverPool[driverIndex];
 
-    // Select the interconnected connector belonging to this ChargePoint
     const connectorIndex = (sessionNum - 1) % cp.connectors.length;
     const connector = cp.connectors[connectorIndex];
 
@@ -84,7 +81,6 @@ async function simulateChargePoint(cp, driverPool, cpIndex) {
     let currentSoc = 20.0;
     let energyAccumulated = 0.0;
 
-    // Simulate selected sessions failing for testing.
     const shouldFail =
       (cpIndex === 1 && sessionNum === 2) ||
       (cpIndex === 3 && sessionNum === 1) ||
@@ -247,7 +243,6 @@ async function simulateChargePoint(cp, driverPool, cpIndex) {
     socket.emit('session:stopped', sessionObj);
     socket.emit('session:updated', sessionObj);
 
-    // Small gap before the next session on this ChargePoint.
     await sleep(1500);
   }
 }
@@ -272,7 +267,6 @@ async function runTelemetryGenerator() {
       return;
     }
 
-    // Query real users from database
     const dbUsers = await prisma.user.findMany({ take: 10 });
 
     const fallbackDrivers = [
@@ -286,11 +280,11 @@ async function runTelemetryGenerator() {
 
     const driverPool = dbUsers.length > 0
       ? dbUsers.map((u, idx) => ({
-          id: u.id,
-          name: u.name || `EV Driver ${idx + 1}`,
-          initials: u.name ? u.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : `D${idx + 1}`,
-          color: fallbackDrivers[idx % fallbackDrivers.length].color
-        }))
+        id: u.id,
+        name: u.name || `EV Driver ${idx + 1}`,
+        initials: u.name ? u.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : `D${idx + 1}`,
+        color: fallbackDrivers[idx % fallbackDrivers.length].color
+      }))
       : fallbackDrivers;
 
     console.log(

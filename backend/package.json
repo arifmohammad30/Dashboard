@@ -11,6 +11,7 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "mock:charger": "node ocpp-simulator/simulator.js",
+    "mock:telemetry": "node mocks/mockTelemetryGenerator.js",
     "db:check": "node check-db.js",
     "studio": "node run-studio.js"
   },

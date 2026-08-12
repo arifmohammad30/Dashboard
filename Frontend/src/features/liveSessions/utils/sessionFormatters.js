@@ -1,11 +1,21 @@
-export const getConnectorLabel = (connector) => {
-  if (typeof connector === 'number') return `Type2 (${connector})`;
-  if (typeof connector === 'object' && connector !== null) {
-    const type = connector.type || connector.name || 'Type2';
-    const cId = connector.connectorId || 1;
+export const getConnectorLabel = (connector, session = {}) => {
+  if (connector === undefined || connector === null || connector === '') {
+    const type = session.connectorType || 'Type2';
+    const cId = session.connectorId || 1;
     return `${type} (${cId})`;
   }
-  if (typeof connector === 'string') return connector;
+  if (typeof connector === 'number') return `Type2 (${connector})`;
+  if (typeof connector === 'object' && connector !== null) {
+    const type = connector.type || connector.name || connector.connectorType || session.connectorType || 'Type2';
+    const cId = connector.connectorId || connector.id || session.connectorId || 1;
+    return `${type} (${cId})`;
+  }
+  if (typeof connector === 'string') {
+    const str = connector.trim();
+    if (!str || str === '-') return 'Type2 (1)';
+    if (str.includes('(')) return str;
+    return `${str} (1)`;
+  }
   return 'Type2 (1)';
 };
 

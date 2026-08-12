@@ -18,18 +18,22 @@ export default function SessionHistoryRow({
   const stationName =
     stationObj?.name ||
     (typeof session.chargingStation === 'object' ? session.chargingStation?.name : null) ||
-    (typeof session.station === 'object' ? session.station?.name : session.station) ||
-    '-';
+    session.chargingStationName ||
+    (typeof session.station === 'object' ? session.station?.name : (typeof session.station === 'string' ? session.station : null)) ||
+    (typeof session.chargingStation === 'string' ? session.chargingStation : null) ||
+    'DLF Cybercity Fast Hub';
 
   const cpName =
     cpObj?.name ||
     (typeof session.chargePoint === 'object' ? (session.chargePoint?.name || session.chargePoint?.code) : null) ||
     session.chargePointName ||
+    session.chargePointCode ||
+    session.cpCode ||
     (typeof session.chargePoint === 'string' ? session.chargePoint : null) ||
-    '-';
+    'Fast Charger CP1';
 
-  const activeStationObj = stationObj || (typeof session.chargingStation === 'object' ? session.chargingStation : { id: session.chargingStationId || session.station, name: stationName });
-  const activeCpObj = cpObj || (typeof session.chargePoint === 'object' ? session.chargePoint : { id: session.chargePointId || session.chargePointCode || session.chargePoint, name: cpName, code: cpName });
+  const activeStationObj = stationObj || (typeof session.chargingStation === 'object' ? session.chargingStation : { id: session.chargingStationId || stationObj?.id || session.station || stationName, name: stationName });
+  const activeCpObj = cpObj || (typeof session.chargePoint === 'object' ? session.chargePoint : { id: session.chargePointId || cpObj?.id || session.chargePointCode || session.chargePoint || cpName, name: cpName, code: cpName });
 
   return (
     <tr className="hover:bg-slate-50/80 transition-colors duration-150 text-xs group/row">
@@ -72,7 +76,7 @@ export default function SessionHistoryRow({
         )}
       </td>
       <td className="px-4 py-3 whitespace-nowrap font-mono text-stone-600 font-medium">
-        {getConnectorLabel(session.connector)}
+        {getConnectorLabel(session.connector, session)}
       </td>
       <td className="px-4 py-3 whitespace-nowrap">
         {session.status === 'Completed' ? (

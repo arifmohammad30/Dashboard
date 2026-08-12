@@ -51,14 +51,161 @@ export function calculateSessionTelemetry(s) {
     userName: s.user?.name || 'Driver',
     userInitials: s.user?.initials || 'DR',
     userColor: s.user?.color || 'bg-indigo-100 text-indigo-700',
-    station: s.chargingStation?.name || 'Station',
-    chargePoint: s.chargePoint?.name || 'Charge Point',
-    cpCode: s.chargePoint?.code || '',
+    station: s.chargingStation?.name || (typeof s.chargingStation === 'string' ? s.chargingStation : (typeof s.station === 'string' ? s.station : 'Station')),
+    chargingStation: s.chargingStation,
+    chargingStationId: s.chargingStationId || s.chargingStation?.id,
+    chargingStationName: s.chargingStation?.name || (typeof s.chargingStation === 'string' ? s.chargingStation : (typeof s.station === 'string' ? s.station : 'Station')),
+    chargePoint: s.chargePoint,
+    chargePointId: s.chargePointId || s.chargePoint?.id,
+    chargePointName: s.chargePoint?.name || (typeof s.chargePoint === 'string' ? s.chargePoint : 'Charge Point'),
+    chargePointCode: s.chargePoint?.code || s.cpCode || s.chargePointCode || '',
+    cpCode: s.chargePoint?.code || s.cpCode || s.chargePointCode || '',
     connector: s.connector ? `${s.connector.type} (${s.connector.connectorId})` : 'Type2 (1)',
     tariffName: s.tariff?.name || 'Standard Rate',
     createdAt: s.createdAt,
     updatedAt: s.updatedAt
   };
+}
+
+export async function saveSessionToDb(sessionData) {
+  if (!sessionData) return null;
+
+  const sessionId = sessionData.id || sessionData.sessionId || `sess_${Date.now()}`;
+  const status = sessionData.status || 'Completed';
+  const initialSoc = parseFloat(sessionData.soc?.initial ?? sessionData.initialSoc ?? 20.0);
+  const currentSoc = parseFloat(sessionData.soc?.current ?? sessionData.currentSoc ?? 50.0);
+  const kwhDelivered = parseFloat(sessionData.energyDeliveredKwh ?? sessionData.kwhDelivered ?? 0.0);
+  const totalCost = parseFloat(sessionData.cost ?? sessionData.totalCost ?? 0.0);
+
+  // 1. Resolve User FK
+  let userId = sessionData.driver?.id || sessionData.userId;
+  if (userId) {
+    const userExists = await prisma.user.findUnique({ where: { id: userId } });
+    if (!userExists) userId = null;
+  }
+  if (!userId) {
+    const firstUser = await prisma.user.findFirst();
+    if (firstUser) {
+      userId = firstUser.id;
+    } else {
+      const newUser = await prisma.user.create({
+        data: {
+          name: sessionData.driver?.name || sessionData.userName || 'EV Driver',
+          email: `driver_${Date.now()}@evnet.com`,
+          initials: sessionData.driver?.initials || sessionData.userInitials || 'ED',
+          color: sessionData.driver?.color || sessionData.userColor || 'bg-indigo-100 text-indigo-700'
+        }
+      });
+      userId = newUser.id;
+    }
+  }
+
+  // 2. Resolve ChargePoint FK
+  let chargePointId = sessionData.chargePoint?.id || sessionData.chargePointId;
+  if (chargePointId) {
+    const cpExists = await prisma.chargePoint.findUnique({ where: { id: chargePointId } });
+    if (!cpExists) chargePointId = null;
+  }
+  if (!chargePointId && (sessionData.chargePointCode || sessionData.chargePoint?.code)) {
+    const cpCodeStr = sessionData.chargePointCode || sessionData.chargePoint?.code;
+    const cpByCode = await prisma.chargePoint.findUnique({ where: { code: cpCodeStr } });
+    if (cpByCode) chargePointId = cpByCode.id;
+  }
+  if (!chargePointId) {
+    const firstCp = await prisma.chargePoint.findFirst();
+    if (firstCp) chargePointId = firstCp.id;
+  }
+
+  // 3. Resolve ChargingStation FK
+  let chargingStationId = sessionData.chargingStation?.id || sessionData.chargingStationId;
+  if (chargingStationId) {
+    const stExists = await prisma.chargingStation.findUnique({ where: { id: chargingStationId } });
+    if (!stExists) chargingStationId = null;
+  }
+  if (!chargingStationId && sessionData.station) {
+    const stByName = await prisma.chargingStation.findFirst({ where: { name: sessionData.station } });
+    if (stByName) chargingStationId = stByName.id;
+  }
+  if (!chargingStationId && chargePointId) {
+    const cp = await prisma.chargePoint.findUnique({ where: { id: chargePointId } });
+    if (cp) chargingStationId = cp.chargingStationId;
+  }
+
+  // 4. Resolve Connector FK
+  let connectorId = sessionData.connector?.id || sessionData.connectorId;
+  if (connectorId) {
+    const connExists = await prisma.connector.findUnique({ where: { id: connectorId } });
+    if (!connExists) connectorId = null;
+  }
+
+  // 5. Upsert LiveSession into SQLite database via Prisma
+  const savedSession = await prisma.liveSession.upsert({
+    where: { id: sessionId },
+    update: {
+      status,
+      initialSoc,
+      currentSoc,
+      kwhDelivered,
+      totalCost,
+      updatedAt: new Date()
+    },
+    create: {
+      id: sessionId,
+      status,
+      initialSoc,
+      currentSoc,
+      kwhDelivered,
+      totalCost,
+      chargeTxCode: sessionData.chargeTxCode || sessionId,
+      billCode: sessionData.billCode || sessionId,
+      userId,
+      chargingStationId,
+      chargePointId,
+      connectorId: connectorId || null,
+      tariffId: sessionData.tariff?.id || null
+    },
+    include: {
+      user: true,
+      chargingStation: true,
+      chargePoint: true,
+      connector: true,
+      tariff: true
+    }
+  });
+
+  // 6. Update cumulative statistics on ChargePoint and ChargingStation models in DB
+  if (chargePointId) {
+    try {
+      await prisma.chargePoint.update({
+        where: { id: chargePointId },
+        data: {
+          totalSessions: { increment: 1 },
+          energyDelivered: { increment: kwhDelivered },
+          revenueGenerated: { increment: totalCost },
+          lastActive: 'Just now'
+        }
+      });
+    } catch (e) {
+      console.warn('Failed to update ChargePoint stats:', e.message);
+    }
+  }
+
+  if (chargingStationId) {
+    try {
+      await prisma.chargingStation.update({
+        where: { id: chargingStationId },
+        data: {
+          totalSessions: { increment: 1 },
+          energyDelivered: { increment: kwhDelivered },
+          revenueGenerated: { increment: totalCost }
+        }
+      });
+    } catch (e) {
+      console.warn('Failed to update ChargingStation stats:', e.message);
+    }
+  }
+
+  return calculateSessionTelemetry(savedSession);
 }
 
 export async function getLiveSessionsFromDb(query = {}) {

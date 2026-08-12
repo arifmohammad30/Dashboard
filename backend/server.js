@@ -7,7 +7,7 @@ import chargePointRouter from './modules/chargepoints/chargePoint.routes.js';
 import chargeStationRouter from './modules/chargestations/chargeStations.routes.js';
 import tariffRouter from './modules/tariffs/tariffs.routes.js';
 import sessionRouter from './modules/livesessions/session.routes.js';
-import { processOcppMessage } from './modules/csms/csms.service.js';
+import { saveSessionToDb } from './modules/livesessions/session.service.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -22,30 +22,6 @@ const io = new Server(server, {
 io.on('connection', (socket) => {
   console.log(`[Socket.io] Client connected: ${socket.id}`);
 
-  socket.on('ocpp:message', async (data, callback) => {
-    try {
-      const { cpCode, action, payload } = data || {};
-      console.log(`[Socket.io OCPP IN] [${cpCode}] Action: ${action}`);
-
-      const responsePayload = await processOcppMessage({
-        cpCode,
-        action,
-        payload,
-        io
-      });
-
-      if (typeof callback === 'function') {
-        callback({ status: 'OK', data: responsePayload });
-      }
-    } catch (err) {
-      console.error(`[Socket.io OCPP ERROR] Message processing failed:`, err.message);
-      if (typeof callback === 'function') {
-        callback({ status: 'ERROR', error: err.message });
-      }
-    }
-  });
-
-  // Live Session Telemetry Event Relays
   socket.on('session:created', (data) => {
     console.log(`[Socket.io Server] Relaying session:created -> ${data?.sessionId || data?.id}`);
     io.emit('session:created', data);
@@ -56,10 +32,19 @@ io.on('connection', (socket) => {
     io.emit('session:updated', data);
   });
 
-  socket.on('session:stopped', (data) => {
-    console.log(`[Socket.io Server] Relaying session:stopped -> ${data?.sessionId || data?.id}`);
-    io.emit('session:stopped', data);
-    io.emit('session:updated', data);
+  socket.on('session:stopped', async (data) => {
+    console.log(` Saving stopped session to Database: ${data?.sessionId || data?.id} (Status: ${data?.status})`);
+
+    let dbSession = data;
+    try {
+      dbSession = await saveSessionToDb(data);
+      console.log(` Successfully saved session ${dbSession?.id} to SQLite DB!`);
+    } catch (err) {
+      console.error(` Failed to save session to SQLite DB:`, err.message);
+    }
+
+    io.emit('session:stopped', dbSession || data);
+    io.emit('session:updated', dbSession || data);
   });
 
   socket.on('disconnect', () => {
