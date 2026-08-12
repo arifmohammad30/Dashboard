@@ -1,6 +1,5 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import Pagination from '../../../components/ui/Pagination';
 import { useLiveSessions } from '../hooks/useLiveSessions';
 import { useLookupMaps } from '../hooks/useLookupMaps';
 import LiveSessionsToolbar from '../components/LiveSessionsToolbar';
@@ -61,17 +60,12 @@ export default function LiveSessionsList() {
         onNavigateStation={handleNavigateStation}
         onNavigateChargePoint={handleNavigateChargePoint}
         onNavigateLogs={handleNavigateLogs}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        itemsPerPage={10}
+        onPageChange={setCurrentPage}
       />
-
-      {!loading && totalItems > 0 && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalItems={totalItems}
-          itemsPerPage={10}
-          onPageChange={setCurrentPage}
-        />
-      )}
     </div>
   );
 }

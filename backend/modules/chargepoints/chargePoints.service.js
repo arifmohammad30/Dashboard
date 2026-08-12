@@ -113,7 +113,7 @@ export async function getChargePoints({ page = 1, limit = 10, searchTerm = '', f
   };
 
   if (filters.location && filters.location.length > 0) {
-    whereClause.AND.push({ chargingStation: { in: filters.location } });
+    whereClause.AND.push({ chargingStation: { name: { in: filters.location } } });
   }
   if (filters.manufacturer && filters.manufacturer.length > 0) {
     whereClause.AND.push({ manufacturer: { in: filters.manufacturer } });

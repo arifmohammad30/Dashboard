@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
-import Pagination from '../../../components/ui/Pagination';
 import { useToast } from '../../../context/ToastContext';
 import { useSessionHistory } from '../hooks/useSessionHistory';
 import { useLookupMaps } from '../hooks/useLookupMaps';
@@ -85,17 +84,12 @@ export default function SessionHistoryList() {
         onNavigateStation={handleNavigateStation}
         onNavigateChargePoint={handleNavigateChargePoint}
         onNavigateLogs={handleNavigateLogs}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        itemsPerPage={10}
+        onPageChange={setCurrentPage}
       />
-
-      {!loading && totalItems > 0 && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalItems={totalItems}
-          itemsPerPage={10}
-          onPageChange={setCurrentPage}
-        />
-      )}
     </div>
   );
 }

@@ -10,6 +10,20 @@ export async function getTariffs(req, res) {
   }
 }
 
+export async function getTariffById(req, res) {
+  try {
+    const { id } = req.params;
+    const tariff = await tariffService.getTariffById(id);
+    if (!tariff) {
+      return res.status(404).json({ error: "Tariff not found" });
+    }
+    res.json(tariff);
+  } catch (error) {
+    console.error("Error fetching tariff by ID:", error);
+    res.status(500).json({ error: "Failed to fetch tariff" });
+  }
+}
+
 export async function createTariff(req, res) {
   try {
     const newTariff = await tariffService.createTariff(req.body);

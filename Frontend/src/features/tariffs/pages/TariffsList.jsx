@@ -41,7 +41,7 @@ export default function TariffsList() {
   const navigate = useNavigate();
   const toast = useToast();
   const [searchParams] = useSearchParams();
-  const initialSearch = searchParams.get('search') || '';
+  const initialSearch = searchParams.get('id') || searchParams.get('search') || '';
 
   const [tariffs, setTariffs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -121,6 +121,7 @@ export default function TariffsList() {
     });
 
     return filterTableData(categoryFiltered, searchTerm, [
+      'id',
       'name',
       'code',
       'type',

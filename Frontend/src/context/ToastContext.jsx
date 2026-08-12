@@ -106,7 +106,7 @@ function ToastItem({ toast, onRemove }) {
         </div>
       )}
 
-      {/* Progress timer bar */}
+      {/* timer bar  */}
       {duration > 0 && (
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-stone-100/80 overflow-hidden">
           <div
@@ -131,7 +131,7 @@ export const ToastProvider = ({ children }) => {
     const statusCode = code || (type === 'success' ? 200 : type === 'error' ? 500 : type === 'warning' ? 400 : 200);
     const newToast = { id, type, title, message, code: statusCode, duration, action };
 
-    // Production telemetry / console response logging for developers
+
     if (typeof console !== 'undefined' && console.groupCollapsed) {
       const colorMap = {
         success: '#10b981',

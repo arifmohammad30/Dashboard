@@ -25,6 +25,46 @@ export async function getTariffs() {
   }));
 }
 
+export async function getTariffById(id) {
+  let tariff = await prisma.tariff.findUnique({
+    where: { id },
+    include: { chargePoints: true }
+  });
+
+  if (!tariff) {
+    tariff = await prisma.tariff.findFirst({
+      where: {
+        OR: [
+          { code: id },
+          { name: id }
+        ]
+      },
+      include: { chargePoints: true }
+    });
+  }
+
+  if (!tariff) return null;
+
+  return {
+    id: tariff.id,
+    name: tariff.name,
+    code: tariff.code,
+    type: tariff.type || 'Default',
+    costingType: 'Charging Only',
+    applicableTo: 'All Fleets',
+    chargingFee: `₹${tariff.baseRate.toFixed(2)} / kWh`,
+    baseRate: tariff.baseRate,
+    gstPercentage: `${tariff.gstPercentage}%`,
+    rawGstPercentage: tariff.gstPercentage,
+    description: tariff.description || '',
+    parkingFee: 'NA',
+    idleFee: '₹0 / min',
+    createdOn: tariff.createdAt ? new Date(tariff.createdAt).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-',
+    chargePointsCount: tariff.chargePoints?.length || 0,
+    chargePoints: tariff.chargePoints || []
+  };
+}
+
 export async function createTariff(payload) {
   return await prisma.tariff.create({
     data: {
@@ -93,4 +133,3 @@ export async function streamTariffsCsv(res, query = {}) {
 
   res.end();
 }
-

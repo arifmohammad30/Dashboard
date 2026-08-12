@@ -9,13 +9,18 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "mock:charger": "node ocpp-simulator/simulator.js",
+    "db:check": "node check-db.js",
+    "studio": "node run-studio.js"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "cors": "^2.8.6",
     "express": "^5.2.1",
-    "socket.io": "^4.8.3"
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.14",

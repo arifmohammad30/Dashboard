@@ -1,8 +1,6 @@
 export const API_BASE_URL = 'http://localhost:5000/api';
 
-/**
- * Resolves full backend API URL given a relative or full endpoint path
- */
+
 export function getApiUrl(endpoint) {
   let cleanEndpoint = endpoint;
   if (!cleanEndpoint.startsWith('http')) {
@@ -18,10 +16,7 @@ export function getApiUrl(endpoint) {
   return endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${cleanEndpoint}`;
 }
 
-/**
- * A lightweight, pragmatic wrapper around native fetch to handle 
- * common boilerplate (JSON parsing, real error extraction, base URL).
- */
+
 export async function apiClient(endpoint, options = {}) {
   const url = getApiUrl(endpoint);
 
@@ -59,7 +54,6 @@ export async function apiClient(endpoint, options = {}) {
     throw error;
   }
 
-  // Handle empty responses (e.g. 204 No Content)
   if (response.status === 204) {
     return null;
   }

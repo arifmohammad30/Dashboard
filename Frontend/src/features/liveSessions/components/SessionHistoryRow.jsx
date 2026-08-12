@@ -2,6 +2,7 @@ import React from 'react';
 import { getConnectorLabel, getTxId, getBillCode } from '../utils/sessionFormatters';
 import SocPopoverCell from '../../../components/ui/SocPopoverCell';
 import MeterValuesPopoverCell from '../../../components/ui/MeterValuesPopoverCell';
+import TelemetryActionButton from './TelemetryActionButton';
 
 export default function SessionHistoryRow({
   session,
@@ -11,11 +12,30 @@ export default function SessionHistoryRow({
   onNavigateChargePoint,
   onNavigateLogs
 }) {
-  const stationObj = resolveStation(session.station || session.chargingStationId);
-  const cpObj = resolveChargePoint(session.chargePoint || session.chargePointId);
+  const stationObj = resolveStation(session.chargingStationId || session.chargingStation || session.station);
+  const cpObj = resolveChargePoint(session.chargePointId || session.chargePoint || session.chargePointCode);
+
+  const stationName =
+    stationObj?.name ||
+    (typeof session.chargingStation === 'object' ? session.chargingStation?.name : null) ||
+    (typeof session.station === 'object' ? session.station?.name : session.station) ||
+    '-';
+
+  const cpName =
+    cpObj?.name ||
+    (typeof session.chargePoint === 'object' ? (session.chargePoint?.name || session.chargePoint?.code) : null) ||
+    session.chargePointName ||
+    (typeof session.chargePoint === 'string' ? session.chargePoint : null) ||
+    '-';
+
+  const activeStationObj = stationObj || (typeof session.chargingStation === 'object' ? session.chargingStation : { id: session.chargingStationId || session.station, name: stationName });
+  const activeCpObj = cpObj || (typeof session.chargePoint === 'object' ? session.chargePoint : { id: session.chargePointId || session.chargePointCode || session.chargePoint, name: cpName, code: cpName });
 
   return (
-    <tr className="hover:bg-slate-50/80 transition-colors duration-150 text-xs">
+    <tr className="hover:bg-slate-50/80 transition-colors duration-150 text-xs group/row">
+      <td className="px-4 py-3 whitespace-nowrap">
+        <TelemetryActionButton session={session} onNavigateLogs={onNavigateLogs} />
+      </td>
       <td className="px-4 py-3 font-mono font-bold text-sky-600 whitespace-nowrap">
         {getTxId(session.id)}
       </td>
@@ -28,27 +48,27 @@ export default function SessionHistoryRow({
         </div>
       </td>
       <td className="px-4 py-3 whitespace-nowrap">
-        {stationObj ? (
+        {activeStationObj ? (
           <button
-            onClick={() => onNavigateStation(stationObj)}
-            className="font-bold text-sky-600 hover:text-sky-800 hover:underline cursor-pointer transition-colors text-left"
+            onClick={() => onNavigateStation(activeStationObj)}
+            className="text-[13px] font-semibold text-slate-800 hover:text-sky-600 cursor-pointer transition-colors text-left"
           >
-            {session.station || stationObj.name}
+            {stationName}
           </button>
         ) : (
-          <span className="text-stone-700 font-medium">{session.station || '-'}</span>
+          <span className="text-[13px] text-slate-800 font-semibold">{stationName}</span>
         )}
       </td>
       <td className="px-4 py-3 whitespace-nowrap">
-        {cpObj ? (
+        {activeCpObj ? (
           <button
-            onClick={() => onNavigateChargePoint(cpObj)}
-            className="font-bold text-sky-600 hover:text-sky-800 hover:underline cursor-pointer transition-colors text-left"
+            onClick={() => onNavigateChargePoint(activeCpObj)}
+            className="text-[13px] font-semibold text-slate-800 hover:text-sky-600 cursor-pointer transition-colors text-left"
           >
-            {session.chargePoint || cpObj.name}
+            {cpName}
           </button>
         ) : (
-          <span className="text-stone-700 font-medium">{session.chargePoint || '-'}</span>
+          <span className="text-[13px] text-slate-800 font-semibold">{cpName}</span>
         )}
       </td>
       <td className="px-4 py-3 whitespace-nowrap font-mono text-stone-600 font-medium">
@@ -68,7 +88,7 @@ export default function SessionHistoryRow({
         )}
       </td>
       <td className="px-4 py-3 whitespace-nowrap">
-        <SocPopoverCell initialSoc={session.initialSoc || '20%'} currentSoc={session.currentSoc || '85%'} />
+        <SocPopoverCell initialSoc={session.soc?.initial ?? session.initialSoc} currentSoc={session.soc?.current ?? session.currentSoc} />
       </td>
       <td className="px-4 py-3 whitespace-nowrap">
         <MeterValuesPopoverCell row={session} />
@@ -84,14 +104,6 @@ export default function SessionHistoryRow({
       </td>
       <td className="px-4 py-3 text-stone-500 font-medium whitespace-nowrap">
         {session.createdAt ? new Date(session.createdAt).toLocaleString() : 'Recent'}
-      </td>
-      <td className="px-4 py-3 text-right whitespace-nowrap">
-        <button
-          onClick={() => onNavigateLogs(session)}
-          className="px-3 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-lg text-[11px] transition-colors cursor-pointer"
-        >
-          View Telemetry
-        </button>
       </td>
     </tr>
   );

@@ -14,6 +14,7 @@ import {
   Clock
 } from 'lucide-react';
 import LiveSessionsRow from './LiveSessionsRow';
+import Pagination from '../../../components/ui/Pagination';
 
 export default function LiveSessionsTable({
   sessions,
@@ -22,7 +23,12 @@ export default function LiveSessionsTable({
   resolveChargePoint,
   onNavigateStation,
   onNavigateChargePoint,
-  onNavigateLogs
+  onNavigateLogs,
+  currentPage,
+  totalPages,
+  totalItems,
+  itemsPerPage = 10,
+  onPageChange
 }) {
   if (loading) {
     return (
@@ -33,11 +39,14 @@ export default function LiveSessionsTable({
   }
 
   return (
-    <div className="bg-white border border-stone-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col min-h-[450px]">
+    <div className="bg-white border border-stone-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col min-h-[180px]">
       <div className="overflow-x-auto flex-1 custom-scrollbar">
         <table className="w-full text-left text-xs border-collapse min-w-[1500px]">
           <thead className="bg-[#F8FAFC] border-b border-stone-200">
             <tr>
+              <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                Actions
+              </th>
               <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                 <div className="flex items-center gap-1.5"><Hash className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Txn Id</div>
               </th>
@@ -74,9 +83,6 @@ export default function LiveSessionsTable({
               <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                 <div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Duration</div>
               </th>
-              <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider text-right whitespace-nowrap">
-                Actions
-              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-stone-200/70 bg-white">
@@ -102,6 +108,18 @@ export default function LiveSessionsTable({
           </tbody>
         </table>
       </div>
+
+      {!loading && totalItems > 0 && onPageChange && (
+        <div className="border-t border-stone-200/80 bg-[#F8FAFC]/50 py-1">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={onPageChange}
+          />
+        </div>
+      )}
     </div>
   );
 }

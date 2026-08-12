@@ -1,7 +1,8 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useDebounce } from '../../../hooks/useDebounce';
+import { useSocketEvents } from '../../../hooks/useSocketEvents';
 import { getLiveSessions } from '../api/sessionService';
-import { mockSessionHistory } from '../data/mockSessionHistory';
+import { getGlobalCompletedSessions, subscribeGlobalCompletedSessions } from '../../../lib/socketClient';
 
 export function useSessionHistory() {
   const [activeTab, setActiveTab] = useState('All');
@@ -11,18 +12,52 @@ export function useSessionHistory() {
   const [allSessions, setAllSessions] = useState([]);
   const itemsPerPage = 10;
 
+  const matchSession = (s, target) => {
+    const targetId = target?.sessionId || target?.id;
+    return (s.sessionId && s.sessionId === targetId) || (s.id && s.id === targetId);
+  };
+
+  const mergeSessions = (dbList, completedList) => {
+    const combined = [...completedList];
+    (dbList || []).forEach(item => {
+      if (item.status !== 'Ongoing' && !combined.some(c => matchSession(c, item))) {
+        combined.push(item);
+      }
+    });
+    return combined;
+  };
+
   useEffect(() => {
     setLoading(true);
     getLiveSessions()
       .then(list => {
-        const combined = [...list.filter(s => s.status !== 'Ongoing'), ...mockSessionHistory];
-        setAllSessions(combined);
+        const historyOnly = (list || []).filter(s => s.status !== 'Ongoing');
+        const liveCompleted = getGlobalCompletedSessions();
+        setAllSessions(mergeSessions(historyOnly, liveCompleted));
       })
       .catch(() => {
-        setAllSessions(mockSessionHistory);
+        setAllSessions(getGlobalCompletedSessions());
       })
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    const unsubscribe = subscribeGlobalCompletedSessions((liveCompleted) => {
+      setAllSessions(prev => mergeSessions(prev, liveCompleted));
+    });
+    return unsubscribe;
+  }, []);
+
+  useSocketEvents({
+    "session:stopped": (stoppedSession) => {
+      setAllSessions(prev => [stoppedSession, ...prev.filter(s => !matchSession(s, stoppedSession))]);
+    },
+    "session:updated": (updatedSession) => {
+      if (updatedSession.status && updatedSession.status !== 'Ongoing') {
+        setAllSessions(prev => [updatedSession, ...prev.filter(s => !matchSession(s, updatedSession))]);
+      }
+    }
+  });
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
@@ -34,8 +69,9 @@ export function useSessionHistory() {
 
       if (!debouncedSearchTerm) return true;
       const term = debouncedSearchTerm.toLowerCase();
+      const sId = session.sessionId || session.id || '';
       return (
-        session.id?.toString().toLowerCase().includes(term) ||
+        sId.toString().toLowerCase().includes(term) ||
         session.userName?.toLowerCase().includes(term) ||
         session.station?.toLowerCase().includes(term) ||
         session.chargePoint?.toLowerCase().includes(term)
@@ -51,16 +87,6 @@ export function useSessionHistory() {
     return filteredSessions.slice(start, start + itemsPerPage);
   }, [filteredSessions, currentPage, itemsPerPage]);
 
-  const handleSearch = useCallback((e) => {
-    setSearchTerm(e.target.value);
-    setCurrentPage(1);
-  }, []);
-
-  const handleTabChange = useCallback((tab) => {
-    setActiveTab(tab);
-    setCurrentPage(1);
-  }, []);
-
   return {
     activeTab,
     searchTerm,
@@ -70,8 +96,14 @@ export function useSessionHistory() {
     totalPages,
     filteredSessions,
     paginatedSessions,
-    handleSearch,
-    handleTabChange,
+    handleSearch: (e) => {
+      setSearchTerm(e.target.value);
+      setCurrentPage(1);
+    },
+    handleTabChange: (tab) => {
+      setActiveTab(tab);
+      setCurrentPage(1);
+    },
     setCurrentPage
   };
 }

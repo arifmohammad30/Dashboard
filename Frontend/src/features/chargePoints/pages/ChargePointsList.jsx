@@ -534,11 +534,16 @@ export default function ChargePointsList({ stationFilter, hideHeader = false }) 
 
                     <td className="px-4 py-3 text-center whitespace-nowrap" onClick={(e) => {
                       e.stopPropagation();
-                      const tariffName = row.tariffProfiles || 'DLF Park Place DC';
-                      navigate(`/tariffs?search=${encodeURIComponent(tariffName)}`);
+                      const tariffId = row.tariffId || (typeof row.tariff === 'object' ? row.tariff?.id : null);
+                      const tariffName = row.tariff?.name || row.tariffProfiles || 'DLF Park Place DC';
+                      if (tariffId) {
+                        navigate(`/tariffs?id=${encodeURIComponent(tariffId)}`);
+                      } else {
+                        navigate(`/tariffs?search=${encodeURIComponent(tariffName)}`);
+                      }
                     }}>
-                      <span className="text-sky-600 font-extrabold text-[13px] hover:text-sky-700 cursor-pointer">
-                        {row.tariffProfiles || 'DLF Park Place DC'}
+                      <span className="text-slate-600 hover:text-sky-600 font-semibold text-[13px] transition-colors duration-150 cursor-pointer inline-block max-w-[200px] truncate" title="View Tariff Record">
+                        {row.tariff?.name || row.tariffProfiles || 'DLF Park Place DC'}
                       </span>
                     </td>
 

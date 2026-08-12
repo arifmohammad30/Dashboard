@@ -32,24 +32,24 @@ const Pagination = memo(({ currentPage, totalPages, onPageChange, totalItems, it
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-between px-6 py-4 w-full">
+    <div className="flex items-center justify-between px-4 py-2.5 w-full">
       <div className="flex flex-1 justify-between sm:hidden">
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="px-4 py-2 text-sm font-medium text-stone-700 bg-white hover:bg-stone-50 border border-stone-200 shadow-sm rounded-lg disabled:opacity-50 transition-colors duration-200"
+          className="px-3 py-1.5 text-xs font-medium text-stone-700 bg-white hover:bg-stone-50 border border-stone-200 shadow-2xs rounded-lg disabled:opacity-50 transition-colors duration-200"
         >
           Previous
         </button>
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="px-4 py-2 text-sm font-medium text-stone-700 bg-white hover:bg-stone-50 border border-stone-200 shadow-sm rounded-lg ml-3 disabled:opacity-50 transition-colors duration-200"
+          className="px-3 py-1.5 text-xs font-medium text-stone-700 bg-white hover:bg-stone-50 border border-stone-200 shadow-2xs rounded-lg ml-3 disabled:opacity-50 transition-colors duration-200"
         >
           Next
         </button>
       </div>
-      <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between px-2">
+      <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between px-1">
         <div>
           {totalItems !== undefined && (
             <p className="text-xs text-stone-500 font-medium">
@@ -63,19 +63,19 @@ const Pagination = memo(({ currentPage, totalPages, onPageChange, totalItems, it
             <button
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="p-2 text-stone-500 hover:text-stone-900 bg-white hover:bg-stone-100/80 border border-stone-200/90 shadow-2xs rounded-xl disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-stone-500 cursor-pointer disabled:cursor-not-allowed transition-colors duration-150"
+              className="p-1.5 text-stone-500 hover:text-stone-900 bg-white hover:bg-stone-100/80 border border-stone-200/90 shadow-2xs rounded-lg disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-stone-500 cursor-pointer disabled:cursor-not-allowed transition-colors duration-150"
             >
               <span className="sr-only">Previous</span>
               <ChevronLeft className="h-4 w-4" aria-hidden="true" />
             </button>
-            <div className="flex gap-1.5 mx-1">
+            <div className="flex gap-1 mx-1">
               {getPageNumbers().map((page, index) => (
                 page === '...' ? (
                   <span
                     key={`ellipsis-${index}`}
-                    className="relative inline-flex items-center justify-center w-8 h-8 text-xs font-bold text-stone-400"
+                    className="relative inline-flex items-center justify-center w-7 h-7 text-xs font-bold text-stone-400"
                   >
-                    <MoreHorizontal className="h-4 w-4" />
+                    <MoreHorizontal className="h-3.5 w-3.5" />
                   </span>
                 ) : (
                   <button
@@ -83,7 +83,7 @@ const Pagination = memo(({ currentPage, totalPages, onPageChange, totalItems, it
                     type="button"
                     onClick={() => onPageChange(page)}
                     aria-current={currentPage === page ? 'page' : undefined}
-                    className={`relative inline-flex items-center justify-center w-8 h-8 text-xs font-bold transition-all duration-150 outline-none rounded-xl cursor-pointer active:scale-95 ${
+                    className={`relative inline-flex items-center justify-center w-7 h-7 text-xs font-bold transition-all duration-150 outline-none rounded-lg cursor-pointer active:scale-95 ${
                       currentPage === page
                         ? 'bg-stone-900 text-white border border-stone-900 shadow-2xs'
                         : 'text-stone-700 bg-white hover:bg-stone-100/80 hover:text-stone-900 border border-stone-200/90 shadow-2xs'
@@ -97,7 +97,7 @@ const Pagination = memo(({ currentPage, totalPages, onPageChange, totalItems, it
             <button
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="p-2 text-stone-500 hover:text-stone-900 bg-white hover:bg-stone-100/80 border border-stone-200/90 shadow-2xs rounded-xl disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-stone-500 cursor-pointer disabled:cursor-not-allowed transition-colors duration-150"
+              className="p-1.5 text-stone-500 hover:text-stone-900 bg-white hover:bg-stone-100/80 border border-stone-200/90 shadow-2xs rounded-lg disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-stone-500 cursor-pointer disabled:cursor-not-allowed transition-colors duration-150"
             >
               <span className="sr-only">Next</span>
               <ChevronRight className="h-4 w-4" aria-hidden="true" />

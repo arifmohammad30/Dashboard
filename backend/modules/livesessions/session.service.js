@@ -1,6 +1,66 @@
 import prisma from '../../prisma.js';
 import { formatCsvRow } from '../../utils/csvSanitizer.js';
 
+export function calculateSessionTelemetry(s) {
+  const kwh = s.kwhDelivered ?? 0.0;
+  const costVal = s.totalCost ?? 0.0;
+
+  const start = s.createdAt ? new Date(s.createdAt).getTime() : Date.now();
+  const end = s.updatedAt ? new Date(s.updatedAt).getTime() : Date.now();
+  const diffMs = Math.max(0, end - start);
+  const totalSeconds = Math.floor(diffMs / 1000);
+  const hrs = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+  const mins = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+  const secs = String(totalSeconds % 60).padStart(2, '0');
+  const durationStr = `${hrs}:${mins}:${secs}`;
+
+  const basePower = s.chargePoint?.totalCapacity ? parseFloat(s.chargePoint.totalCapacity) : 30.0;
+  const socFactor = (s.currentSoc ?? 50) > 80 ? Math.max(0.2, (100 - (s.currentSoc ?? 50)) / 20) : 1.0;
+  const tickJitter = (Math.sin(diffMs / 1000) * 1.8) + (Math.cos(diffMs / 2500) * 0.9);
+  const powerKw = parseFloat(Math.max(1.5, (basePower * socFactor) + tickJitter).toFixed(2));
+
+  const isDc = s.chargePoint?.type?.toUpperCase().includes('DC') || s.chargingStation?.name?.toLowerCase().includes('dc');
+  const baseVoltage = isDc ? 400.0 : 235.0;
+  const vJitter = Math.sin(diffMs / 1800) * 2.2;
+  const voltageVal = parseFloat((baseVoltage + vJitter).toFixed(1));
+
+  const currentVal = parseFloat(((powerKw * 1000) / (voltageVal * (isDc ? 1.0 : (1.732 * 0.95)))).toFixed(1));
+
+  return {
+    id: s.id,
+    status: s.status,
+    initialSoc: s.initialSoc ?? 10,
+    currentSoc: s.currentSoc ?? 55,
+    kwhDelivered: kwh,
+    energy: `${kwh.toFixed(2)} kWh`,
+    totalCost: costVal,
+    cost: costVal.toFixed(2),
+    powerKw: powerKw,
+    power: `${powerKw.toFixed(2)} kW`,
+    voltage: `${voltageVal.toFixed(1)} V`,
+    current: `${currentVal.toFixed(1)} A`,
+    duration: durationStr,
+    meterValues: {
+      energy: `${kwh.toFixed(2)} kWh`,
+      power: `${powerKw.toFixed(2)} kW`,
+      voltage: `${voltageVal.toFixed(1)} V`,
+      current: `${currentVal.toFixed(1)} A`
+    },
+    chargeTxCode: s.chargeTxCode,
+    billCode: s.billCode,
+    userName: s.user?.name || 'Driver',
+    userInitials: s.user?.initials || 'DR',
+    userColor: s.user?.color || 'bg-indigo-100 text-indigo-700',
+    station: s.chargingStation?.name || 'Station',
+    chargePoint: s.chargePoint?.name || 'Charge Point',
+    cpCode: s.chargePoint?.code || '',
+    connector: s.connector ? `${s.connector.type} (${s.connector.connectorId})` : 'Type2 (1)',
+    tariffName: s.tariff?.name || 'Standard Rate',
+    createdAt: s.createdAt,
+    updatedAt: s.updatedAt
+  };
+}
+
 export async function getLiveSessionsFromDb(query = {}) {
   const { status, search } = query;
   const where = {};
@@ -21,7 +81,7 @@ export async function getLiveSessionsFromDb(query = {}) {
     ];
   }
 
-  return await prisma.liveSession.findMany({
+  const sessions = await prisma.liveSession.findMany({
     where,
     include: {
       user: true,
@@ -32,6 +92,8 @@ export async function getLiveSessionsFromDb(query = {}) {
     },
     orderBy: { createdAt: 'desc' }
   });
+
+  return sessions.map(calculateSessionTelemetry);
 }
 
 export async function streamSessionHistoryCsv(res, query = {}) {
@@ -41,7 +103,7 @@ export async function streamSessionHistoryCsv(res, query = {}) {
   if (status && status !== 'All') {
     where.status = status;
   } else {
-    // Exclude 'Ongoing' if retrieving session history default
+
     where.status = { not: 'Ongoing' };
   }
 
@@ -61,7 +123,6 @@ export async function streamSessionHistoryCsv(res, query = {}) {
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
 
-  // Write CSV Headers
   const csvHeaders = [
     'Session ID',
     'User Name',
@@ -75,7 +136,6 @@ export async function streamSessionHistoryCsv(res, query = {}) {
   ];
   res.write(formatCsvRow(csvHeaders));
 
-  // Batch cursor-based database streaming
   const BATCH_SIZE = 500;
   let cursor = null;
   let hasMore = true;

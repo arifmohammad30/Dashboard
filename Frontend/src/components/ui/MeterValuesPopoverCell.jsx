@@ -17,10 +17,10 @@ export default function MeterValuesPopoverCell({ meterValues, row }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  const energyVal = meterValues?.energy || (row ? `${(0.161 + ((row.id || 1) * 0.124)).toFixed(3)} kWh` : '-');
-  const powerVal = meterValues?.power || (row ? `${(2.50 + ((row.id || 1) * 0.42)).toFixed(2)} kW` : '-');
-  const voltageVal = meterValues?.voltage || (row ? `${(235.00 + ((row.id || 1) % 15)).toFixed(2)} V` : '-');
-  const currentVal = meterValues?.current || (row ? `${(12.50 + ((row.id || 1) % 18)).toFixed(2)} A` : '-');
+  const energyVal = meterValues?.energy || row?.meterValues?.energy || (row?.kwhDelivered !== undefined ? `${Number(row.kwhDelivered).toFixed(2)} kWh` : (row?.energy || '0.00 kWh'));
+  const powerVal = meterValues?.power || row?.meterValues?.power || (row?.powerKw !== undefined ? `${Number(row.powerKw).toFixed(2)} kW` : (row?.power || '28.50 kW'));
+  const voltageVal = meterValues?.voltage || row?.meterValues?.voltage || (row?.voltage ? String(row.voltage) : '235.00 V');
+  const currentVal = meterValues?.current || row?.meterValues?.current || (row?.current ? String(row.current) : '16.50 A');
 
   return (
     <div className="relative inline-block" ref={popoverRef}>

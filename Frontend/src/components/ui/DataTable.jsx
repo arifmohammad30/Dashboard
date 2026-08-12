@@ -15,7 +15,7 @@ export default function DataTable({
   footer
 }) {
   return (
-    <div className="bg-white/70 shadow-[0_8px_32px_rgba(0,0,0,0.04)] border border-white/60 rounded-[32px] overflow-hidden flex flex-col min-h-[500px]">
+    <div className="bg-white/70 shadow-[0_8px_32px_rgba(0,0,0,0.04)] border border-white/60 rounded-[32px] overflow-hidden flex flex-col min-h-[180px]">
       
       {/* Table Header Row */}
       <div className="px-8 pt-4 pb-2 flex flex-col sm:flex-row items-center justify-between gap-6 bg-white/20 border-b border-white/40">
@@ -92,7 +92,7 @@ export default function DataTable({
       </div>
 
       {footer && (
-        <div className="border-t border-white/40 bg-white/20 pt-2 pb-4 rounded-b-[32px]">
+        <div className="border-t border-stone-200/80 bg-white/50 py-1">
           {footer}
         </div>
       )}

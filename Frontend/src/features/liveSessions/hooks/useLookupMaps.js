@@ -37,24 +37,34 @@ export function useLookupMaps() {
 
   const resolveStation = (nameOrId) => {
     if (!nameOrId) return null;
-    const clean = String(nameOrId).trim().toLowerCase();
-    let found = rawStations.find(s => String(s.id) === String(nameOrId));
+    let target = nameOrId;
+    if (typeof nameOrId === 'object' && nameOrId !== null) {
+      target = nameOrId.id || nameOrId.name || nameOrId.code || '';
+    }
+    const clean = String(target).trim().toLowerCase();
+    let found = rawStations.find(s => String(s.id) === String(target));
     if (found) return found;
-    found = rawStations.find(s => s.name?.trim().toLowerCase() === clean);
+    found = rawStations.find(s => s.name?.trim().toLowerCase() === clean || s.code?.trim().toLowerCase() === clean);
     if (found) return found;
     found = rawStations.find(s => s.name?.trim().toLowerCase().includes(clean) || clean.includes(s.name?.trim().toLowerCase()));
-    return found || null;
+    if (found) return found;
+    return typeof nameOrId === 'object' ? nameOrId : null;
   };
 
   const resolveChargePoint = (nameOrId) => {
     if (!nameOrId) return null;
-    const clean = String(nameOrId).trim().toLowerCase();
-    let found = rawChargePoints.find(cp => String(cp.id) === String(nameOrId));
+    let target = nameOrId;
+    if (typeof nameOrId === 'object' && nameOrId !== null) {
+      target = nameOrId.id || nameOrId.code || nameOrId.name || '';
+    }
+    const clean = String(target).trim().toLowerCase();
+    let found = rawChargePoints.find(cp => String(cp.id) === String(target));
     if (found) return found;
-    found = rawChargePoints.find(cp => cp.name?.trim().toLowerCase() === clean);
+    found = rawChargePoints.find(cp => cp.code?.trim().toLowerCase() === clean || cp.name?.trim().toLowerCase() === clean);
     if (found) return found;
     found = rawChargePoints.find(cp => cp.name?.trim().toLowerCase().includes(clean) || clean.includes(cp.name?.trim().toLowerCase()));
-    return found || null;
+    if (found) return found;
+    return typeof nameOrId === 'object' ? nameOrId : null;
   };
 
   return { stationMap, cpMap, resolveStation, resolveChargePoint };

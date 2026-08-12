@@ -89,7 +89,6 @@ async function main() {
       }
     });
 
-    // Generate 5 Charge Points per Charging Station
     for (let cpIdx = 1; cpIdx <= 5; cpIdx++) {
       const globalIndex = (s - 1) * 5 + cpIdx;
       const cpCode = `CP-${(1000 + globalIndex).toString()}`;
@@ -101,8 +100,8 @@ async function main() {
         data: {
           name: `Charge Point Station ${globalIndex} ${types[globalIndex % types.length]}`,
           code: cpCode,
-          chargingStationId: station.id, // Foreign Key
-          tariffId: assignedTariff.id,    // Foreign Key
+          chargingStationId: station.id,
+          tariffId: assignedTariff.id,
           manufacturer: manufacturers[globalIndex % manufacturers.length],
           oem: oems[globalIndex % oems.length],
           thirdPartyCpId: 'NA',
@@ -131,7 +130,6 @@ async function main() {
         }
       });
 
-      // Create Connectors for ChargePoint
       await prisma.connector.create({
         data: {
           chargePointId: cp.id,

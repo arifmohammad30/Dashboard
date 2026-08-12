@@ -20,11 +20,48 @@ export function useLiveSessions() {
       .finally(() => setLoading(false));
   }, []);
 
+  const matchSession = (s, target) => {
+    const targetId = target?.sessionId || target?.id;
+    return s.sessionId === targetId || s.id === targetId;
+  };
+
   useSocketEvents({
-    sessionUpdated: (updatedSession) => {
-      setSessions(prev => prev.map(session => 
-        session.id === updatedSession.id ? updatedSession : session
-      ));
+    "session:updated": (updatedSession) => {
+      const targetId = updatedSession?.sessionId || updatedSession?.id;
+      if (import.meta.env.DEV) {
+        console.log(`Socket.io UPDATE Session ${targetId}`, updatedSession);
+      }
+      setSessions(prev => {
+        if (updatedSession.status && updatedSession.status !== 'Ongoing') {
+          return prev.filter(s => !matchSession(s, updatedSession));
+        }
+        const index = prev.findIndex(s => matchSession(s, updatedSession));
+        if (index !== -1) {
+          const next = [...prev];
+          next[index] = { ...prev[index], ...updatedSession };
+          return next;
+        }
+        return [{ ...updatedSession }, ...prev];
+      });
+    },
+    "session:created": (newSession) => {
+      const targetId = newSession?.sessionId || newSession?.id;
+      if (import.meta.env.DEV) {
+        console.log(`Socket.io CREATED Session ${targetId}`, newSession);
+      }
+      setSessions(prev => {
+        if (newSession.status && newSession.status !== 'Ongoing') return prev;
+        const exists = prev.some(s => matchSession(s, newSession));
+        if (exists) return prev;
+        return [{ ...newSession }, ...prev];
+      });
+    },
+    "session:stopped": (stoppedSession) => {
+      const targetId = stoppedSession?.sessionId || stoppedSession?.id;
+      if (import.meta.env.DEV) {
+        console.log(`Socket.io STOPPED Session ${targetId}`, stoppedSession);
+      }
+      setSessions(prev => prev.filter(s => !matchSession(s, stoppedSession)));
     }
   });
 
@@ -32,7 +69,7 @@ export function useLiveSessions() {
 
   const filteredSessions = useMemo(() => {
     const ongoingOnly = sessions.filter(session => session.status === 'Ongoing');
-    
+
     return filterTableData(ongoingOnly, debouncedSearchTerm, [
       'userName',
       'userInitials',
