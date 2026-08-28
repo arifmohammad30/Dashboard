@@ -1,23 +1,22 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-export function useTableData(fetchCallback, dependencies = []) {
+export function useTableData(fetchCallback, dependencies = [], initialSearch = '') {
   const safeDeps = Array.isArray(dependencies) ? dependencies : [];
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
 
   const itemsPerPage = 10;
 
-  // Search debounce
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm);
-      setCurrentPage(1); // Reset to first page on new search
-    }, 500);
+      setCurrentPage(1);
+    }, 300);
     return () => clearTimeout(timer);
   }, [searchTerm]);
 

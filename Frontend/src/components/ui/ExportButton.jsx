@@ -33,14 +33,15 @@ export default function ExportButton({
       type="button"
       onClick={handleClick}
       disabled={isLoading}
-      className={`flex items-center gap-2 px-3.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 font-bold border border-stone-200 shadow-2xs rounded-xl text-xs cursor-pointer transition-all duration-150 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed ${className}`}
+      className={`inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-white hover:bg-stone-50 text-stone-700 font-bold border border-stone-200 shadow-2xs rounded-xl text-xs cursor-pointer transition-all duration-150 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed ${className}`}
     >
       {isLoading ? (
-        <Loader2 className="w-3.5 h-3.5 text-stone-500 animate-spin" />
+        <Loader2 className="w-3.5 h-3.5 text-stone-500 animate-spin shrink-0" />
       ) : (
-        <Download className="w-3.5 h-3.5 text-stone-500" />
+        <Download className="w-3.5 h-3.5 text-stone-500 shrink-0" />
       )}
       <span className="leading-none">{isLoading ? 'Exporting...' : label}</span>
     </button>
+
   );
 }

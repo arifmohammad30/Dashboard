@@ -18,6 +18,7 @@ import {
   Move
 } from 'lucide-react';
 import Select from '../../../components/ui/Select';
+import { useChargePointStats } from '../hooks/useChargePointStats';
 
 // Smooth Cubic Bezier Spline Generator for Production-Grade Charts
 function getSmoothSplinePath(points) {
@@ -40,27 +41,18 @@ function getSmoothSplinePath(points) {
 }
 
 export default function ChargePointStatsTab({ cp }) {
-  const [timeRange, setTimeRange] = useState('Today');
+  const { timeRange, setTimeRange, stats, loading } = useChargePointStats(cp);
   const [hoveredRevenueIndex, setHoveredRevenueIndex] = useState(null);
   const [hoveredEnergyIndex, setHoveredEnergyIndex] = useState(null);
   const [hoveredSessionIndex, setHoveredSessionIndex] = useState(null);
 
   const rangeConfig = useMemo(() => {
-    switch (timeRange) {
-      case 'Yesterday':
-        return { multiplier: 0.95, label: 'Yesterday', totalSessions: 38, totalRevenue: 4.12, totalEnergy: 0.38 };
-      case 'Last 7 Days':
-        return { multiplier: 6.5, label: 'Last 7 Days', totalSessions: 295, totalRevenue: 34.80, totalEnergy: 3.12 };
-      case 'Last 30 Days':
-        return { multiplier: 28, label: 'Last 30 Days', totalSessions: 1240, totalRevenue: 148.50, totalEnergy: 14.25 };
-      case 'This Year':
-        return { multiplier: 120, label: 'This Year', totalSessions: 5400, totalRevenue: 640.00, totalEnergy: 58.00 };
-      case 'Last Year':
-        return { multiplier: 350, label: 'Last Year', totalSessions: 14800, totalRevenue: 1820.00, totalEnergy: 165.00 };
-      default:
-        return { multiplier: 1, label: 'Today', totalSessions: cp?.totalSessions || 43, totalRevenue: cp?.revenueGenerated || 4.98, totalEnergy: cp?.energyDelivered || 0.42 };
-    }
-  }, [timeRange, cp]);
+    return {
+      totalSessions: stats?.totalSessions ?? cp?.totalSessions ?? 0,
+      totalRevenue: stats?.totalRevenue ?? cp?.revenueGenerated ?? 0.0,
+      totalEnergy: stats?.totalEnergyKwh ?? cp?.energyDelivered ?? 0.0
+    };
+  }, [stats, cp]);
 
   const timeLabels = ['00:00', '02:00', '04:00', '06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00'];
 

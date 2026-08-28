@@ -2,8 +2,13 @@ import * as tariffService from './tariffs.service.js';
 
 export async function getTariffs(req, res) {
   try {
-    const formatted = await tariffService.getTariffs();
-    res.json(formatted);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const searchTerm = req.query.search || '';
+    const filters = req.query.filters ? JSON.parse(req.query.filters) : {};
+
+    const result = await tariffService.getTariffs({ page, limit, searchTerm, filters });
+    res.json(result);
   } catch (error) {
     console.error("Error fetching tariffs:", error);
     res.status(500).json({ error: "Failed to fetch tariffs" });
@@ -30,7 +35,20 @@ export async function createTariff(req, res) {
     res.status(201).json(newTariff);
   } catch (error) {
     console.error("Error creating tariff:", error);
-    res.status(500).json({ error: "Failed to create tariff" });
+    const status = error.statusCode || 500;
+    res.status(status).json({ error: error.message || "Failed to create tariff" });
+  }
+}
+
+export async function updateTariff(req, res) {
+  try {
+    const { id } = req.params;
+    const updated = await tariffService.updateTariff(id, req.body);
+    res.json(updated);
+  } catch (error) {
+    console.error("Error updating tariff:", error);
+    const status = error.statusCode || 500;
+    res.status(status).json({ error: error.message || "Failed to update tariff" });
   }
 }
 

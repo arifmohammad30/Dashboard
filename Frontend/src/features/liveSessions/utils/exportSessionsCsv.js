@@ -1,8 +1,8 @@
 import { exportSessions } from '../api/sessionService';
 
-export async function exportSessionsToCsv(toast, { status = 'All', search = '' } = {}) {
+export async function exportSessionsToCsv(toast, { status = 'All', search = '', filters = {} } = {}) {
   try {
-    await exportSessions({ status, search });
+    await exportSessions({ status, search, filters });
     toast.success("Streaming CSV export downloaded successfully from backend server", {
       title: 'Backend Export Complete',
       code: 200

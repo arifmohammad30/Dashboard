@@ -2,33 +2,23 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Terminal,
   Hash,
-  Layers,
-  FileCode,
   Tag,
   Clock,
   Play,
-  Download,
-  Eye,
-  EyeOff,
-  Copy,
-  Check,
-  X,
   Search,
   Filter,
   ArrowDownRight,
   ArrowUpRight,
-  Code,
-  Table,
-  ChevronRight,
-  Sparkles,
-  Braces,
+  Check,
+  X,
+  Copy,
   Settings2
 } from 'lucide-react';
 import FilterSection from './ui/FilterSection';
 import { useToast } from '../context/ToastContext';
 import ExportButton from './ui/ExportButton';
 import { exportLogs } from '../features/liveSessions/api/sessionService';
-import { apiClient } from '../lib/apiClient';
+import { useSessionLogs } from '../hooks/useSessionLogs';
 
 const JsonSyntaxHighlighter = ({ json }) => {
   const formatted = useMemo(() => {
@@ -79,7 +69,7 @@ const JsonSyntaxHighlighter = ({ json }) => {
   );
 };
 
-export default function LogsTab({ cp, sessionData }) {
+export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLog, setSelectedLog] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
@@ -90,27 +80,25 @@ export default function LogsTab({ cp, sessionData }) {
   const [selectedLogTypes, setSelectedLogTypes] = useState([]);
   const filterRef = useRef(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 15;
   const isOngoing = sessionData?.status === 'Ongoing';
-  const [logsList, setLogsList] = useState([]);
-  const [isLive, setIsLive] = useState(isOngoing);
+
+  const { logsList, total, totalPages } = useSessionLogs({
+    sessionData,
+    cp,
+    chargePointCode,
+    refreshKey,
+    page: currentPage,
+    limit: pageSize,
+    search: searchTerm,
+    commands: selectedCommands,
+    logTypes: selectedLogTypes
+  });
 
   useEffect(() => {
-    if (sessionData?.id) {
-      apiClient(`/api/livesessions/${sessionData.id}/logs`)
-        .then(data => {
-          if (Array.isArray(data)) {
-            const formatted = data.map(log => ({
-              ...log,
-              body: typeof log.body === 'string' ? (JSON.parse(log.body) || {}) : (log.body || {}),
-              recordedOn: log.createdAt ? new Date(log.createdAt).toLocaleString() : 'Just now',
-              fullTimestamp: log.createdAt ? new Date(log.createdAt).toLocaleString() : 'Just now'
-            }));
-            setLogsList(formatted);
-          }
-        })
-        .catch(() => {});
-    }
-  }, [sessionData?.id]);
+    setCurrentPage(1);
+  }, [searchTerm, selectedCommands, selectedLogTypes]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -136,22 +124,7 @@ export default function LogsTab({ cp, sessionData }) {
 
   const activeFiltersCount = selectedCommands.length + selectedLogTypes.length;
 
-  const filteredLogs = useMemo(() => {
-    return logsList.filter(log => {
-      const search = searchTerm.trim().toLowerCase();
-      const matchesSearch = !search ||
-        log.command.toLowerCase().includes(search) ||
-        log.messageId.toLowerCase().includes(search) ||
-        (log.idTag && log.idTag.toLowerCase().includes(search)) ||
-        (log.summary && log.summary.toLowerCase().includes(search)) ||
-        JSON.stringify(log.body).toLowerCase().includes(search);
-
-      const matchesCmd = selectedCommands.length === 0 || selectedCommands.some(cmd => log.command.toLowerCase().includes(cmd.toLowerCase()));
-      const matchesType = selectedLogTypes.length === 0 || selectedLogTypes.includes(log.logType);
-
-      return matchesSearch && matchesCmd && matchesType;
-    });
-  }, [logsList, searchTerm, selectedCommands, selectedLogTypes]);
+  const paginatedLogs = logsList;
 
   const toast = useToast();
 
@@ -165,8 +138,8 @@ export default function LogsTab({ cp, sessionData }) {
   const handleExport = async () => {
     try {
       await exportLogs({ search: searchTerm });
-      toast.success("Telemetry logs CSV export downloaded from backend server", {
-        title: 'Backend Export Complete',
+      toast.success("Telemetry logs CSV export downloaded", {
+        title: 'Export Complete',
         code: 200
       });
     } catch (err) {
@@ -179,9 +152,8 @@ export default function LogsTab({ cp, sessionData }) {
   };
 
   const getCommandBadge = (command, direction) => {
-    const isIp = direction === 'INBOUND';
+    const isIp = direction === 'INBOUND' || !direction;
     let colorStyle = 'bg-stone-100 text-stone-700 border-stone-200';
-    
     if (command.includes('MeterValues')) colorStyle = 'bg-purple-50 text-purple-700 border-purple-200/80';
     if (command.includes('StatusNotification')) colorStyle = 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
     if (command.includes('BootNotification')) colorStyle = 'bg-amber-50 text-amber-700 border-amber-200/80';
@@ -200,13 +172,13 @@ export default function LogsTab({ cp, sessionData }) {
   };
 
   return (
-    <div className="bg-white border border-stone-200/90 shadow-2xs rounded-xl overflow-hidden flex flex-col w-full min-h-[500px] animate-in fade-in duration-200 relative">
+    <div className="bg-white border border-stone-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col w-full min-h-[220px] animate-in fade-in duration-200 relative">
       <div className="px-5 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white border-b border-stone-200/80">
         <div className="flex items-center gap-2 text-xs">
           <div className={`w-2 h-2 rounded-full ${isOngoing ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></div>
-          <span className="font-bold text-stone-900 tracking-tight">Telemetry Log Feed</span>
-          <span className="bg-stone-100/90 text-stone-700 border border-stone-200/80 px-2 py-0.5 rounded-md font-mono text-[11px] font-bold ml-1">
-            {filteredLogs.length} events
+          <span className="font-bold text-stone-900 tracking-tight">Telemetry Logs</span>
+          <span className="bg-stone-100 text-stone-700 border border-stone-200 px-2 py-0.5 rounded-md font-mono text-[11px] font-bold ml-1">
+            {total} {total === 1 ? 'message' : 'messages'}
           </span>
         </div>
 
@@ -215,10 +187,10 @@ export default function LogsTab({ cp, sessionData }) {
             <Search className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search command, ID, payload..."
+              placeholder="Search command, message ID, ID tag..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8 pr-7 py-1.5 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-semibold focus:outline-none focus:border-sky-500 focus:bg-white w-full sm:w-56 transition-all"
+              className="pl-8 pr-7 py-1.5 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-semibold focus:outline-none focus:border-sky-500 focus:bg-white w-full sm:w-64 transition-all"
             />
             {searchTerm && (
               <button
@@ -230,29 +202,15 @@ export default function LogsTab({ cp, sessionData }) {
             )}
           </div>
 
-          <button
-            onClick={() => setIsLive(!isLive)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-2 transition-all cursor-pointer border ${
-              isLive
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-300 shadow-2xs hover:bg-emerald-100/70'
-                : 'bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100'
-            }`}
-          >
-            {isLive ? (
-              <>
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span>Live Stream</span>
-              </>
-            ) : (
-              <>
-                <Play className="w-3 h-3 fill-current text-stone-500" />
-                <span>Paused</span>
-              </>
-            )}
-          </button>
+          {isOngoing && (
+            <div className="px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-2xs">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span>Live Socket Stream</span>
+            </div>
+          )}
 
           <div className="relative" ref={filterRef}>
             <button
@@ -317,45 +275,48 @@ export default function LogsTab({ cp, sessionData }) {
         <div className={`flex-1 w-full transition-all duration-300 ${selectedLog ? 'lg:w-3/5' : 'w-full'}`}>
           <div className="overflow-x-auto scrollbar-thin transform-gpu translate-z-0">
             <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-[#F8FAFC] border-b border-stone-200">
-                <tr className="text-[11px] font-bold text-stone-700 uppercase tracking-wider">
-                  <th className="px-4 py-3 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap w-24">
+              <thead className="bg-[#F8FAFC] border-b border-stone-200/90">
+                <tr className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
+                  <th className="px-4 py-3.5 text-center font-extrabold text-slate-700 text-[11px] uppercase tracking-wider whitespace-nowrap w-24">
                     <div className="flex items-center justify-center gap-1.5">
-                      <Settings2 className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Actions
+                      <Settings2 className="w-3.5 h-3.5 text-slate-400 stroke-[2]" /> Actions
                     </div>
                   </th>
-                  <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                  <th className="px-4 py-3.5 text-left font-extrabold text-slate-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
-                      <Terminal className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Command
+                      <Terminal className="w-3.5 h-3.5 text-slate-400 stroke-[2]" /> Command
                     </div>
                   </th>
-                  <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                  <th className="px-4 py-3.5 text-left font-extrabold text-slate-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
-                      <Hash className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Message ID
+                      <Hash className="w-3.5 h-3.5 text-slate-400 stroke-[2]" /> Message ID
                     </div>
                   </th>
-                  <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                  <th className="px-4 py-3.5 text-left font-extrabold text-slate-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
-                      <Tag className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> ID Tag
+                      <Tag className="w-3.5 h-3.5 text-slate-400 stroke-[2]" /> ID Tag
                     </div>
                   </th>
-                  <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                  <th className="px-4 py-3.5 text-left font-extrabold text-slate-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Recorded On
+                      <Clock className="w-3.5 h-3.5 text-slate-400 stroke-[2]" /> Recorded On
                     </div>
                   </th>
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-stone-200/70 bg-white text-xs font-medium">
-                {filteredLogs.length === 0 ? (
+              <tbody className="divide-y divide-stone-100/90 bg-white text-xs font-medium">
+                {paginatedLogs.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="py-16 text-center text-stone-400 font-extrabold text-xs">
-                      No OCPP telemetry logs found matching active criteria.
+                    <td colSpan="5" className="py-14 text-center text-stone-400 font-bold text-xs">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <Terminal className="w-6 h-6 text-stone-300 stroke-[1.5]" />
+                        <span>No OCPP telemetry logs found matching active criteria.</span>
+                      </div>
                     </td>
                   </tr>
                 ) : (
-                  filteredLogs.map((log) => {
+                  paginatedLogs.map((log) => {
                     const isSelected = selectedLog?.id === log.id;
                     return (
                       <tr
@@ -363,21 +324,21 @@ export default function LogsTab({ cp, sessionData }) {
                         onClick={() => setSelectedLog(isSelected ? null : log)}
                         className={`group transition-all duration-150 cursor-pointer ${
                           isSelected
-                            ? 'bg-sky-50/90 font-semibold'
-                            : 'hover:bg-[#F8FAFF]'
+                            ? 'bg-sky-50/80 font-semibold border-l-4 border-l-sky-500 shadow-2xs'
+                            : 'hover:bg-slate-50/80'
                         }`}
                       >
-                        <td className="py-3 px-4 text-center whitespace-nowrap">
+                        <td className="py-3.5 px-4 text-center whitespace-nowrap">
                           <div className="flex items-center justify-center">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedLog(isSelected ? null : log);
                               }}
-                              className={`px-2.5 py-1 rounded-lg text-[11px] font-extrabold transition-all duration-150 cursor-pointer border ${
+                              className={`px-3 py-1 rounded-lg text-[11px] font-extrabold transition-all duration-150 cursor-pointer border shadow-2xs ${
                                 isSelected
-                                  ? 'bg-sky-600 text-white border-sky-700 opacity-100 shadow-2xs'
-                                  : 'text-sky-700 bg-sky-50 hover:bg-sky-600 hover:text-white border-sky-200/80 opacity-0 group-hover:opacity-100'
+                                  ? 'bg-sky-600 text-white border-sky-700 opacity-100'
+                                  : 'text-sky-700 bg-sky-50 hover:bg-sky-600 hover:text-white border-sky-200/90 opacity-0 group-hover:opacity-100'
                               }`}
                             >
                               {isSelected ? 'Close' : 'View Body'}
@@ -385,24 +346,27 @@ export default function LogsTab({ cp, sessionData }) {
                           </div>
                         </td>
 
-                        <td className="py-3 px-4 whitespace-nowrap">
+                        <td className="py-3.5 px-4 whitespace-nowrap">
                           {getCommandBadge(log.command, log.direction)}
                         </td>
 
-                        <td className="py-3 px-4 whitespace-nowrap">
-                          <span className="font-mono text-sky-700 font-bold text-sm tracking-tight">
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          <span className="font-mono text-sky-700 font-bold text-xs tracking-tight bg-sky-50/70 px-2 py-1 rounded-md border border-sky-200/60 shadow-2xs inline-block">
                             {log.messageId}
                           </span>
                         </td>
 
-                        <td className="py-3 px-4 whitespace-nowrap">
-                          <span className="font-mono font-bold text-stone-900 text-sm">
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          <span className="font-mono font-bold text-slate-800 text-xs bg-slate-100/80 px-2 py-1 rounded-md border border-slate-200/70 inline-block">
                             {log.idTag || '-'}
                           </span>
                         </td>
 
-                        <td className="py-3 px-4 text-stone-500 font-medium text-xs whitespace-nowrap">
-                          {log.recordedOn}
+                        <td className="py-3.5 px-4 text-stone-500 font-semibold text-xs whitespace-nowrap">
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="w-3 h-3 text-stone-400 stroke-[2]" />
+                            <span>{log.recordedOn}</span>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -411,24 +375,51 @@ export default function LogsTab({ cp, sessionData }) {
               </tbody>
             </table>
           </div>
+
+          {totalPages > 1 && (
+            <div className="px-5 py-3 bg-white border-t border-stone-200/90 flex items-center justify-between gap-4 text-xs font-semibold text-stone-600">
+              <span>
+                Page <strong className="text-stone-900 font-bold">{currentPage}</strong> of <strong className="text-stone-900 font-bold">{totalPages}</strong> ({total} logs)
+              </span>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  className="px-3.5 py-1.5 bg-white hover:bg-stone-50 border border-stone-200 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition font-bold shadow-2xs text-xs"
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  className="px-3.5 py-1.5 bg-white hover:bg-stone-50 border border-stone-200 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition font-bold shadow-2xs text-xs"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {selectedLog && (
-          <div className="w-full lg:w-[480px] bg-white border border-stone-200/90 rounded-xl shadow-lg p-5 flex flex-col justify-between animate-in slide-in-from-right duration-200 shrink-0 self-start sticky top-4">
+          <div className="w-full lg:w-[480px] bg-white border border-stone-200/90 rounded-2xl shadow-xl p-5 flex flex-col justify-between animate-in slide-in-from-right duration-200 shrink-0 self-start sticky top-4">
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-stone-200/80">
                 <div className="flex items-center gap-2">
-                  <Braces className="w-4 h-4 text-sky-600" />
-                  <h3 className="text-sm font-extrabold text-stone-900 tracking-tight flex items-center gap-2">
-                    <span>{selectedLog.command}</span>
-                    <span className="font-mono text-sky-600 text-xs font-bold bg-sky-50 px-2 py-0.5 rounded border border-sky-100">
-                      ID: {selectedLog.messageId}
-                    </span>
+                  <h3 className="text-base font-extrabold text-stone-900 tracking-tight">
+                    {selectedLog.command}
                   </h3>
+                  <span className="font-mono text-sky-700 text-xs font-bold bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-200/70">
+                    {selectedLog.messageId}
+                  </span>
                 </div>
+
                 <button
                   onClick={() => setSelectedLog(null)}
-                  className="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-7 h-7 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -442,7 +433,7 @@ export default function LogsTab({ cp, sessionData }) {
                       inspectorTab === 'json' ? 'bg-white text-stone-900 shadow-2xs' : 'text-stone-600 hover:text-stone-900'
                     }`}
                   >
-                    Log Body (JSON)
+                    Payload (JSON)
                   </button>
                   <button
                     onClick={() => setInspectorTab('raw')}
@@ -478,21 +469,16 @@ export default function LogsTab({ cp, sessionData }) {
               </div>
 
               {inspectorTab === 'json' ? (
-                <div className="bg-[#0F172A] p-4 rounded-xl max-h-[420px] overflow-y-auto border border-slate-800 shadow-inner scrollbar-none">
+                <div className="bg-[#0F172A] p-4 rounded-xl max-h-[380px] overflow-y-auto border border-slate-800 shadow-inner scrollbar-none">
                   <JsonSyntaxHighlighter json={selectedLog.body} />
                 </div>
               ) : (
-                <div className="bg-[#0B0F17] text-amber-300 font-mono text-xs p-4 rounded-xl border border-slate-800 overflow-x-auto leading-relaxed max-h-[420px] scrollbar-none">
+                <div className="bg-[#0B0F17] text-amber-300 font-mono text-xs p-4 rounded-xl border border-slate-800 overflow-x-auto leading-relaxed max-h-[380px] scrollbar-none">
                   <code>
                     {`[2, "${selectedLog.messageId}", "${selectedLog.command}", ${JSON.stringify(selectedLog.body, null, 2)}]`}
                   </code>
                 </div>
               )}
-
-              <div className="flex items-center justify-between text-xs text-stone-500 pt-1">
-                <span>Recorded: <strong className="text-stone-700 font-medium">{selectedLog.fullTimestamp}</strong></span>
-                <span className="font-mono text-[11px] text-stone-400">Protocol: {selectedLog.logType}</span>
-              </div>
             </div>
           </div>
         )}

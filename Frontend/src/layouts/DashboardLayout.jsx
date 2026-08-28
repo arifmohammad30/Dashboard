@@ -13,9 +13,15 @@ export default function DashboardLayout({ children }) {
   const isChargingStationsPage = location.pathname.startsWith('/charging-stations');
   const isLiveSessionsPage = location.pathname.startsWith('/live-sessions');
   const isSessionHistoryPage = location.pathname.startsWith('/session-history');
+  const isSessionLogsPage = location.pathname.startsWith('/session-logs');
   const isTariffsPage = location.pathname.startsWith('/tariffs');
+  const isFleetsPage = location.pathname.startsWith('/fleets');
+  const isBillsPage = location.pathname.startsWith('/bills') || location.pathname.startsWith('/billing') || location.pathname.startsWith('/invoices');
+  const isDiscountsPage = location.pathname.startsWith('/discounts');
   const isAnalyticsPage = location.pathname.startsWith('/analytics');
-  const isTelematicsPage = location.pathname.startsWith('/telematics-devices');
+
+  const isPaymentsPage = location.pathname.startsWith('/payment-providers') || location.pathname.startsWith('/payment-logs');
+
 
   const { logout, user } = useAuth();
   const userMenuRef = useRef(null);
@@ -43,13 +49,7 @@ export default function DashboardLayout({ children }) {
   }, []);
 
   return (
-    <div className="flex h-screen w-full overflow-hidden text-stone-800 relative z-0 bg-orange-50/50">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-orange-500/20 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-rose-500/15 blur-[120px]" />
-        <div className="absolute top-[30%] right-[20%] w-[40%] h-[40%] rounded-full bg-amber-400/20 blur-[100px]" />
-        <div className="absolute bottom-[20%] left-[20%] w-[35%] h-[35%] rounded-full bg-yellow-400/15 blur-[100px]" />
-      </div>
+    <div className="flex h-screen w-full overflow-hidden text-stone-800 relative z-0 bg-slate-50">
 
       {isSidebarOpen && (
         <div
@@ -61,7 +61,7 @@ export default function DashboardLayout({ children }) {
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
       <div className="flex-1 flex flex-col h-full overflow-hidden w-full relative z-0">
-        <header className="h-16 flex items-center justify-between px-6 bg-white/80 border border-white/70 shadow-xs shrink-0 z-10 mx-4 md:mx-8 mt-3 rounded-2xl">
+        <header className="h-16 flex items-center justify-between px-6 bg-white border border-stone-200/80 shadow-2xs shrink-0 z-10 mx-4 md:mx-8 mt-3 rounded-2xl">
           <div className="flex items-center gap-3">
             {!isSidebarOpen && (
               <button
@@ -75,10 +75,14 @@ export default function DashboardLayout({ children }) {
             <div className="font-semibold uppercase text-[17px] text-slate-800 tracking-tight hidden sm:block">
               {isChargePointsPage ? 'Charge Point Management' :
                 isChargingStationsPage ? 'Charging Station Management' :
-                  (isLiveSessionsPage || isSessionHistoryPage) ? 'Session Management' :
+                  (isLiveSessionsPage || isSessionHistoryPage || isSessionLogsPage) ? 'Session Management' :
                     isTariffsPage ? 'Tariff Management' :
-                      isAnalyticsPage ? 'Analytics & Intelligence' :
-                        isTelematicsPage ? 'Telematics Management' : ''}
+                      isFleetsPage ? 'Fleet Management' :
+                        isBillsPage ? 'Billing & Invoicing' :
+                          isDiscountsPage ? 'Discount Management' :
+                            isAnalyticsPage ? 'Analytics & Intelligence' :
+                              isPaymentsPage ? 'Payment Gateway & Integration' : ''}
+
             </div>
           </div>
           <div className="flex items-center gap-4">

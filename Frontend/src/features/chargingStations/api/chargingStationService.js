@@ -1,12 +1,22 @@
 import { apiClient } from '../../../lib/apiClient';
 import { downloadFileFromEndpoint } from '../../../utils/downloadUtils';
 
-export const getChargingStations = async (page = 1, limit = 20, searchTerm = '') => {
+export const getChargingStations = async (page = 1, limit = 10, searchTerm = '', filters = {}) => {
   try {
-    const url = `/charging-stations?page=${page}&limit=${limit}&search=${encodeURIComponent(searchTerm)}`;
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+      search: searchTerm
+    });
+
+    if (filters && Object.keys(filters).length > 0) {
+      params.append('filters', JSON.stringify(filters));
+    }
+
+    const url = `/charging-stations?${params.toString()}`;
     return await apiClient(url);
   } catch (error) {
-    console.error("Failed to fetch charging stations, using fallback data:", error);
+    console.error("Failed to fetch charging stations:", error);
     return null;
   }
 };

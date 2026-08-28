@@ -35,86 +35,21 @@ import {
 import Pagination from '../../../components/ui/Pagination';
 import TableActions from '../../../components/ui/TableActions';
 import ExportButton from '../../../components/ui/ExportButton';
+import PrimaryButton from '../../../components/ui/PrimaryButton';
 import DeleteModal from '../../../components/ui/DeleteModal';
 import FilterSection from '../../../components/ui/FilterSection';
+import PermissionGuard from '../../../components/ui/PermissionGuard';
+import { PERMISSIONS } from '../../../config/permissions';
+
 
 import { getChargePoints, getFilterOptions, deleteChargePoint, exportChargePoints } from '../api/chargePointService';
 import { useTableData } from '../../../hooks/useTableData';
 import { useToast } from '../../../context/ToastContext';
+import ConnectorBadgesCell from '../components/ConnectorBadgesCell';
+import { getConnectorText, formatCreatedOn } from '../utils/formatters';
 
-const getConnectorText = (conn) => {
-  if (!conn) return '-';
-  if (typeof conn === 'string') return conn;
-  if (typeof conn === 'object') {
-    return conn.type || conn.name || conn.connectorType || conn.id || 'Connector';
-  }
-  return String(conn);
-};
 
-const ConnectorBadgesCell = ({ connectors }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  if (!connectors || !Array.isArray(connectors) || connectors.length === 0) {
-    return <span className="text-stone-400 font-medium text-[12px]">-</span>;
-  }
-
-  if (connectors.length === 1) {
-    return (
-      <span className="px-2.5 py-0.5 rounded-md text-[11px] font-mono font-semibold bg-stone-100 text-stone-700 border border-stone-200/80 whitespace-nowrap inline-block">
-        {getConnectorText(connectors[0])}
-      </span>
-    );
-  }
-
-  return (
-    <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
-      <button
-        type="button"
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/90 shadow-2xs inline-flex items-center gap-1 cursor-pointer transition-colors duration-150"
-        title="Click to view all connectors"
-      >
-        <span>{connectors.length} Connectors</span>
-        <ChevronDown className={`w-3 h-3 text-slate-500 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
-      </button>
-
-      {isExpanded && (
-        <div className="absolute left-0 top-full mt-1.5 z-30 bg-white border border-stone-200 shadow-md rounded-xl p-2 flex flex-col gap-1.5 min-w-[140px] animate-in fade-in zoom-in-95 duration-150">
-          {connectors.map((c, index) => (
-            <span
-              key={index}
-              className="px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-stone-50 text-stone-700 border border-stone-200/80 whitespace-nowrap text-left"
-            >
-              {getConnectorText(c)}
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
-const formatCreatedOn = (dateStr) => {
-  if (!dateStr) return 'Jul 8, 2026 11:27 am';
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return 'Jul 8, 2026 11:27 am';
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const month = months[d.getMonth()];
-    const day = d.getDate();
-    const year = d.getFullYear();
-    let hours = d.getHours();
-    const minutes = d.getMinutes().toString().padStart(2, '0');
-    const ampm = hours >= 12 ? 'pm' : 'am';
-    hours = hours % 12;
-    hours = hours ? hours : 12;
-    return `${month} ${day}, ${year} ${hours.toString().padStart(2, '0')}:${minutes} ${ampm}`;
-  } catch (e) {
-    return 'Jul 8, 2026 11:27 am';
-  }
-};
-
-export default function ChargePointsList({ stationFilter, hideHeader = false }) {
+export default function ChargePointsList({ stationFilter, chargingStationId, hideHeader = false }) {
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -144,14 +79,17 @@ export default function ChargePointsList({ stationFilter, hideHeader = false }) 
     itemsPerPage,
   } = useTableData(
     (page, limit, search) => {
-      const effectiveLimit = stationFilter ? 100 : limit;
-      const effectiveSearch = search || (stationFilter ? stationFilter : '');
-      return getChargePoints(page, effectiveLimit, effectiveSearch, filters);
+      const activeFilters = { ...filters };
+      if (chargingStationId) {
+        activeFilters.chargingStationId = chargingStationId;
+      }
+      const effectiveSearch = search || (!chargingStationId && stationFilter ? stationFilter : '');
+      return getChargePoints(page, limit, effectiveSearch, activeFilters);
     },
-    [filters, stationFilter]
+    [filters, stationFilter, chargingStationId]
   );
 
-  const matchedPoints = stationFilter
+  const matchedPoints = (stationFilter && !chargingStationId)
     ? rawChargePoints.filter((cp) => {
       const filterStr = String(stationFilter).toLowerCase();
       const cpStationName = typeof cp.chargingStation === 'object' ? (cp.chargingStation?.name || '') : String(cp.chargingStation || '');
@@ -172,8 +110,8 @@ export default function ChargePointsList({ stationFilter, hideHeader = false }) 
       ]
       : matchedPoints;
 
-  const displayTotalItems = stationFilter ? chargePoints.length : rawTotalItems;
-  const displayTotalPages = stationFilter ? Math.max(1, Math.ceil(chargePoints.length / itemsPerPage)) : rawTotalPages;
+  const displayTotalItems = (stationFilter && !chargingStationId) ? chargePoints.length : rawTotalItems;
+  const displayTotalPages = (stationFilter && !chargingStationId) ? Math.max(1, Math.ceil(chargePoints.length / itemsPerPage)) : rawTotalPages;
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -230,10 +168,10 @@ export default function ChargePointsList({ stationFilter, hideHeader = false }) 
 
   const handleExportCSV = async () => {
     try {
-      await exportChargePoints(searchTerm);
-      toast.success("Charge point CSV export downloaded ", {
+      await exportChargePoints(searchTerm, filters);
+      toast.success("Charge point CSV export downloaded", {
         title: 'Backend Export Complete',
-        code: success.code
+        code: 200
       });
     } catch (err) {
       console.error("Export error:", err);
@@ -257,10 +195,12 @@ export default function ChargePointsList({ stationFilter, hideHeader = false }) 
         )}
 
         <div className="flex flex-wrap items-center gap-3">
-          <ExportButton
-            onExport={handleExportCSV}
-            label="Export"
-          />
+          <PermissionGuard permission={PERMISSIONS.CHARGE_POINT_EXPORT}>
+            <ExportButton
+              onExport={handleExportCSV}
+              label="Export"
+            />
+          </PermissionGuard>
 
           <div className="relative" ref={filterRef}>
             <button
@@ -301,13 +241,15 @@ export default function ChargePointsList({ stationFilter, hideHeader = false }) 
             )}
           </div>
 
-          <button
-            onClick={() => navigate('/charge-points/new')}
-            className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-gradient-to-b from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-bold rounded-xl text-xs border border-orange-800/40 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_1px_3px_rgba(0,0,0,0.12)] active:scale-[0.98] transition-all duration-150 cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5 stroke-[2.5] text-white/95" />
-            <span className="leading-none tracking-tight">Add Charge Point</span>
-          </button>
+          <PermissionGuard permission={PERMISSIONS.CHARGE_POINT_CREATE}>
+            <PrimaryButton
+              onClick={() => navigate('/charge-points/new')}
+              label="Add Charge Point"
+            />
+          </PermissionGuard>
+
+
+
         </div>
       </div>
 
@@ -424,6 +366,8 @@ export default function ChargePointsList({ stationFilter, hideHeader = false }) 
                       <TableActions
                         onEdit={(e) => handleEditClick(e, row)}
                         onDelete={(e) => handleDeleteClick(e, row)}
+                        editPermission={PERMISSIONS.CHARGE_POINT_UPDATE}
+                        deletePermission={PERMISSIONS.CHARGE_POINT_DELETE}
                         showMore={true}
                       />
                     </td>
@@ -432,7 +376,7 @@ export default function ChargePointsList({ stationFilter, hideHeader = false }) 
                       e.stopPropagation();
                       navigate(`/charge-points/${row.id}`, { state: { chargePoint: row } });
                     }}>
-                      <span className={`text-stone-900 font-bold text-[13px] transition-colors duration-200 ${(row.status === 'Available' || row.status === 'Charging' || (row.status !== 'Faulted' && row.stage === 'Active'))
+                      <span className={`text-stone-900 font-semibold text-[13px] transition-colors duration-200 ${(row.status === 'Available' || row.status === 'Charging' || (row.status !== 'Faulted' && row.stage === 'Active'))
                         ? 'group-hover:text-emerald-600'
                         : 'group-hover:text-rose-600'
                         }`}>

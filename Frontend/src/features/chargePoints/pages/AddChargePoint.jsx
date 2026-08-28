@@ -11,7 +11,10 @@ import Select from '../../../components/ui/Select';
 import LabelWithInfo from '../../../components/ui/LabelWithInfo';
 import FormCard from '../../../components/ui/FormCard';
 import { createChargePoint, updateChargePoint, getChargePointById } from '../api/chargePointService';
+import { getTariffs } from '../../tariffs/api/tariffService';
+import { getChargingStations } from '../../chargingStations/api/chargingStationService';
 import { useToast } from '../../../context/ToastContext';
+
 
 const chargingMethodSchema = z.object({
   id: z.string(),
@@ -65,6 +68,27 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
 
   const [loadingData, setLoadingData] = useState(false);
   const [activeChargePoint, setActiveChargePoint] = useState(chargePointData);
+  const [stationOptions, setStationOptions] = useState([]);
+  const [tariffOptions, setTariffOptions] = useState([]);
+
+  useEffect(() => {
+    getChargingStations(1, 100).then(res => {
+      if (res?.data && res.data.length > 0) {
+        setStationOptions(res.data.map(s => s.name || s.stationName));
+      } else {
+        setStationOptions(['EVRE Tech Park', 'Nexus Mall Station', 'Hebbal Hub']);
+      }
+    }).catch(() => {
+      setStationOptions(['EVRE Tech Park', 'Nexus Mall Station', 'Hebbal Hub']);
+    });
+
+    getTariffs(1, 100).then(res => {
+      if (res?.data && res.data.length > 0) {
+        setTariffOptions(res.data.map(t => `${t.name} (${t.code})`));
+      }
+    }).catch(() => {});
+  }, []);
+
 
   const {
     register,
@@ -232,8 +256,14 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
 
           <div>
             <LabelWithInfo label="Charging Station" required />
-            <Input disabled={isViewMode} placeholder="Search for a Charging Station" {...register('chargingStation')} error={errors.chargingStation} />
+            <Select
+              disabled={isViewMode}
+              options={stationOptions.length > 0 ? stationOptions : ['EVRE Tech Park', 'Nexus Mall Station', 'Hebbal Hub']}
+              {...register('chargingStation')}
+              error={errors.chargingStation}
+            />
           </div>
+
 
           <div>
             <LabelWithInfo label="Manufacturer / OEM" required />
@@ -275,17 +305,17 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
           <div>
             <LabelWithInfo label="Supported Charging Methods" info="Select all that apply." />
 
-            <div className="mt-4 bg-[var(--neo-bg-10)] shadow-[inset_5px_5px_10px_rgba(120,113,108,0.15),inset_-5px_-5px_10px_rgba(255,255,255,0.6)] rounded-3xl p-3 border border-white/50 backdrop-blur-xl">
-              <div className="grid grid-cols-[60px_1fr_1.5fr_80px] gap-4 px-2 pb-3 mb-1 text-[10px] font-extrabold text-stone-500 tracking-wider uppercase border-b border-stone-200/50">
+            <div className="mt-3">
+              <div className="grid grid-cols-[60px_1fr_1.5fr_80px] gap-4 px-2 pb-2.5 mb-1 text-[10px] font-extrabold text-stone-500 tracking-wider uppercase border-b border-stone-200/60">
                 <div className="text-center">Select</div>
                 <div>Method</div>
                 <div>Amount</div>
                 <div className="text-center">Default</div>
               </div>
 
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1.5">
                 {chargingMethods.map((method, index) => (
-                  <div key={method.id} className={`grid grid-cols-[60px_1fr_1.5fr_80px] gap-4 items-center px-2 py-2.5 rounded-2xl transition-all duration-300 ${method.selected ? 'bg-white/80 shadow-sm border border-white/80' : 'hover:bg-white/40 border border-transparent'}`}>
+                  <div key={method.id} className={`grid grid-cols-[60px_1fr_1.5fr_80px] gap-4 items-center px-2 py-2 rounded-xl transition-all duration-200 ${method.selected ? 'bg-stone-50/80 border border-stone-200/60' : 'hover:bg-stone-50/40 border border-transparent'}`}>
                     <div className="flex justify-center">
                       <label className="relative flex items-center justify-center w-6 h-6 cursor-pointer">
                         <input
@@ -294,14 +324,14 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
                           {...register(`chargingMethods.${index}.selected`)}
                           className="peer sr-only"
                         />
-                        <div className={`w-6 h-6 rounded-lg transition-all flex items-center justify-center text-transparent peer-checked:text-rose-500 bg-white/60 border border-stone-300 shadow-sm ${isViewMode ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
+                        <div className={`w-5 h-5 rounded-md transition-all flex items-center justify-center text-transparent peer-checked:text-orange-600 bg-white border border-stone-300 shadow-2xs ${isViewMode ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
                       </label>
                     </div>
-                    <div className="text-sm font-bold text-stone-700">{method.label}</div>
+                    <div className="text-xs font-bold text-stone-800">{method.label}</div>
                     <div className="relative">
                       <input
                         type="number"
@@ -309,13 +339,13 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
                         placeholder={method.placeholder}
                         {...register(`chargingMethods.${index}.value`)}
                         disabled={isViewMode || !method.selected}
-                        className={`block w-full rounded-xl py-2.5 pr-12 pl-4 text-sm neo-form-input text-stone-800 outline-none transition-all duration-300 disabled:opacity-50 ${errors?.chargingMethods?.[index]?.value ? 'neo-form-error' : ''}`}
+                        className={`block w-full rounded-xl py-2 pr-10 pl-3 text-xs neo-form-input text-stone-800 outline-none transition-all duration-200 disabled:opacity-50 ${errors?.chargingMethods?.[index]?.value ? 'neo-form-error' : ''}`}
                       />
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-                        <span className="text-stone-500 font-bold sm:text-sm">{method.unit}</span>
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <span className="text-stone-400 font-bold text-xs">{method.unit}</span>
                       </div>
                       {errors?.chargingMethods?.[index]?.value && (
-                        <div className="absolute -bottom-4 left-0 text-[10px] font-bold text-pink-500 whitespace-nowrap">
+                        <div className="absolute -bottom-4 left-0 text-[10px] font-bold text-rose-500 whitespace-nowrap">
                           {errors.chargingMethods[index].value.message}
                         </div>
                       )}
@@ -329,8 +359,8 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
                           disabled={isViewMode || !method.selected}
                           className="peer sr-only"
                         />
-                        <div className={`w-6 h-6 rounded-full transition-all flex items-center justify-center bg-white/60 border border-stone-300 shadow-sm ${(!method.selected || isViewMode) ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                          <div className={`w-2.5 h-2.5 rounded-full bg-pink-500 transition-all ${method.isFirst && method.selected ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}></div>
+                        <div className={`w-5 h-5 rounded-full transition-all flex items-center justify-center bg-white border border-stone-300 shadow-2xs ${(!method.selected || isViewMode) ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                          <div className={`w-2 h-2 rounded-full bg-orange-500 transition-all ${method.isFirst && method.selected ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}></div>
                         </div>
                       </label>
                     </div>
@@ -339,6 +369,7 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
               </div>
             </div>
           </div>
+
 
           <div>
             <LabelWithInfo label="Grace Period" info="Time allowed before action" />
@@ -364,7 +395,12 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
 
           <div>
             <LabelWithInfo label="Tariff Profiles" required />
-            <Input disabled={isViewMode} placeholder="" {...register('tariffProfiles')} error={errors.tariffProfiles} />
+            <Select
+              disabled={isViewMode}
+              options={tariffOptions.length > 0 ? tariffOptions : ['Standard Rate (TAR-001)', 'Public Charging Tariff (TAR-002)', 'Green Energy Special (TAR-006)']}
+              {...register('tariffProfiles')}
+              error={errors.tariffProfiles}
+            />
           </div>
 
           <div>

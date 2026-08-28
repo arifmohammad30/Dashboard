@@ -18,6 +18,7 @@ export function useSocketEvents(events) {
       };
       handlersMap[eventName] = handler;
       socket.on(eventName, handler);
+
     });
 
     return () => {

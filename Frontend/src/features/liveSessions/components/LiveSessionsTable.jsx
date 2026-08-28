@@ -10,7 +10,6 @@ import {
   Activity,
   Zap,
   IndianRupee,
-  FileText,
   Clock
 } from 'lucide-react';
 import LiveSessionsRow from './LiveSessionsRow';
@@ -33,7 +32,7 @@ export default function LiveSessionsTable({
   if (loading) {
     return (
       <div className="bg-white rounded-2xl border border-stone-200/80 p-12 text-center text-stone-500 font-medium">
-        Loading active sessions data...
+        Loading live sessions data...
       </div>
     );
   }
@@ -41,23 +40,23 @@ export default function LiveSessionsTable({
   return (
     <div className="bg-white border border-stone-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col min-h-[180px]">
       <div className="overflow-x-auto flex-1 custom-scrollbar">
-        <table className="w-full text-left text-xs border-collapse min-w-[1500px]">
+        <table className="w-full text-left text-xs border-collapse min-w-[1400px]">
           <thead className="bg-[#F8FAFC] border-b border-stone-200">
             <tr>
               <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                 Actions
               </th>
               <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                <div className="flex items-center gap-1.5"><Hash className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Txn Id</div>
+                <div className="flex items-center gap-1.5"><UserIcon className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> EV Driver</div>
               </th>
               <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                <div className="flex items-center gap-1.5"><UserIcon className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> EV Driver</div>
+                <div className="flex items-center gap-1.5"><Layers className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Charge Point</div>
               </th>
               <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                 <div className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Charging Station</div>
               </th>
               <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                <div className="flex items-center gap-1.5"><Layers className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Charge Point</div>
+                <div className="flex items-center gap-1.5"><Hash className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Txn Id</div>
               </th>
               <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                 <div className="flex items-center gap-1.5"><Plug className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Connector</div>
@@ -78,9 +77,6 @@ export default function LiveSessionsTable({
                 <div className="flex items-center gap-1.5"><IndianRupee className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Cost</div>
               </th>
               <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                <div className="flex items-center gap-1.5"><FileText className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Bill ID</div>
-              </th>
-              <th className="px-4 py-3 font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                 <div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Duration</div>
               </th>
             </tr>
@@ -88,8 +84,8 @@ export default function LiveSessionsTable({
           <tbody className="divide-y divide-stone-200/70 bg-white">
             {sessions.length === 0 ? (
               <tr>
-                <td colSpan="13" className="px-4 py-12 text-center text-stone-500 font-medium">
-                  No active live charging sessions found.
+                <td colSpan="12" className="px-4 py-12 text-center text-stone-500 font-medium">
+                  No active charging sessions found.
                 </td>
               </tr>
             ) : (

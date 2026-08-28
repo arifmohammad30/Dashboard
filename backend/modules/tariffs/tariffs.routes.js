@@ -7,6 +7,7 @@ router.get('/export', tariffController.exportTariffsCsv);
 router.get('/', tariffController.getTariffs);
 router.get('/:id', tariffController.getTariffById);
 router.post('/', tariffController.createTariff);
+router.put('/:id', tariffController.updateTariff);
 router.delete('/:id', tariffController.deleteTariff);
 
 export default router;

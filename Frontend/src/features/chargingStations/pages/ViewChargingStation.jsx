@@ -41,11 +41,14 @@ import { getChargingStationById } from '../api/chargingStationService';
 import { getChargePoints } from '../../chargePoints/api/chargePointService';
 import { useToast } from '../../../context/ToastContext';
 import { apiClient } from '../../../lib/apiClient';
-
-
+import { useSocketRoom } from '../../../hooks/useSocketRoom';
 
 export default function ViewChargingStation() {
   const { id } = useParams();
+
+  // Join targeted room chargingstation:<id> with automatic unmount cleanup
+  useSocketRoom(id ? `chargingstation:${id}` : null);
+
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
@@ -123,155 +126,7 @@ export default function ViewChargingStation() {
       });
   }, [station]);
 
-  useEffect(() => {
-    const cps = stationChargePoints.length > 0 ? stationChargePoints : [
-      { id: 'cp-101', name: 'Charge Point 1' },
-      { id: 'cp-102', name: 'Charge Point 2' },
-      { id: 'cp-103', name: 'Charge Point 3' },
-      { id: 'cp-104', name: 'Charge Point 4' },
-    ];
-    const mockTxns = [
-      {
-        txnId: '10463634',
-        connector: 'Type2 (1)',
-        status: 'Stopped',
-        energyDelivered: '1.41 kWh',
-        initialSoc: '-',
-        currentSoc: '85%',
-        meterValues: { energy: '1.408 kWh', power: '0.15 kW', voltage: '241.48 V', current: '0.61 A' },
-        billedAmount: '₹0.00',
-        associatedBill: 'CI03AON3W6',
-        duration: '00:13:12',
-        stopReason: 'Remote',
-        meterStart: '97',
-        startedAt: 'Jul 25, 2026 11:52 am',
-        startedBy: '8142446969',
-        meterStop: '1,505',
-        stoppedAt: 'Jul 25, 2026 12:05 pm',
-        stoppedBy: '8142446969',
-        tariffs: 'Standard Rate',
-        chargePointObj: cps[0] || cps[0],
-        createdOn: 'Jul 25, 2026 11:52 am',
-        ubc: 'No'
-      },
-      {
-        txnId: '10463581',
-        connector: '15A (1)',
-        status: 'Stopped',
-        energyDelivered: '0.75 kWh',
-        initialSoc: '-',
-        currentSoc: '60%',
-        meterValues: { energy: '0.746 kWh', power: '-', voltage: '243.78 V', current: '-' },
-        billedAmount: '₹0.00',
-        associatedBill: 'SSAVNISDJY',
-        duration: '01:01:37',
-        stopReason: 'EVDisconnected',
-        meterStart: '305',
-        startedAt: 'Jul 25, 2026 11:48 am',
-        startedBy: '8142446969',
-        meterStop: '1,051',
-        stoppedAt: 'Jul 25, 2026 12:50 pm',
-        stoppedBy: '8142446969',
-        tariffs: 'Standard Rate',
-        chargePointObj: cps[1] || cps[0],
-        createdOn: 'Jul 25, 2026 11:48 am',
-        ubc: 'No'
-      },
-      {
-        txnId: '10463526',
-        connector: 'Type2 (1)',
-        status: 'Stopped',
-        energyDelivered: '0.00 kWh',
-        initialSoc: '-',
-        currentSoc: '-',
-        meterValues: { energy: '0.003 kWh', power: '0.11 kW', voltage: '246.04 V', current: '0.44 A' },
-        billedAmount: '₹0.00',
-        associatedBill: 'ZJNLJGH5Z4',
-        duration: '00:06:47',
-        stopReason: 'EVDisconnected',
-        meterStart: '94',
-        startedAt: 'Jul 25, 2026 11:44 am',
-        startedBy: '8142446969',
-        meterStop: '97',
-        stoppedAt: 'Jul 25, 2026 11:50 am',
-        stoppedBy: '8142446969',
-        tariffs: 'Standard Rate',
-        chargePointObj: cps[0],
-        createdOn: 'Jul 25, 2026 11:43 am',
-        ubc: 'No'
-      },
-      {
-        txnId: '10463496',
-        connector: 'Type2 (1)',
-        status: 'Stopped',
-        energyDelivered: '15.92 kWh',
-        initialSoc: '18%',
-        currentSoc: '82%',
-        meterValues: { energy: '15.916 kWh', power: '2.76 kW', voltage: '245.55 V', current: '11.25 A' },
-        billedAmount: '₹222.88',
-        associatedBill: 'JG23B80B7T',
-        duration: '02:28:33',
-        stopReason: 'EVDisconnected',
-        meterStart: '211',
-        startedAt: 'Jul 25, 2026 11:41 am',
-        startedBy: '9731799966',
-        meterStop: '16,127',
-        stoppedAt: 'Jul 25, 2026 02:10 pm',
-        stoppedBy: '9731799966',
-        tariffs: 'Peak Rate',
-        chargePointObj: cps[2] || cps[0],
-        createdOn: 'Jul 25, 2026 11:41 am',
-        ubc: 'No'
-      },
-      {
-        txnId: '10463437',
-        connector: 'Type2 (1)',
-        status: 'Stopped',
-        energyDelivered: '0.18 kWh',
-        initialSoc: '-',
-        currentSoc: '-',
-        meterValues: { energy: '0.177 kWh', power: '7.04 kW', voltage: '240.25 V', current: '29.29 A' },
-        billedAmount: '₹0.00',
-        associatedBill: 'OAMBUP9TYO',
-        duration: '00:01:38',
-        stopReason: 'Remote',
-        meterStart: '34',
-        startedAt: 'Jul 25, 2026 11:38 am',
-        startedBy: '9731799966',
-        meterStop: '211',
-        stoppedAt: 'Jul 25, 2026 11:39 am',
-        stoppedBy: '9731799966',
-        tariffs: 'Standard Rate',
-        chargePointObj: cps[3] || cps[0],
-        createdOn: 'Jul 25, 2026 11:38 am',
-        ubc: 'No'
-      },
-      {
-        txnId: '10463390',
-        connector: '15A (2)',
-        status: 'Stopped',
-        energyDelivered: '3.42 kWh',
-        initialSoc: '45%',
-        currentSoc: '90%',
-        meterValues: { energy: '3.420 kWh', power: '3.30 kW', voltage: '238.10 V', current: '13.85 A' },
-        billedAmount: '₹47.88',
-        associatedBill: 'K9P2X71M0Q',
-        duration: '01:04:12',
-        stopReason: 'EVDisconnected',
-        meterStart: '210',
-        startedAt: 'Jul 25, 2026 11:30 am',
-        startedBy: '8142446969',
-        meterStop: '305',
-        stoppedAt: 'Jul 25, 2026 12:34 pm',
-        stoppedBy: '8142446969',
-        tariffs: 'Standard Rate',
-        chargePointObj: cps[1] || cps[0],
-        createdOn: 'Jul 25, 2026 11:30 am',
-        ubc: 'No'
-      }
-    ];
-    setTransactions(mockTxns);
-  }, [station, stationChargePoints]);
+
 
   if (loading) {
     return (
@@ -344,20 +199,16 @@ export default function ViewChargingStation() {
             <Activity strokeWidth={2.25} className={`w-4 h-4 transition-transform ${activeTab === 'transactions' ? 'text-orange-500 scale-105' : 'text-stone-400'
               }`} />
             <span className="font-bold text-xs tracking-tight">Charge Transactions</span>
-            <span className={`px-2 py-0.5 text-[11px] font-mono font-bold rounded transition-colors ${activeTab === 'transactions' ? 'bg-orange-100/80 text-orange-700 border border-orange-200/60' : 'bg-stone-100 text-stone-600 border border-stone-200/60'
-              }`}>
-              {transactions.length}
-            </span>
           </button>
         </div>
 
         <div className="p-6 sm:p-8 flex-1 overflow-y-auto custom-scrollbar">
           {activeTab === 'charge-points' && (
-            <StationChargePointsTab stationName={stationName} />
+            <StationChargePointsTab stationName={stationName} stationId={station?.id || id} />
           )}
 
           {activeTab === 'transactions' && (
-            <StationTransactionsTab transactions={transactions} />
+            <StationTransactionsTab station={station} />
           )}
         </div>
       </div>

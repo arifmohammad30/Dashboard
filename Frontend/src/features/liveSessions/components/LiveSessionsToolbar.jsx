@@ -9,9 +9,12 @@ export default function LiveSessionsToolbar({
   return (
     <div className="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
-        <span className="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-blue-50 text-blue-700 border border-blue-200/80 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-          Streaming Live Telemetry
+        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50/90 text-emerald-800 border border-emerald-200/90 shadow-2xs">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span className="tracking-tight">Streaming Live Telemetry</span>
         </span>
       </div>
 

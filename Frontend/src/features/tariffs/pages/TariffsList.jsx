@@ -5,11 +5,9 @@ import {
   Download,
   Filter,
   Plus,
-  Edit,
-  Trash2,
   Loader2,
-  MoreVertical,
   Settings2,
+
   Tag,
   Zap,
   CreditCard,
@@ -31,11 +29,16 @@ import {
 
 import Pagination from '../../../components/ui/Pagination';
 import ExportButton from '../../../components/ui/ExportButton';
-import DeleteModal from '../../../components/ui/DeleteModal';
+import PrimaryButton from '../../../components/ui/PrimaryButton';
 import FilterSection from '../../../components/ui/FilterSection';
-import { getTariffs, createTariff, deleteTariff, exportTariffs } from '../api/tariffService';
+import TableActions from '../../../components/ui/TableActions';
+import PermissionGuard from '../../../components/ui/PermissionGuard';
+import { PERMISSIONS } from '../../../config/permissions';
+
+import { getTariffs, createTariff, exportTariffs } from '../api/tariffService';
+
 import { useToast } from '../../../context/ToastContext';
-import { filterTableData } from '../../../utils/searchUtils';
+import { useTableData } from '../../../hooks/useTableData';
 
 export default function TariffsList() {
   const navigate = useNavigate();
@@ -43,10 +46,6 @@ export default function TariffsList() {
   const [searchParams] = useSearchParams();
   const initialSearch = searchParams.get('id') || searchParams.get('search') || '';
 
-  const [tariffs, setTariffs] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [filters, setFilters] = useState({ type: [], gstPercentage: [] });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterRef = useRef(null);
@@ -71,25 +70,29 @@ export default function TariffsList() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [tariffToDelete, setTariffToDelete] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const data = await getTariffs();
-      setTariffs(data || []);
-    } catch (err) {
-      console.error("Failed to load tariffs:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    data: tariffs,
+    setData: setTariffs,
+    loading,
+    searchTerm,
+    setSearchTerm,
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    totalItems: totalRecords,
+    itemsPerPage: pageSize,
+    reload: loadData,
+  } = useTableData(
+    (page, limit, search) => getTariffs(page, limit, search, filters),
+    [filters]
+  );
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (initialSearch) {
+      setSearchTerm(initialSearch);
+    }
+  }, [initialSearch, setSearchTerm]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -109,51 +112,10 @@ export default function TariffsList() {
         : [...current, value];
       return { ...prev, [category]: updated };
     });
+    setCurrentPage(1);
   };
 
   const activeFiltersCount = Object.values(filters).reduce((acc, curr) => acc + curr.length, 0);
-
-  const filteredTariffs = useMemo(() => {
-    const categoryFiltered = tariffs.filter((t) => {
-      const matchesType = filters.type.length === 0 || filters.type.includes(t.type);
-      const matchesGst = filters.gstPercentage.length === 0 || filters.gstPercentage.some(g => (t.gstPercentage || '').includes(g));
-      return matchesType && matchesGst;
-    });
-
-    return filterTableData(categoryFiltered, searchTerm, [
-      'id',
-      'name',
-      'code',
-      'type',
-      'costingType',
-      'chargingFee',
-      'gstPercentage'
-    ]);
-  }, [tariffs, searchTerm, filters]);
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-
-  const totalRecords = filteredTariffs.length;
-  const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, filters, pageSize]);
-
-  const startIndex = (currentPage - 1) * pageSize;
-  const paginatedTariffs = filteredTariffs.slice(startIndex, startIndex + pageSize);
-
-  const goToPage = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
-
-  const changePageSize = (size) => {
-    setPageSize(size);
-    setCurrentPage(1);
-  };
 
   const handleCreateTariff = async (e) => {
     e.preventDefault();
@@ -199,26 +161,10 @@ export default function TariffsList() {
     }
   };
 
-  const handleDeleteConfirm = async () => {
-    if (!tariffToDelete) return;
-    setIsDeleting(true);
-    try {
-      await deleteTariff(tariffToDelete.id);
-      setTariffs(prev => prev.filter(t => t.id !== tariffToDelete.id));
-      setDeleteModalOpen(false);
-      setTariffToDelete(null);
-      toast.success("Tariff structure deleted successfully", { code: 200 });
-    } catch (err) {
-      console.error("Failed to delete tariff:", err);
-      toast.error("Failed to delete tariff structure", { code: 500 });
-    } finally {
-      setIsDeleting(false);
-    }
-  };
 
   const handleExportCSV = async () => {
     try {
-      await exportTariffs(searchTerm);
+      await exportTariffs(searchTerm, filters);
       toast.success("Tariff CSV export downloaded from backend server.", {
         title: 'Backend Export Complete',
         code: 200
@@ -245,10 +191,12 @@ export default function TariffsList() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <ExportButton
-            onExport={handleExportCSV}
-            label="Export"
-          />
+          <PermissionGuard permission={PERMISSIONS.TARIFF_EXPORT}>
+            <ExportButton
+              onExport={handleExportCSV}
+              label="Export"
+            />
+          </PermissionGuard>
 
           <div className="relative" ref={filterRef}>
             <button
@@ -299,13 +247,12 @@ export default function TariffsList() {
             )}
           </div>
 
-          <button
-            onClick={() => navigate('/tariffs/new')}
-            className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-gradient-to-b from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-bold rounded-xl text-xs border border-orange-800/40 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_1px_3px_rgba(0,0,0,0.12)] active:scale-[0.98] transition-all duration-150 cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5 stroke-[2.5] text-white/95" />
-            <span className="leading-none tracking-tight">Add New Tariff</span>
-          </button>
+          <PermissionGuard permission={PERMISSIONS.TARIFF_CREATE}>
+            <PrimaryButton
+              onClick={() => navigate('/tariffs/new')}
+              label="Add New Tariff"
+            />
+          </PermissionGuard>
         </div>
       </div>
 
@@ -332,49 +279,31 @@ export default function TariffsList() {
 
         <div className="overflow-x-auto scrollbar-none flex-1 transform-gpu translate-z-0">
           <table className="w-full text-left text-xs border-collapse">
-            <thead className="bg-[#F8FAFC] border-b border-stone-200">
-              <tr className="bg-[#F8FAFC]">
-                <th className="px-4 py-3 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+            <thead className="bg-[#F8FAFC] border-b border-stone-200/80">
+              <tr>
+                <th className="px-4 py-3 text-center font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap rounded-l-xl">
                   <div className="flex items-center justify-center gap-1.5"><Settings2 className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Actions</div>
                 </th>
                 <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-1.5"><Tag className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Name</div>
+                  <div className="flex items-center gap-1.5"><Tag className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Tariff</div>
                 </th>
                 <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   <div className="flex items-center gap-1.5"><Layers className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Type</div>
                 </th>
                 <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Costing Type</div>
+                  <div className="flex items-center gap-1.5"><Layers className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Status</div>
                 </th>
                 <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Applicable To</div>
+                  <div className="flex items-center gap-1.5"><IndianRupee className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Energy Rate</div>
                 </th>
                 <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-1.5"><IndianRupee className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Charging Fee</div>
+                  <div className="flex items-center gap-1.5"><Percent className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> GST</div>
                 </th>
                 <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-1.5"><Car className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Parking Fee</div>
+                  <div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Pricing</div>
                 </th>
-                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Idle Fee</div>
-                </th>
-                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-1.5"><Gauge className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> SoC</div>
-                </th>
-                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-1.5"><Play className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Starts At</div>
-                </th>
-                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-1.5"><Square className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Ends At</div>
-                </th>
-                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-1.5"><Layers className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Weight</div>
-                </th>
-                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Created On</div>
-                </th>
-                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
-                  <div className="flex items-center gap-1.5"><Percent className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> GST Percentage</div>
+                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap rounded-r-xl">
+                  <div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-stone-400 stroke-[1.75]" /> Updated</div>
                 </th>
               </tr>
             </thead>
@@ -382,18 +311,18 @@ export default function TariffsList() {
             <tbody className="divide-y divide-stone-200/70 bg-white text-xs font-medium">
               {loading ? (
                 <tr>
-                  <td colSpan="14" className="px-4 py-12 text-center">
+                  <td colSpan="8" className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <Loader2 className="w-8 h-8 text-sky-500 animate-spin" />
+                      <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
                       <p className="text-sm font-bold text-stone-500">Loading tariffs...</p>
                     </div>
                   </td>
                 </tr>
-              ) : paginatedTariffs.length === 0 ? (
+              ) : tariffs.length === 0 ? (
                 <tr>
-                  <td colSpan="14" className="px-4 py-12 text-center">
+                  <td colSpan="8" className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <div className="w-12 h-12 rounded-2xl bg-white/40 border border-white/60 flex items-center justify-center text-sky-400 mb-1">
+                      <div className="w-12 h-12 rounded-2xl bg-white/40 border border-white/60 flex items-center justify-center text-orange-500 mb-1">
                         <Search className="w-6 h-6" />
                       </div>
                       <p className="text-sm font-bold text-stone-500">No tariffs found.</p>
@@ -401,87 +330,115 @@ export default function TariffsList() {
                   </td>
                 </tr>
               ) : (
-                paginatedTariffs.map((t) => (
-                  <tr
-                    key={t.id}
-                    className="group hover:bg-[#F8FAFF] transition-colors duration-150 cursor-pointer"
-                  >
-                    <td className="px-4 py-3 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <button
-                          onClick={(e) => {
+                tariffs.map((t) => {
+                  const status = t.status || 'Active';
+                  const isActive = status === 'Active';
+
+                  const typeClass = t.type === 'ToD'
+                    ? 'bg-purple-50 text-purple-700 border-purple-200/80'
+                    : 'bg-slate-100 text-slate-700 border-slate-200/80';
+
+                  const config = t.pricingConfig || {};
+                  const hasTod = (config.peakPeriods?.length > 0) || (config.offPeakPeriods?.length > 0);
+                  const hasSoc = (config.normalPricing?.socRanges?.length > 0) ||
+                    (config.peakPeriods?.some(p => p.socRanges?.length > 0)) ||
+                    (config.offPeakPeriods?.some(p => p.socRanges?.length > 0));
+
+                  let pricingSummary = 'Flat';
+                  if (hasTod && hasSoc) pricingSummary = 'ToD + SOC';
+                  else if (hasTod) pricingSummary = 'ToD';
+                  else if (hasSoc) pricingSummary = 'SOC';
+
+                  const pricingTagClass = pricingSummary === 'ToD + SOC'
+                    ? 'bg-indigo-50 text-indigo-700 border-indigo-200/80'
+                    : pricingSummary === 'ToD'
+                    ? 'bg-purple-50 text-purple-700 border-purple-200/80'
+                    : pricingSummary === 'SOC'
+                    ? 'bg-teal-50 text-teal-700 border-teal-200/80'
+                    : 'bg-stone-100 text-stone-600 border-stone-200/80';
+
+                  return (
+                    <tr
+                      key={t.id}
+                      className="group hover:bg-stone-50/80 transition-colors duration-150 cursor-pointer"
+                    >
+                      {/* 1. Actions */}
+                      <td className="px-4 py-3 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        <TableActions
+                          onEdit={(e) => {
                             e.stopPropagation();
                             navigate(`/tariffs/edit/${t.id}`, { state: { tariff: t } });
                           }}
-                          className="p-1.5 text-sky-600 bg-white/70 border border-sky-100 hover:bg-sky-500 hover:text-white rounded-xl shadow-xs hover:shadow-md transition active:scale-95 duration-200 cursor-pointer"
-                          title="Edit Tariff"
-                        >
-                          <Edit className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </td>
+                          editTitle="Edit Tariff"
+                          editPermission={PERMISSIONS.TARIFF_UPDATE}
+                          deletePermission={PERMISSIONS.TARIFF_DELETE}
+                        />
+                      </td>
 
-                    <td className="px-4 py-3 text-left whitespace-nowrap" onClick={(e) => {
-                      e.stopPropagation();
-                      setTariffToView(t);
-                      setViewModalOpen(true);
-                    }}>
-                      <span className="text-sky-600 font-bold text-[13px] hover:text-sky-700 transition-colors duration-200 cursor-pointer">
-                        {t.name}
-                      </span>
-                    </td>
 
-                    <td className="px-4 py-3 text-left whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-stone-100 text-stone-600 border border-stone-200/80">
-                        {t.type || 'Default'}
-                      </span>
-                    </td>
 
-                    <td className="px-4 py-3 text-left whitespace-nowrap">
-                      <span className="text-stone-700 text-[13px] font-medium">{t.costingType}</span>
-                    </td>
+                      {/* 2. Tariff (Name + Code) */}
+                      <td className="px-4 py-3 text-left whitespace-nowrap" onClick={(e) => {
+                        e.stopPropagation();
+                        setTariffToView(t);
+                        setViewModalOpen(true);
+                      }}>
+                        <div className="flex flex-col">
+                          <span className="text-slate-900 font-semibold text-[13px] hover:text-orange-600 transition-colors duration-150 cursor-pointer">
+                            {t.name}
+                          </span>
+                          <span className="text-[10px] font-mono font-medium text-stone-400">
+                            {t.code}
+                          </span>
+                        </div>
+                      </td>
 
-                    <td className="px-4 py-3 text-left whitespace-nowrap">
-                      <span className="text-stone-700 text-[13px] font-medium">{t.applicableTo || 'All Fleets'}</span>
-                    </td>
+                      {/* 3. Type */}
+                      <td className="px-4 py-3 text-left whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${typeClass}`}>
+                          {t.type || 'Default'}
+                        </span>
+                      </td>
 
-                    <td className="px-4 py-3 text-left whitespace-nowrap">
-                      <span className="text-stone-800 font-bold text-[13px]">{t.chargingFee}</span>
-                    </td>
+                      {/* 4. Status */}
+                      <td className="px-4 py-3 text-left whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                          isActive
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
+                            : 'bg-stone-100 text-stone-600 border-stone-200/80'
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${isActive ? 'bg-emerald-500' : 'bg-stone-400'}`} />
+                          {status}
+                        </span>
+                      </td>
 
-                    <td className="px-4 py-3 text-left whitespace-nowrap">
-                      <span className="text-stone-500 text-[13px] font-medium">{t.parkingFee}</span>
-                    </td>
+                      {/* 5. Energy Rate */}
+                      <td className="px-4 py-3 text-left whitespace-nowrap">
+                        <span className="text-slate-900 font-semibold text-[13px]">{t.chargingFee}</span>
+                      </td>
 
-                    <td className="px-4 py-3 text-left whitespace-nowrap">
-                      <span className="text-stone-700 text-[13px] font-medium">{t.idleFee}</span>
-                    </td>
 
-                    <td className="px-4 py-3 text-left whitespace-nowrap">
-                      <span className="text-stone-500 text-[13px] font-medium">{t.soc}</span>
-                    </td>
+                      {/* 6. GST */}
+                      <td className="px-4 py-3 text-left whitespace-nowrap">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded bg-stone-100/90 text-stone-700 font-mono text-[11px] font-bold border border-stone-200/70">
+                          {t.gstPercentage}
+                        </span>
+                      </td>
 
-                    <td className="px-4 py-3 text-left whitespace-nowrap">
-                      <span className="text-stone-700 text-[13px] font-medium">{t.startsAt}</span>
-                    </td>
+                      {/* 7. Pricing Summary */}
+                      <td className="px-4 py-3 text-left whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${pricingTagClass}`}>
+                          {pricingSummary}
+                        </span>
+                      </td>
 
-                    <td className="px-4 py-3 text-left whitespace-nowrap">
-                      <span className="text-stone-700 text-[13px] font-medium">{t.endsAt}</span>
-                    </td>
-
-                    <td className="px-4 py-3 text-left whitespace-nowrap">
-                      <span className="text-stone-800 font-bold text-[13px]">{t.weight}</span>
-                    </td>
-
-                    <td className="px-4 py-3 text-left whitespace-nowrap">
-                      <span className="text-stone-500 font-medium text-[12px]">{t.createdOn}</span>
-                    </td>
-
-                    <td className="px-4 py-3 text-left rounded-r-xl whitespace-nowrap">
-                      <span className="text-stone-800 font-bold text-[13px]">{t.gstPercentage}</span>
-                    </td>
-                  </tr>
-                ))
+                      {/* 8. Updated */}
+                      <td className="px-4 py-3 text-left whitespace-nowrap">
+                        <span className="text-stone-500 text-xs font-medium">{t.createdOn}</span>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -491,10 +448,9 @@ export default function TariffsList() {
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
-            onPageChange={goToPage}
-            pageSize={pageSize}
-            onPageSizeChange={changePageSize}
-            totalRecords={totalRecords}
+            onPageChange={setCurrentPage}
+            totalItems={totalRecords}
+            itemsPerPage={pageSize}
           />
         </div>
       </div>
@@ -626,7 +582,17 @@ export default function TariffsList() {
 
             <div className="grid grid-cols-2 gap-4 py-2">
               <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
-                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Charging Fee</span>
+                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Tariff Code</span>
+                <span className="text-xs font-mono font-extrabold text-slate-800">{tariffToView.code || '-'}</span>
+              </div>
+
+              <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
+                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Status</span>
+                <span className="text-xs font-black text-emerald-600">{tariffToView.status || 'Active'}</span>
+              </div>
+
+              <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
+                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Base Energy Fee (Normal)</span>
                 <span className="text-sm font-black text-stone-800">{tariffToView.chargingFee}</span>
               </div>
 
@@ -636,28 +602,22 @@ export default function TariffsList() {
               </div>
 
               <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
-                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Costing Type</span>
-                <span className="text-sm font-black text-stone-800">{tariffToView.costingType}</span>
+                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Peak Periods</span>
+                <span className="text-xs font-extrabold text-rose-600">
+                  {tariffToView.pricingConfig?.peakPeriods?.length > 0 ? `${tariffToView.pricingConfig.peakPeriods.length} Period(s)` : 'None'}
+                </span>
               </div>
 
               <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
-                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Applicable To</span>
-                <span className="text-sm font-black text-sky-600">{tariffToView.applicableTo}</span>
+                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Off-Peak Periods</span>
+                <span className="text-xs font-extrabold text-sky-600">
+                  {tariffToView.pricingConfig?.offPeakPeriods?.length > 0 ? `${tariffToView.pricingConfig.offPeakPeriods.length} Period(s)` : 'None'}
+                </span>
               </div>
 
               <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
                 <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Parking Fee</span>
-                <span className="text-sm font-black text-stone-800">{tariffToView.parkingFee}</span>
-              </div>
-
-              <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
-                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Idle Fee</span>
-                <span className="text-sm font-black text-stone-800">{tariffToView.idleFee}</span>
-              </div>
-
-              <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
-                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Weight</span>
-                <span className="text-sm font-black text-stone-800">{tariffToView.weight}</span>
+                <span className="text-xs font-extrabold text-stone-800">{tariffToView.parkingFee}</span>
               </div>
 
               <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
@@ -666,10 +626,19 @@ export default function TariffsList() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end pt-4 mt-2 border-t border-stone-100">
+            <div className="flex items-center justify-end gap-2 pt-4 mt-2 border-t border-stone-100">
+              <button
+                onClick={() => {
+                  setViewModalOpen(false);
+                  navigate(`/tariffs/edit/${tariffToView.id}`, { state: { tariff: tariffToView } });
+                }}
+                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5"
+              >
+                <Edit className="w-3.5 h-3.5" /> Edit Tariff
+              </button>
               <button
                 onClick={() => setViewModalOpen(false)}
-                className="px-5 py-2 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl text-xs shadow-md transition cursor-pointer"
+                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-xl text-xs transition cursor-pointer"
               >
                 Close Details
               </button>
@@ -678,19 +647,7 @@ export default function TariffsList() {
         </div>
       )}
 
-      {deleteModalOpen && tariffToDelete && (
-        <DeleteModal
-          isOpen={deleteModalOpen}
-          onClose={() => {
-            setDeleteModalOpen(false);
-            setTariffToDelete(null);
-          }}
-          onConfirm={handleDeleteConfirm}
-          itemName={tariffToDelete.name}
-          itemType="Tariff"
-          isDeleting={isDeleting}
-        />
-      )}
+
     </div>
   );
 }

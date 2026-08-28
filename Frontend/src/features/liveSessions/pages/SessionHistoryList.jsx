@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { useToast } from '../../../context/ToastContext';
 import { useSessionHistory } from '../hooks/useSessionHistory';
 import { useLookupMaps } from '../hooks/useLookupMaps';
 import { exportSessionsToCsv } from '../utils/exportSessionsCsv';
+import { apiClient } from '../../../lib/apiClient';
 import SessionHistoryToolbar from '../components/SessionHistoryToolbar';
 import SessionHistoryTable from '../components/SessionHistoryTable';
 
@@ -21,6 +22,10 @@ export default function SessionHistoryList() {
     totalPages,
     filteredSessions,
     paginatedSessions,
+    filters,
+    handleFilterChange,
+    clearFilters,
+    activeFiltersCount,
     handleSearch,
     handleTabChange,
     setCurrentPage
@@ -28,8 +33,29 @@ export default function SessionHistoryList() {
 
   const { resolveStation, resolveChargePoint } = useLookupMaps();
 
+  const [stationOptions, setStationOptions] = useState([]);
+  const [cpOptions, setCpOptions] = useState([]);
+
+  useEffect(() => {
+    apiClient('/api/charging-stations?limit=100')
+      .then(res => {
+        const list = Array.isArray(res) ? res : (res?.data || []);
+        const names = Array.from(new Set(list.map(s => s.name).filter(Boolean))).sort();
+        setStationOptions(names);
+      })
+      .catch(() => {});
+
+    apiClient('/api/charge-points?limit=100')
+      .then(res => {
+        const list = Array.isArray(res) ? res : (res?.data || []);
+        const names = Array.from(new Set(list.map(cp => cp.name || cp.code).filter(Boolean))).sort();
+        setCpOptions(names);
+      })
+      .catch(() => {});
+  }, []);
+
   const handleExportCsv = () => {
-    exportSessionsToCsv(toast, { status: activeTab, search: searchTerm });
+    exportSessionsToCsv(toast, { status: activeTab, search: searchTerm, filters });
   };
 
   const handleNavigateStation = (stationObj) => {
@@ -73,6 +99,12 @@ export default function SessionHistoryList() {
         searchTerm={searchTerm}
         onSearchChange={handleSearch}
         onExportCsv={handleExportCsv}
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onClearFilters={clearFilters}
+        activeFiltersCount={activeFiltersCount}
+        stationOptions={stationOptions}
+        cpOptions={cpOptions}
         onNavigateActiveSessions={() => navigate('/live-sessions')}
       />
 

@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+@theme {
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
 :root {
   --neo-bg-60: rgba(255, 255, 255, 0.85);
   --neo-bg-30: rgba(255, 255, 255, 0.65);
@@ -10,15 +14,20 @@
   --shadow-accent-dark: rgba(20, 184, 166, 0.3);
 }
 
-html {
+html, body {
   font-size: 90%;
-}
-
-body {
   background-color: #f8fafc;
   color: #292524;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   transition: background-color 0.5s ease;
+}
+
+*, ::before, ::after, button, input, select, textarea, label, h1, h2, h3, h4, h5, h6, p, span, div, a {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+code, kbd, samp, pre, .font-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
 }
 
 @layer components {
@@ -91,20 +100,25 @@ body {
   }
 
   .neo-form-input {
-    background-color: var(--neo-bg-10);
-    box-shadow: inset 3px 3px 6px rgba(120, 113, 108, 0.12), inset -3px -3px 6px var(--shadow-light);
+    background-color: #fcfdfd;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: inset 2px 2px 4px rgba(120, 113, 108, 0.05);
     transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     outline: none;
   }
 
-  .neo-form-input:focus {
-    box-shadow: inset 3px 3px 6px rgba(120, 113, 108, 0.2), inset -3px -3px 6px var(--shadow-light);
+  .neo-form-input:hover:not(:disabled) {
+    background-color: #f8fafc;
+    border-color: rgba(203, 213, 225, 1);
   }
 
+  .neo-form-input:focus,
   .neo-form-input.has-value,
   input.neo-form-input:not([type="time"]):not([type="date"]):not(:placeholder-shown),
   select.neo-form-input.has-value {
-    box-shadow: inset 3px 3px 6px rgba(249, 115, 22, 0.15), inset -3px -3px 6px var(--shadow-light);
+    background-color: #ffffff;
+    border-color: rgba(148, 163, 184, 1);
+    box-shadow: inset 3px 3px 6px rgba(120, 113, 108, 0.1);
   }
 
   .neo-form-input:-webkit-autofill,
@@ -113,8 +127,10 @@ body {
   .neo-form-input:-webkit-autofill:active {
     transition: background-color 5000s ease-in-out 0s !important;
     -webkit-text-fill-color: #292524 !important;
-    -webkit-box-shadow: inset 3px 3px 6px rgba(249, 115, 22, 0.15), inset -3px -3px 6px var(--shadow-light) !important;
+    -webkit-box-shadow: inset 3px 3px 6px rgba(120, 113, 108, 0.1) !important;
   }
+
+
 
   .neo-form-error {
     box-shadow: inset 3px 3px 6px rgba(244, 63, 94, 0.25), inset -3px -3px 6px rgba(255, 228, 230, 0.8) !important;
@@ -244,47 +260,57 @@ body {
   }
 }
 
-body.is-scrolling * { pointer-events: none !important; }
+/* Hide all scrollbars visually across all containers, pages, navbars & sidebars while preserving full scroll functionality */
+*,
+*::before,
+*::after,
+html,
+body,
+div,
+main,
+nav,
+aside,
+section,
+header,
+footer,
+table,
+tbody,
+ul,
+ol {
+  -ms-overflow-style: none !important; /* IE and Edge */
+  scrollbar-width: none !important;    /* Firefox */
+}
 
-/* Hide horizontal bottom scrollbars visually across all containers */
-*::-webkit-scrollbar:horizontal,
-html::-webkit-scrollbar:horizontal,
-body::-webkit-scrollbar:horizontal,
-div::-webkit-scrollbar:horizontal,
-main::-webkit-scrollbar:horizontal,
-table::-webkit-scrollbar:horizontal,
-tbody::-webkit-scrollbar:horizontal {
+*::-webkit-scrollbar,
+*::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-track,
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+div::-webkit-scrollbar,
+main::-webkit-scrollbar,
+nav::-webkit-scrollbar,
+aside::-webkit-scrollbar,
+section::-webkit-scrollbar,
+header::-webkit-scrollbar,
+table::-webkit-scrollbar,
+tbody::-webkit-scrollbar {
   display: none !important;
+  width: 0 !important;
   height: 0 !important;
-}
-
-/* Slim, mature & premium vertical side scrollbars */
-*::-webkit-scrollbar:vertical,
-html::-webkit-scrollbar:vertical,
-body::-webkit-scrollbar:vertical,
-div::-webkit-scrollbar:vertical,
-main::-webkit-scrollbar:vertical,
-table::-webkit-scrollbar:vertical,
-tbody::-webkit-scrollbar:vertical {
-  width: 5px !important;
-}
-
-*::-webkit-scrollbar-track:vertical {
   background: transparent !important;
 }
 
-*::-webkit-scrollbar-thumb:vertical {
-  background: rgba(203, 213, 225, 0.7) !important;
-  border-radius: 9999px !important;
-  transition: background-color 0.2s ease !important;
+.custom-scrollbar,
+.scrollbar-thin,
+.scrollbar-none {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
-*::-webkit-scrollbar-thumb:vertical:hover {
-  background: rgba(148, 163, 184, 0.9) !important;
-}
-
-/* Firefox slim scrollbar support */
-* {
-  scrollbar-width: thin !important;
-  scrollbar-color: rgba(203, 213, 225, 0.7) transparent !important;
+.custom-scrollbar::-webkit-scrollbar,
+.scrollbar-thin::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }

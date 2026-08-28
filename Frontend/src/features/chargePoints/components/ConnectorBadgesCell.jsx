@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { getConnectorText } from '../utils/chargePointFormatters';
+import { getConnectorText } from '../utils/formatters';
 
-export default function ConnectorBadgesCell({ connectors }) {
+export const ConnectorBadgesCell = ({ connectors }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (!connectors || !Array.isArray(connectors) || connectors.length === 0) {
@@ -43,4 +43,6 @@ export default function ConnectorBadgesCell({ connectors }) {
       )}
     </div>
   );
-}
+};
+
+export default ConnectorBadgesCell;

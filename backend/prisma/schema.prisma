@@ -7,6 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+
 model ChargingStation {
   id               String        @id @default(uuid())
   name             String        @unique
@@ -34,9 +36,11 @@ model Tariff {
   name          String
   code          String        @unique
   type          String        @default("Default")
+  status        String        @default("Active")
   baseRate      Float         @default(15.0)
   gstPercentage Float         @default(18.0)
   description   String?
+  pricingConfig String?
 
   // Relational fields
   chargePoints  ChargePoint[]
@@ -130,6 +134,9 @@ model LiveSession {
   chargeTxCode      String?
   billCode          String?
 
+  billId            String?         @unique
+  bill              Bill?           @relation(fields: [billId], references: [id])
+
   // Foreign Keys
   userId            String
   user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -152,6 +159,32 @@ model LiveSession {
   updatedAt         DateTime        @updatedAt
 }
 
+model Bill {
+  id                      String       @id @default(uuid())
+  billNumber              String       @unique
+  billStatus              String       @default("Unpaid") // Unpaid, Paid, Not Generated
+  chargeTransactionStatus String       @default("Completed")
+
+  chargeTransaction       String
+  energyDelivered         String
+  appliedDiscount         String?      @default("-")
+  amount                  Float        @default(0.0)
+  fleet                   String?      @default("-")
+  method                  String?      @default("User Wallet")
+  driverName              String?
+  driverInitials          String?
+  driverColor             String?
+  invoiceAvailable        Boolean      @default(true)
+  chargePoint             String?
+  generatedOn             DateTime     @default(now())
+
+  session                 LiveSession?
+
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
+}
+
+
 model SessionLog {
   id            String      @id @default(uuid())
   command       String
@@ -165,5 +198,52 @@ model SessionLog {
   session       LiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   createdAt     DateTime    @default(now())
+}
+
+model Fleet {
+  id                     String   @id @default(uuid())
+  name                   String   @unique
+  operatorCode           String   @unique
+  ownerName              String?
+  ownerEmail             String?
+  accessCodeUsage        String?  @default("Open To Everyone")
+  paymentType            String?  @default("Prepaid")
+  gstin                  String?
+  companyName            String?
+  companyEmail           String?
+  companyPhone           String?
+  driverCount            Int      @default(0)
+  availableWalletBalance Float    @default(0.0)
+  status                 String   @default("Active")
+  contactEmail           String?
+  contactPhone           String?
+  address                String?
+
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model Discount {
+  id                    String    @id @default(uuid())
+  name                  String    @unique
+  code                  String?   @unique
+  description           String?
+  type                  String    @default("Percentage Discounts") // Percentage Discounts, Fixed Amount, Discounted Tariff Rates
+  value                 Float     @default(0.0)
+  status                String    @default("Active") // Active, Inactive, Expired
+  expiresOn             DateTime?
+  conditionType         String    @default("OR") // OR, AND
+  appVariants           String    @default("All") // All, Selected
+  userAccess            String    @default("All") // All, Selected
+  selectedUsers         String?   @default("[]") // JSON array of selected users
+  fleetsAccess          String    @default("All") // All, Selected
+  selectedFleets        String?   @default("[]") // JSON array of selected fleets
+  chargingStationsAccess String    @default("All") // All, Selected
+  selectedStations      String?   @default("[]") // JSON array of selected stations
+  chargePointsAccess    String    @default("All") // All, Selected
+  selectedChargePoints  String?   @default("[]") // JSON array of selected charge points
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 }
 

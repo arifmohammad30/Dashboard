@@ -104,23 +104,23 @@ const Select = forwardRef(({
         disabled={disabled}
         onClick={() => !disabled && setIsOpen(!isOpen)}
         className={`w-full flex items-center justify-between ${
-          buttonClassName || 'py-2.5 px-4 text-sm bg-white'
+          buttonClassName || 'py-2.5 px-4 text-xs bg-white'
         } border ${
-          error ? 'border-rose-400 focus:ring-rose-200' : isOpen ? 'border-slate-800 ring-2 ring-slate-800/10' : 'border-stone-200 hover:border-stone-300'
-        } rounded-xl font-medium text-stone-800 shadow-2xs transition-all duration-200 outline-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${className}`}
+          error ? 'border-rose-400' : isOpen ? 'border-slate-800' : 'border-stone-200/90 hover:border-stone-300'
+        } rounded-xl font-medium text-stone-800 transition-all duration-150 outline-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${className}`}
       >
         <span className={activeValue ? 'text-stone-900 font-bold' : 'text-stone-400'}>
           {currentDisplayLabel()}
         </span>
         <ChevronDown
-          className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-200 ease-in-out shrink-0 ${
-            isOpen ? 'rotate-180 text-sky-600' : ''
+          className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-150 ease-in-out shrink-0 ${
+            isOpen ? 'rotate-180 text-slate-800' : ''
           }`}
         />
       </button>
 
       {isOpen && !disabled && (
-        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-[#F8FAFC] border border-stone-200/90 shadow-xl rounded-2xl p-1.5 max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute left-0 right-0 top-full mt-1 z-[99] bg-white border border-stone-200/90 shadow-lg rounded-xl p-1 max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
           {options.map((opt) => {
             const val = typeof opt === 'object' ? opt.value : opt;
             const lbl = typeof opt === 'object' ? opt.label : opt;
@@ -130,19 +130,20 @@ const Select = forwardRef(({
               <div
                 key={val}
                 onClick={() => handleSelectOption(opt)}
-                className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition-colors duration-150 mb-1 last:mb-0 ${
+                className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold cursor-pointer transition-colors duration-150 mb-0.5 last:mb-0 ${
                   isSelected
-                    ? 'bg-slate-900 text-white font-bold shadow-xs'
-                    : 'bg-stone-100/70 text-stone-700 hover:bg-slate-200/90 hover:text-slate-900 border border-stone-200/40'
+                    ? 'bg-slate-900 text-white font-bold'
+                    : 'text-stone-700 hover:bg-stone-100 hover:text-slate-900'
                 }`}
               >
                 <span>{lbl}</span>
-                {isSelected && <Check className="w-3.5 h-3.5 text-sky-400" />}
+                {isSelected && <Check className="w-3.5 h-3.5 text-orange-400" />}
               </div>
             );
           })}
         </div>
       )}
+
 
       {error && (
         <p className="mt-1.5 text-xs font-bold text-rose-500">

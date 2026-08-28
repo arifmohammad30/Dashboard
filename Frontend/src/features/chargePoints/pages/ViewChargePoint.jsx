@@ -4,7 +4,6 @@ import BackButton from '../../../components/ui/BackButton';
 import Select from '../../../components/ui/Select';
 import ChargePointStatsTab from '../components/ChargePointStatsTab';
 import ChargePointConnectorsTab from '../components/ChargePointConnectorsTab';
-import ChargePointLogsTab from '../components/ChargePointLogsTab';
 import ChargePointTransactionsTab from '../components/ChargePointTransactionsTab';
 import ChargePointConfigTab from '../components/ChargePointConfigTab';
 import ChargePointControlTab from '../components/ChargePointControlTab';
@@ -63,8 +62,8 @@ export default function ViewChargePoint({ defaultTab }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialData = location.state?.chargePoint;
 
-  const validTabs = ['stats', 'connectors', 'logs', 'transactions', 'config', 'control', 'tariffs'];
-  const tabFromUrl = searchParams.get('tab') || (location.pathname.endsWith('/logs') ? 'logs' : defaultTab);
+  const validTabs = ['stats', 'connectors', 'transactions', 'config', 'control', 'tariffs'];
+  const tabFromUrl = searchParams.get('tab') || defaultTab;
   const activeTab = validTabs.includes(tabFromUrl) ? tabFromUrl : 'stats';
 
   const handleTabChange = (tabId) => {
@@ -75,43 +74,24 @@ export default function ViewChargePoint({ defaultTab }) {
   const [loading, setLoading] = useState(!initialData && Boolean(id));
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
-  const [firmwareUrl, setFirmwareUrl] = useState('');
-  const [firmwareDate, setFirmwareDate] = useState('');
-
-  const [localTagUpdateType, setLocalTagUpdateType] = useState('');
-  const [localTagIdTags, setLocalTagIdTags] = useState('');
-
-  const [triggerMessage, setTriggerMessage] = useState('');
-  const [triggerConnectorId, setTriggerConnectorId] = useState('All');
-
-  const [diagUrl, setDiagUrl] = useState('');
-  const [diagRetries, setDiagRetries] = useState('');
-  const [diagInterval, setDiagInterval] = useState('');
-  const [diagStartDate, setDiagStartDate] = useState('');
-  const [diagEndDate, setDiagEndDate] = useState('');
-
-  const [dataVendorId, setDataVendorId] = useState('');
-  const [dataMessageId, setDataMessageId] = useState('');
-  const [dataPayload, setDataPayload] = useState('');
-
-  const [actionFeedback, setActionFeedback] = useState(null);
   const [openDropdownIds, setOpenDropdownIds] = useState({});
   const [connectorStatusMap, setConnectorStatusMap] = useState({});
 
   const cpObj = chargePoint || initialData || {};
   let rawConnArray = [];
-  if (Array.isArray(cpObj.connectors) && cpObj.connectors.length > 0) {
+  if (Array.isArray(cpObj.connectors)) {
     rawConnArray = cpObj.connectors;
   } else if (typeof cpObj.connectors === 'string' && cpObj.connectors.trim() !== '') {
     try {
       const parsed = JSON.parse(cpObj.connectors);
-      rawConnArray = Array.isArray(parsed) && parsed.length > 0 ? parsed : [cpObj.connectors];
+      rawConnArray = Array.isArray(parsed) ? parsed : [];
     } catch (e) {
-      rawConnArray = [cpObj.connectors];
+      rawConnArray = [];
     }
   } else {
-    rawConnArray = ['15A (1)', '15A (2)', '15A (3)'];
+    rawConnArray = [];
   }
+
 
   const connectorIdOptions = useMemo(() => {
     const opts = [{ value: 'All', label: 'All' }];
@@ -146,7 +126,7 @@ export default function ViewChargePoint({ defaultTab }) {
               return;
             }
           } catch { }
-          setChargePoint(prev => prev || { name: decodeURIComponent(id), code: 'CP-001' });
+          setChargePoint(null);
         })
         .finally(() => setLoading(false));
     }
@@ -161,44 +141,37 @@ export default function ViewChargePoint({ defaultTab }) {
     );
   }
 
-  const cp = chargePoint || {
-    name: 'Techops Testing',
-    stage: 'Inactive',
-    code: 'CP-1001',
-    cpId: 'CP25R63RV8',
-    chargingStation: 'Sobha Chrysanthemum, Bengaluru',
-    manufacturer: 'Siemens',
-    type: 'AC',
-    mode: 'Public',
-    accessibility: 'Public',
-    exclusive: 'Exclusive',
-    gracePeriod: 10,
-    tariffProfiles: 'Standard Rate',
-    settlementProfile: 'Monthly',
-    connectors: ['15A (1)', '15A (2)', '15A (3)'],
-    totalSessions: 2,
-    energyDelivered: 42.44,
-    revenueGenerated: 579.95,
-    firmwareVersion: '2.0.2 & 1.2.6',
-    totalCapacity: '9.9 kW',
-    lastActive: '10 mins ago'
-  };
+  if (!chargePoint) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
+        <div className="w-12 h-12 rounded-2xl bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-400">
+          <Info className="w-6 h-6" />
+        </div>
+        <p className="text-sm font-bold text-stone-700">Charge point record not found in database.</p>
+        <BackButton to="/charge-points" label="Back to Charge Points" />
+      </div>
+    );
+  }
+
+  const cp = chargePoint;
+
 
   const isOffline = cp.stage === 'Inactive' || cp.stage === 'Offline';
 
   let rawConnectors = [];
-  if (Array.isArray(cp.connectors) && cp.connectors.length > 0) {
+  if (Array.isArray(cp.connectors)) {
     rawConnectors = cp.connectors;
   } else if (typeof cp.connectors === 'string' && cp.connectors.trim() !== '') {
     try {
       const parsed = JSON.parse(cp.connectors);
-      rawConnectors = Array.isArray(parsed) && parsed.length > 0 ? parsed : [cp.connectors];
+      rawConnectors = Array.isArray(parsed) ? parsed : [];
     } catch (e) {
-      rawConnectors = [cp.connectors];
+      rawConnectors = [];
     }
   } else {
-    rawConnectors = ['15A (1)', '15A (2)', '15A (3)'];
+    rawConnectors = [];
   }
+
 
   const connectorRows = rawConnectors.map((c, index) => {
     const connId = index + 1;
@@ -226,7 +199,6 @@ export default function ViewChargePoint({ defaultTab }) {
   const tabs = [
     { id: 'stats', label: 'Stats', icon: Activity },
     { id: 'connectors', label: 'Connectors', icon: Plug, count: connectorRows.length },
-    { id: 'logs', label: 'Logs', icon: ListFilter },
     { id: 'transactions', label: 'Charge Transactions', icon: Zap },
     { id: 'config', label: 'Configuration', icon: Settings },
     { id: 'control', label: 'Control', icon: Sliders },
@@ -265,13 +237,7 @@ export default function ViewChargePoint({ defaultTab }) {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            <button
-              onClick={() => setShowDetailsModal(true)}
-              className="flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 font-semibold rounded-xl text-xs shadow-2xs transition-colors cursor-pointer"
-            >
-              <Eye className="w-4 h-4 text-sky-500" />
-              <span>Show Details</span>
-            </button>
+
 
             <button
               onClick={handleDownloadQR}
@@ -325,12 +291,7 @@ export default function ViewChargePoint({ defaultTab }) {
             <ChargePointConnectorsTab
               cp={cp}
               id={id}
-              connectorRows={connectorRows}
-              openDropdownIds={openDropdownIds}
-              toggleRowDropdown={toggleRowDropdown}
-              connectorStatusMap={connectorStatusMap}
-              setConnectorStatusMap={setConnectorStatusMap}
-              setChargePoint={setChargePoint}
+              onUpdate={(updatedCp) => setChargePoint(prev => ({ ...prev, ...updatedCp }))}
               handleControlAction={handleControlAction}
             />
           )}
@@ -339,16 +300,12 @@ export default function ViewChargePoint({ defaultTab }) {
             <ChargePointStatsTab cp={cp} />
           )}
 
-          {activeTab === 'logs' && (
-            <ChargePointLogsTab cp={cp} />
-          )}
-
           {activeTab === 'transactions' && (
             <ChargePointTransactionsTab cp={cp} />
           )}
 
           {activeTab === 'config' && (
-            <ChargePointConfigTab cp={cp} handleControlAction={handleControlAction} />
+            <ChargePointConfigTab cp={cp} id={id} handleControlAction={handleControlAction} />
           )}
 
           {activeTab === 'control' && (
@@ -362,7 +319,10 @@ export default function ViewChargePoint({ defaultTab }) {
           )}
 
           {activeTab === 'tariffs' && (
-            <ChargePointTariffsTab cp={cp} />
+            <ChargePointTariffsTab
+              cp={cp}
+              onUpdate={(updatedCp) => setChargePoint(prev => ({ ...prev, ...updatedCp }))}
+            />
           )}
         </div>
       </div>

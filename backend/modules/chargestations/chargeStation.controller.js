@@ -1,12 +1,24 @@
-import * as chargeStationService from './chargesStations.service.js';
+import * as chargeStationService from './chargeStations.service.js';
 
 export async function getChargingStations(req, res) {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
+    const limit = parseInt(req.query.limit) || 10;
     const searchTerm = req.query.search || '';
 
-    const result = await chargeStationService.getChargingStations({ page, limit, searchTerm });
+    let filters = {};
+    if (req.query.filters) {
+      try {
+        const raw = typeof req.query.filters === 'string' && req.query.filters.startsWith('%')
+          ? decodeURIComponent(req.query.filters)
+          : req.query.filters;
+        filters = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      } catch (err) {
+        console.warn("Failed to parse filters JSON:", err);
+      }
+    }
+
+    const result = await chargeStationService.getChargingStations({ page, limit, searchTerm, filters });
     res.json(result);
   } catch (error) {
     console.error("Error fetching charging stations:", error);

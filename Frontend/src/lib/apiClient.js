@@ -1,6 +1,5 @@
 export const API_BASE_URL = 'http://localhost:5000/api';
 
-
 export function getApiUrl(endpoint) {
   let cleanEndpoint = endpoint;
   if (!cleanEndpoint.startsWith('http')) {
@@ -15,7 +14,6 @@ export function getApiUrl(endpoint) {
   }
   return endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${cleanEndpoint}`;
 }
-
 
 export async function apiClient(endpoint, options = {}) {
   const url = getApiUrl(endpoint);
@@ -38,8 +36,8 @@ export async function apiClient(endpoint, options = {}) {
   try {
     response = await fetch(url, config);
   } catch (netErr) {
-    const error = new Error(`Cannot connect to backend server at ${url}. Please ensure the backend server (port 5000) is running.`);
-    error.title = 'Backend Server Unreachable';
+    const error = new Error('Server connection error. Please check if the server is connected.');
+    error.title = 'Server Disconnected';
     error.code = 503;
     error.isNetworkError = true;
     throw error;
@@ -47,10 +45,30 @@ export async function apiClient(endpoint, options = {}) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
-    const message = errorData?.error || errorData?.message || `API Error: ${response.status} ${response.statusText}`;
+    const message =
+      errorData?.error ||
+      errorData?.message ||
+      `API Error: ${response.status} ${response.statusText}`;
+
     const error = new Error(message);
     error.title = `Backend Error (${response.status})`;
     error.code = response.status;
+
+    // Global Authorization & Authentication Failure Handling (Instruction 10)
+    if (response.status === 401) {
+      error.isAuthError = true;
+      // Dispatch global unauthorized event for AuthContext & Router
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('auth:unauthorized', { detail: { error } }));
+      }
+    } else if (response.status === 403) {
+      error.isForbidden = true;
+      // Dispatch global forbidden event for UI notifications
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('auth:forbidden', { detail: { error } }));
+      }
+    }
+
     throw error;
   }
 

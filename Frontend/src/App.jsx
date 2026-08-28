@@ -3,11 +3,14 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './features/auth/context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import PermissionRoute from './components/PermissionRoute';
+import { PERMISSIONS } from './config/permissions';
 
 const ChargePointsList = lazy(() => import('./features/chargePoints/pages/ChargePointsList'));
 const AddNewChargePoint = lazy(() => import('./features/chargePoints/pages/AddChargePoint'));
 const ViewChargePoint = lazy(() => import('./features/chargePoints/pages/ViewChargePoint'));
 const UpdateConnector = lazy(() => import('./features/chargePoints/pages/UpdateConnector'));
+const AddNewConnector = lazy(() => import('./features/chargePoints/pages/AddNewConnector'));
 const ChargingStationsList = lazy(() => import('./features/chargingStations/pages/ChargingStationsList'));
 const AddChargingStation = lazy(() => import('./features/chargingStations/pages/AddChargingStation'));
 const ViewChargingStation = lazy(() => import('./features/chargingStations/pages/ViewChargingStation'));
@@ -16,9 +19,18 @@ const SessionHistoryList = lazy(() => import('./features/liveSessions/pages/Sess
 const SessionLogsView = lazy(() => import('./features/liveSessions/pages/SessionLogsView'));
 const TariffsList = lazy(() => import('./features/tariffs/pages/TariffsList'));
 const AddNewTariff = lazy(() => import('./features/tariffs/pages/AddNewTariff'));
+const FleetsList = lazy(() => import('./features/fleets/pages/FleetsList'));
+const AddNewFleet = lazy(() => import('./features/fleets/pages/AddNewFleet'));
+const PaymentProvidersView = lazy(() => import('./features/payments/pages/PaymentProvidersView'));
+const PaymentLogsView = lazy(() => import('./features/payments/pages/PaymentLogsView'));
+const BillsList = lazy(() => import('./features/bills/pages/BillsList'));
+const ViewBill = lazy(() => import('./features/bills/pages/ViewBill'));
+const DiscountsList = lazy(() => import('./features/discounts/pages/DiscountsList'));
+const AddNewDiscount = lazy(() => import('./features/discounts/pages/AddNewDiscount'));
+
 const Login = lazy(() => import('./features/auth/pages/Login'));
 
-// Dummy component for unused pages for now
+// Dummy component for unused pages
 const DummyPage = ({ title }) => (
   <div className="flex flex-col gap-6 max-w-[1200px]">
     <div className="flex items-center justify-between">
@@ -35,44 +47,342 @@ function App() {
     <BrowserRouter>
       <ToastProvider>
         <AuthProvider>
-          <Suspense fallback={
-            <div className="flex items-center justify-center h-full w-full min-h-screen">
-              <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-            </div>
-          }>
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center h-full w-full min-h-screen">
+                <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+              </div>
+            }
+          >
             <Routes>
               <Route path="/login" element={<Login />} />
 
               <Route element={<ProtectedRoute />}>
                 <Route path="/" element={<Navigate to="/analytics" />} />
 
-                <Route path="/analytics" element={<DummyPage title="Analytics" />} />
-                <Route path="/reports" element={<DummyPage title="Reports" />} />
-                <Route path="/live-sessions" element={<LiveSessionsList />} />
-                <Route path="/session-history" element={<SessionHistoryList />} />
-                <Route path="/live-sessions/:id/logs" element={<SessionLogsView />} />
-                <Route path="/alerts" element={<DummyPage title="Alerts" />} />
-                <Route path="/abnormal-transactions" element={<DummyPage title="Abnormal Transactions" />} />
-                <Route path="/charging-stations" element={<ChargingStationsList />} />
-                <Route path="/charging-stations/new" element={<AddChargingStation />} />
-                <Route path="/charging-stations/edit/:id" element={<AddChargingStation isEditMode={true} />} />
-                <Route path="/charging-stations/view/:id" element={<AddChargingStation isViewMode={true} />} />
-                <Route path="/charging-stations/:id" element={<ViewChargingStation />} />
+                {/* Dashboard & Analytics */}
+                <Route
+                  path="/analytics"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.ANALYTICS_VIEW}>
+                      <DummyPage title="Analytics" />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/reports"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.REPORTS_VIEW}>
+                      <DummyPage title="Reports" />
+                    </PermissionRoute>[plugin:vite:oxc] Transform failed with 1 error:
 
-                <Route path="/charge-points" element={<ChargePointsList />} />
-                <Route path="/charge-points/new" element={<AddNewChargePoint />} />
-                <Route path="/charge-points/edit/:id" element={<AddNewChargePoint isEditMode={true} />} />
-                <Route path="/charge-points/view/:id" element={<AddNewChargePoint isViewMode={true} />} />
-                <Route path="/charge-points/:id/connectors/:connectorId/edit" element={<UpdateConnector />} />
-                <Route path="/charge-points/:id/logs" element={<ViewChargePoint defaultTab="logs" />} />
-                <Route path="/charge-points/:id" element={<ViewChargePoint />} />
+                [PARSE_ERROR] Type assertion expressions can only be used in TypeScript files.
+                ╭─[ src/config/permissions.js:10:28 ]
+                │
+                10 │ ╭─▶ export const PERMISSIONS = {
+    ┆ ┆   
+ 6} as const;
+                │ │
+                │ ╰─────────────────
+                ────╯
+                C:/Users/DELL/Desktop/Project/Frontend/src/config/permissions.js
+                at transformWithOxc (file:///C:/Users/DELL/Desktop/Project/Frontend/node_modules/vite/dist/node/chunks/node.js:3344:19)
+                at TransformPluginContext.transform (file:///C:/Users/DELL/Desktop/Project/Frontend/node_modules/vite/dist/node/chunks/node.js:3415:26)
+                at EnvironmentPluginContainer.transform (file:///C:/Users/DELL/Desktop/Project/Frontend/node_modules/vite/dist/node/chunks/node.js:30387:51)
+                at async loadAndTransform (file:///C:/Users/DELL/Desktop/Project/Frontend/node_modules/vite/dist/node/chunks/node.js:24646:26)
+                at async viteTransformMiddleware (file:///C:/Users/DELL/Desktop/Project/Frontend/node_modules/vite/dist/node/chunks/node.js:24440:20)
+                Click outside, press Esc key, or fix the code to dismiss.
+                You can also disable this overlay by setting server.hmr.overlay to false in vite.config.js.
+                  }
+                />
+                <Route
+                  path="/alerts"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.ALERTS_VIEW}>
+                      <DummyPage title="Alerts" />
+                    </PermissionRoute>
+                  }
+                />
 
-                <Route path="/tariffs" element={<TariffsList />} />
-                <Route path="/tariffs/new" element={<AddNewTariff />} />
-                <Route path="/tariffs/edit/:id" element={<AddNewTariff isEditMode={true} />} />
-                <Route path="/tariffs/view/:id" element={<AddNewTariff isViewMode={true} />} />
-                <Route path="/bills" element={<DummyPage title="Bills" />} />
-                <Route path="/telematics-devices" element={<DummyPage title="Telematics Devices" />} />
+                {/* Operations & Sessions */}
+                <Route
+                  path="/live-sessions"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.SESSION_VIEW}>
+                      <LiveSessionsList />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/session-history"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.SESSION_VIEW}>
+                      <SessionHistoryList />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/live-sessions/:id/logs"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.SESSION_LOGS_VIEW}>
+                      <SessionLogsView />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/session-logs/:id"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.SESSION_LOGS_VIEW}>
+                      <SessionLogsView />
+                    </PermissionRoute>
+                  }
+                />
+
+                {/* Charging Stations */}
+                <Route
+                  path="/charging-stations"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.STATION_VIEW}>
+                      <ChargingStationsList />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/charging-stations/new"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.STATION_CREATE}>
+                      <AddChargingStation />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/charging-stations/edit/:id"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.STATION_UPDATE}>
+                      <AddChargingStation isEditMode={true} />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/charging-stations/view/:id"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.STATION_VIEW}>
+                      <AddChargingStation isViewMode={true} />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/charging-stations/:id"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.STATION_VIEW}>
+                      <ViewChargingStation />
+                    </PermissionRoute>
+                  }
+                />
+
+                {/* Charge Points */}
+                <Route
+                  path="/charge-points"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.CHARGE_POINT_VIEW}>
+                      <ChargePointsList />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/charge-points/new"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.CHARGE_POINT_CREATE}>
+                      <AddNewChargePoint />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/charge-points/edit/:id"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.CHARGE_POINT_UPDATE}>
+                      <AddNewChargePoint isEditMode={true} />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/charge-points/view/:id"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.CHARGE_POINT_VIEW}>
+                      <AddNewChargePoint isViewMode={true} />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/charge-points/:id/connectors/new"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.CHARGE_POINT_CONNECTORS_MANAGE}>
+                      <AddNewConnector />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/charge-points/:id/connectors/:connectorId/edit"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.CHARGE_POINT_CONNECTORS_MANAGE}>
+                      <UpdateConnector />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/charge-points/:id/logs"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.SESSION_LOGS_VIEW}>
+                      <ViewChargePoint defaultTab="logs" />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/charge-points/:id"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.CHARGE_POINT_VIEW}>
+                      <ViewChargePoint />
+                    </PermissionRoute>
+                  }
+                />
+
+                {/* Tariffs */}
+                <Route
+                  path="/tariffs"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.TARIFF_VIEW}>
+                      <TariffsList />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/tariffs/new"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.TARIFF_CREATE}>
+                      <AddNewTariff />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/tariffs/edit/:id"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.TARIFF_UPDATE}>
+                      <AddNewTariff isEditMode={true} />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/tariffs/view/:id"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.TARIFF_VIEW}>
+                      <AddNewTariff isViewMode={true} />
+                    </PermissionRoute>
+                  }
+                />
+
+                {/* Fleets */}
+                <Route
+                  path="/fleets"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.FLEET_VIEW}>
+                      <FleetsList />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/fleets/new"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.FLEET_CREATE}>
+                      <AddNewFleet />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/fleets/edit/:id"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.FLEET_UPDATE}>
+                      <AddNewFleet isEditMode={true} />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/fleets/view/:id"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.FLEET_VIEW}>
+                      <AddNewFleet isViewMode={true} />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/fleets/:id"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.FLEET_VIEW}>
+                      <AddNewFleet isViewMode={true} />
+                    </PermissionRoute>
+                  }
+                />
+
+                {/* Payments */}
+                <Route
+                  path="/payment-providers"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.PAYMENT_VIEW}>
+                      <PaymentProvidersView />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/payment-logs"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.PAYMENT_LOGS_VIEW}>
+                      <PaymentLogsView />
+                    </PermissionRoute>
+                  }
+                />
+
+                {/* Bills */}
+                <Route
+                  path="/bills"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.BILL_VIEW}>
+                      <BillsList />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/bills/:id"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.BILL_VIEW}>
+                      <ViewBill />
+                    </PermissionRoute>
+                  }
+                />
+
+                {/* Discounts */}
+                <Route
+                  path="/discounts"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.DISCOUNT_VIEW}>
+                      <DiscountsList />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/discounts/new"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.DISCOUNT_CREATE}>
+                      <AddNewDiscount />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/discounts/edit/:id"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.DISCOUNT_UPDATE}>
+                      <AddNewDiscount isEditMode={true} />
+                    </PermissionRoute>
+                  }
+                />
               </Route>
 
               <Route path="*" element={<Navigate to="/" replace />} />

@@ -65,38 +65,36 @@ function ToastItem({ toast, onRemove }) {
     <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`pointer-events-auto w-full bg-white/95 backdrop-blur-xl border border-stone-200/90 border-l-4 ${theme.border} shadow-[0_16px_40px_rgba(0,0,0,0.12)] rounded-2xl p-4 flex flex-col gap-2.5 transition-all duration-300 transform hover:-translate-y-0.5 animate-in fade-in slide-in-from-top-4 relative overflow-hidden`}
+      className={`relative flex items-start gap-3 p-4 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-stone-200/80 ${theme.border} border-l-4 pointer-events-auto transition-all duration-200 hover:translate-y-[-2px] animate-in fade-in slide-in-from-bottom-5`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3 min-w-0 flex-1">
-          <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 ${theme.iconBg} shadow-2xs`}>
-            <IconComponent className="w-5 h-5" />
-          </div>
-          <div className="flex flex-col min-w-0 flex-1 pt-0.5">
-            <div className="flex items-center justify-between gap-2">
-              <h4 className="text-xs font-extrabold text-stone-900 tracking-tight truncate">{toast.title}</h4>
-              <span className="text-[10px] font-semibold text-stone-400 shrink-0">Just now</span>
-            </div>
-            <p className="text-xs text-stone-600 font-medium leading-relaxed mt-0.5 break-words">
-              {toast.message}
-            </p>
-          </div>
-        </div>
-
-        <button
-          onClick={() => onRemove(toast.id)}
-          className="text-stone-400 hover:text-stone-700 p-1 rounded-lg hover:bg-stone-100 transition-colors shrink-0 cursor-pointer -mr-1 -mt-1"
-          aria-label="Dismiss notification"
-        >
-          <X className="w-4 h-4" />
-        </button>
+      <div className={`p-2 rounded-xl border shrink-0 ${theme.iconBg}`}>
+        <IconComponent className="w-4 h-4" />
       </div>
 
+      <div className="flex-1 min-w-0 pr-2">
+        <div className="flex items-center justify-between gap-2">
+          <h4 className="text-xs font-bold text-slate-900 tracking-tight">{toast.title}</h4>
+          {toast.code && (
+            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-stone-100 text-stone-500 border border-stone-200/60 font-mono">
+              {toast.code}
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-stone-600 font-medium mt-0.5 leading-relaxed">{toast.message}</p>
+      </div>
+
+      <button
+        onClick={() => onRemove(toast.id)}
+        className="text-stone-400 hover:text-stone-600 transition p-1 rounded-lg hover:bg-stone-100 cursor-pointer shrink-0"
+      >
+        <X className="w-3.5 h-3.5" />
+      </button>
+
       {toast.action && (
-        <div className="flex justify-end pt-1">
+        <div className="mt-2 pt-2 border-t border-stone-100 flex justify-end">
           <button
             onClick={() => {
-              if (toast.action.onClick) toast.action.onClick();
+              toast.action.onClick && toast.action.onClick();
               onRemove(toast.id);
             }}
             className="text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 px-3 py-1.5 rounded-xl transition cursor-pointer"
@@ -106,7 +104,7 @@ function ToastItem({ toast, onRemove }) {
         </div>
       )}
 
-      {/* timer bar  */}
+      {/* timer bar */}
       {duration > 0 && (
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-stone-100/80 overflow-hidden">
           <div
@@ -131,33 +129,37 @@ export const ToastProvider = ({ children }) => {
     const statusCode = code || (type === 'success' ? 200 : type === 'error' ? 500 : type === 'warning' ? 400 : 200);
     const newToast = { id, type, title, message, code: statusCode, duration, action };
 
-
-    if (typeof console !== 'undefined' && console.groupCollapsed) {
-      const colorMap = {
-        success: '#10b981',
-        error: '#f43f5e',
-        warning: '#f59e0b',
-        info: '#6366f1'
-      };
-      console.groupCollapsed(
-        `%c[Server Response ${statusCode}] %c${title}`,
-        `color: ${colorMap[type] || '#6366f1'}; font-weight: bold; padding: 2px 4px; border-radius: 3px; background: rgba(0,0,0,0.05);`,
-        'font-weight: bold; color: #1e293b;'
-      );
-      console.log('Timestamp:', new Date().toISOString());
-      console.log('Notification Type:', type);
-      console.log('HTTP Status Code:', statusCode);
-      console.log('Title:', title);
-      console.log('Message:', message);
-      console.groupEnd();
-    }
-
     setToasts((prev) => [...prev.slice(-4), newToast]);
   }, []);
 
+  const formatErrorMessage = (errOrMsg) => {
+    let msg = typeof errOrMsg === 'string' ? errOrMsg : (errOrMsg?.message || '');
+    if (
+      !msg ||
+      msg.includes('Failed to fetch') ||
+      msg.includes('NetworkError') ||
+      msg.includes('Network Error') ||
+      msg.includes('connection error') ||
+      errOrMsg?.isNetworkError
+    ) {
+      return 'Server connection error. Please check if the server is connected.';
+    }
+    return msg;
+  };
+
   const toast = {
     success: (message, options = {}) => addToast({ type: 'success', title: options.title || 'Success', message, code: options.code || 200, ...options }),
-    error: (message, options = {}) => addToast({ type: 'error', title: options.title || 'Error', message, code: options.code || 500, ...options }),
+    error: (errOrMsg, options = {}) => {
+      const message = formatErrorMessage(errOrMsg);
+      const isNet = message.includes('Server connection error');
+      return addToast({
+        type: 'error',
+        title: options.title || (isNet ? 'Server Connection Error' : (typeof errOrMsg === 'object' && errOrMsg?.title) ? errOrMsg.title : 'Error'),
+        message,
+        code: options.code || (typeof errOrMsg === 'object' && errOrMsg?.code) ? errOrMsg.code : 503,
+        ...options
+      });
+    },
     warning: (message, options = {}) => addToast({ type: 'warning', title: options.title || 'Warning', message, code: options.code || 400, ...options }),
     info: (message, options = {}) => addToast({ type: 'info', title: options.title || 'Notification', message, code: options.code || 200, ...options }),
   };
@@ -165,7 +167,7 @@ export const ToastProvider = ({ children }) => {
   return (
     <ToastContext.Provider value={toast}>
       {children}
-      <div className="fixed top-6 right-6 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0">
+      <div className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0">
         {toasts.map((t) => (
           <ToastItem key={t.id} toast={t} onRemove={removeToast} />
         ))}

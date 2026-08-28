@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { getChargePoints, getFilterOptions, deleteChargePoint } from '../api/chargePointService';
 import { useTableData } from '../../../hooks/useTableData';
 import { useToast } from '../../../context/ToastContext';
 
 export function useChargePointsList(stationFilter) {
   const toast = useToast();
+  const [searchParams] = useSearchParams();
+  const urlSearch = searchParams.get('search') || '';
+
   const [filters, setFilters] = useState({ location: [], manufacturer: [], status: [], type: [] });
   const [filterOptions, setFilterOptions] = useState({ locations: [], manufacturers: [], statuses: [], types: [] });
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -32,8 +36,15 @@ export function useChargePointsList(stationFilter) {
       const effectiveSearch = search || (stationFilter ? stationFilter : '');
       return getChargePoints(page, effectiveLimit, effectiveSearch, filters);
     },
-    [filters, stationFilter]
+    [filters, stationFilter],
+    urlSearch
   );
+
+  useEffect(() => {
+    if (urlSearch && urlSearch !== searchTerm) {
+      setSearchTerm(urlSearch);
+    }
+  }, [urlSearch]);
 
   const matchedPoints = stationFilter
     ? rawChargePoints.filter((cp) => {

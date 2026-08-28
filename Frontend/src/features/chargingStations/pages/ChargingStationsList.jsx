@@ -30,133 +30,17 @@ import {
 
 import Pagination from '../../../components/ui/Pagination';
 import ExportButton from '../../../components/ui/ExportButton';
+import PrimaryButton from '../../../components/ui/PrimaryButton';
 import DeleteModal from '../../../components/ui/DeleteModal';
 import TableActions from '../../../components/ui/TableActions';
+import PermissionGuard from '../../../components/ui/PermissionGuard';
+import { PERMISSIONS } from '../../../config/permissions';
 
 import { getChargingStations, deleteChargingStation, exportStations } from '../api/chargingStationService';
 import { useTableData } from '../../../hooks/useTableData';
 import { useToast } from '../../../context/ToastContext';
-
-const ChargePointsCell = ({ station, navigate }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const popoverRef = React.useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (popoverRef.current && !popoverRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const cpList = station.chargePointsList || [];
-  const totalCount = cpList.length;
-
-  if (totalCount === 0) {
-    return (
-      <span className="text-stone-400 font-normal text-[11px] italic">
-        No charge points linked
-      </span>
-    );
-  }
-
-  const primaryCp = cpList[0];
-
-  return (
-    <div className="relative inline-block text-left" ref={popoverRef}>
-      <div className="flex flex-col min-w-0">
-        <span
-          onClick={(e) => {
-            e.stopPropagation();
-            if (primaryCp?.id) {
-              navigate(`/charge-points/${primaryCp.id}`);
-            } else if (primaryCp?.name) {
-              navigate(`/charge-points?search=${encodeURIComponent(primaryCp.name)}`);
-            }
-          }}
-          className="text-stone-900 font-semibold text-[12px] hover:text-emerald-600 transition-colors cursor-pointer truncate max-w-[170px]"
-          title={primaryCp?.name ? `Go to ${primaryCp.name}` : ''}
-        >
-          {primaryCp?.name}
-        </span>
-
-        {totalCount > 1 ? (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsOpen(!isOpen);
-            }}
-            className="text-[11px] font-normal text-stone-500 hover:text-emerald-600 transition-colors flex items-center gap-0.5 cursor-pointer w-fit mt-0.5"
-          >
-            <span>{totalCount} linked charge points</span>
-            <ChevronRight className={`w-3 h-3 transition-transform duration-150 ${isOpen ? 'rotate-90 text-emerald-600' : 'text-stone-400'}`} />
-          </button>
-        ) : (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (primaryCp?.id) {
-                navigate(`/charge-points/${primaryCp.id}`);
-              } else if (primaryCp?.name) {
-                navigate(`/charge-points?search=${encodeURIComponent(primaryCp.name)}`);
-              }
-            }}
-            className="text-[11px] font-normal text-stone-400 hover:text-emerald-600 transition-colors flex items-center gap-0.5 cursor-pointer w-fit mt-0.5"
-          >
-            <span>1 linked charge point</span>
-            <ChevronRight className="w-3 h-3 text-stone-400" />
-          </button>
-        )}
-      </div>
-
-      {isOpen && (
-        <div className="absolute top-full left-0 mt-1.5 z-30 w-64 bg-white/98 backdrop-blur-xl border border-stone-200/90 shadow-[0_12px_32px_rgba(0,0,0,0.12)] rounded-2xl p-3 animate-in fade-in slide-in-from-top-1 duration-150">
-          <div className="flex items-center justify-between border-b border-stone-100 pb-2 mb-2 px-1">
-            <div>
-              <span className="text-[11px] font-semibold text-stone-800 uppercase tracking-wider block">
-                Linked Charge Points
-              </span>
-              <span className="text-[10px] text-stone-400 font-normal">
-                {station.name} ({totalCount})
-              </span>
-            </div>
-            <button onClick={() => setIsOpen(false)} className="text-stone-400 hover:text-stone-700 text-xs font-medium cursor-pointer">✕</button>
-          </div>
-
-          <div className="max-h-48 overflow-y-auto space-y-1 custom-scrollbar pr-0.5">
-            {cpList.map((cp, i) => (
-              <div
-                key={cp.id || i}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsOpen(false);
-                  if (cp.id) {
-                    navigate(`/charge-points/${cp.id}`);
-                  } else {
-                    navigate(`/charge-points?search=${encodeURIComponent(cp.name)}`);
-                  }
-                }}
-                className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-stone-50/80 hover:bg-emerald-50/80 border border-stone-100/80 hover:border-emerald-200 transition-colors cursor-pointer group/item text-xs"
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                  <span className="font-semibold text-stone-800 group-hover/item:text-emerald-700 truncate text-[11px]">
-                    {cp.name}
-                  </span>
-                </div>
-                <span className="text-[9.5px] font-mono font-medium text-stone-400 group-hover/item:text-emerald-600 shrink-0 ml-1.5">
-                  {cp.code || `CP-${i + 1}`}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+import FilterSection from '../../../components/ui/FilterSection';
+import ChargePointsCell from '../components/ChargePointsCell';
 
 export default function ChargingStationsList() {
   const navigate = useNavigate();
@@ -171,6 +55,38 @@ export default function ChargingStationsList() {
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [stationToView, setStationToView] = useState(null);
 
+  const [filters, setFilters] = useState({ mobilityType: [], stationType: [], stage: [] });
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const filterRef = React.useRef(null);
+
+  const filterOptions = {
+    mobilityType: ['Stationary', 'Mobile', 'Portable'],
+    stationType: ['Public Hub', 'Commercial', 'Residential', 'Highway Hub', 'Fleet Hub'],
+    stage: ['Active', 'Inactive', 'Under Maintenance']
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setIsFilterOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleFilterToggle = (category, value) => {
+    setFilters(prev => {
+      const current = prev[category] || [];
+      const exists = current.includes(value);
+      const updated = exists ? current.filter(v => v !== value) : [...current, value];
+      return { ...prev, [category]: updated };
+    });
+    setCurrentPage(1);
+  };
+
+  const activeFilterCount = Object.values(filters).reduce((acc, arr) => acc + (arr?.length || 0), 0);
+
   const {
     data: stations,
     setData: setStations,
@@ -182,7 +98,7 @@ export default function ChargingStationsList() {
     totalPages,
     totalItems,
     itemsPerPage,
-  } = useTableData((page, limit, search) => getChargingStations(page, limit, search));
+  } = useTableData((page, limit, search) => getChargingStations(page, limit, search, filters), [filters]);
 
   useEffect(() => {
     const query = searchParams.get('search');
@@ -250,23 +166,79 @@ export default function ChargingStationsList() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <ExportButton
-            onExport={handleExportCSV}
-            label="Export"
-          />
+          <PermissionGuard permission={PERMISSIONS.STATION_EXPORT}>
+            <ExportButton
+              onExport={handleExportCSV}
+              label="Export"
+            />
+          </PermissionGuard>
 
-          <button className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 font-bold rounded-xl shadow-2xs transition-colors duration-150 text-xs cursor-pointer">
-            <Filter className="w-4 h-4 text-violet-600 shrink-0" />
-            <span className="leading-none">Filter</span>
-          </button>
+          <div className="relative" ref={filterRef}>
+            <button
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className={`inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 font-bold rounded-xl shadow-2xs transition-colors duration-150 text-xs cursor-pointer ${
+                activeFilterCount > 0 ? 'border-orange-500 text-orange-600 bg-orange-50/50' : ''
+              }`}
+            >
+              <Filter className="w-4 h-4 text-violet-600 shrink-0" />
+              <span className="leading-none">Filter</span>
+              {activeFilterCount > 0 && (
+                <span className="w-4 h-4 bg-orange-500 text-white rounded-full text-[10px] flex items-center justify-center font-bold">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
 
-          <button
-            onClick={() => navigate('/charging-stations/new')}
-            className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-gradient-to-b from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-bold rounded-xl text-xs border border-orange-800/40 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_1px_3px_rgba(0,0,0,0.12)] active:scale-[0.98] transition-all duration-150 cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5 stroke-[2.5] text-white/95" />
-            <span className="leading-none tracking-tight">Add Station</span>
-          </button>
+            {isFilterOpen && (
+              <div className="absolute right-0 mt-2 w-72 bg-white/95 backdrop-blur-xl border border-stone-200 shadow-2xl rounded-2xl p-4 z-30 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+                <div className="flex items-center justify-between border-b border-stone-100 pb-2">
+                  <span className="text-xs font-black text-stone-900 uppercase tracking-wider">Filters</span>
+                  {activeFilterCount > 0 && (
+                    <button
+                      onClick={() => {
+                        setFilters({ mobilityType: [], stationType: [], stage: [] });
+                        setCurrentPage(1);
+                      }}
+                      className="text-[11px] font-bold text-orange-600 hover:text-orange-700 cursor-pointer"
+                    >
+                      Reset All
+                    </button>
+                  )}
+                </div>
+
+                <FilterSection
+                  title="Mobility Type"
+                  options={filterOptions.mobilityType}
+                  selected={filters.mobilityType}
+                  onChange={(val) => handleFilterToggle('mobilityType', val)}
+                />
+
+                <FilterSection
+                  title="Station Type"
+                  options={filterOptions.stationType}
+                  selected={filters.stationType}
+                  onChange={(val) => handleFilterToggle('stationType', val)}
+                />
+
+                <FilterSection
+                  title="Stage"
+                  options={filterOptions.stage}
+                  selected={filters.stage}
+                  onChange={(val) => handleFilterToggle('stage', val)}
+                />
+              </div>
+            )}
+          </div>
+
+          <PermissionGuard permission={PERMISSIONS.STATION_CREATE}>
+            <PrimaryButton
+              onClick={() => navigate('/charging-stations/new')}
+              label="Add Station"
+            />
+          </PermissionGuard>
+
+
+
         </div>
       </div>
 
@@ -362,10 +334,12 @@ export default function ChargingStationsList() {
                       <TableActions
                         onEdit={(e) => handleEditClick(e, row)}
                         onDelete={(e) => handleDeleteClick(e, row)}
+                        editPermission={PERMISSIONS.STATION_UPDATE}
+                        deletePermission={PERMISSIONS.STATION_DELETE}
                       />
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-stone-900 font-bold text-[13px] cursor-pointer truncate max-w-[200px] inline-block transition-colors duration-200 group-hover:text-emerald-600">
+                      <span className="text-stone-900 font-semibold text-[13px] cursor-pointer truncate max-w-[200px] inline-block transition-colors duration-200 group-hover:text-emerald-600">
                         {row.name}
                       </span>
                     </td>

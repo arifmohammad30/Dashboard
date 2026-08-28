@@ -1,13 +1,14 @@
 import { apiClient } from '../../../lib/apiClient';
 import { downloadFileFromEndpoint } from '../../../utils/downloadUtils';
 
-export const getTariffs = async (page = 1, limit = 20, searchTerm = '') => {
+export const getTariffs = async (page = 1, limit = 10, searchTerm = '', filters = {}) => {
   try {
-    const url = `/tariffs?page=${page}&limit=${limit}&search=${encodeURIComponent(searchTerm)}`;
+    const filterString = encodeURIComponent(JSON.stringify(filters));
+    const url = `/tariffs?page=${page}&limit=${limit}&search=${encodeURIComponent(searchTerm)}&filters=${filterString}`;
     return await apiClient(url);
   } catch (error) {
     console.error("Failed to fetch tariffs:", error);
-    return null;
+    return { data: [], total: 0, page: 1, limit: 10, totalPages: 1 };
   }
 };
 
@@ -40,9 +41,10 @@ export const deleteTariff = async (id) => {
   });
 };
 
-export const exportTariffs = async (searchTerm = '') => {
+export const exportTariffs = async (searchTerm = '', filters = {}) => {
   const params = new URLSearchParams();
   if (searchTerm && searchTerm.trim()) params.append('search', searchTerm.trim());
+  if (filters && Object.keys(filters).length > 0) params.append('filters', JSON.stringify(filters));
 
   const url = `/api/tariffs/export?${params.toString()}`;
   await downloadFileFromEndpoint(url, `tariffs_export_${new Date().toISOString().slice(0, 10)}.csv`);
