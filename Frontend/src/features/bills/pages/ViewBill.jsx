@@ -54,52 +54,34 @@ export default function ViewBill() {
     );
   }
 
-  const b = bill || {
-    billNumber: id || 'BILL-74190',
-    billStatus: 'Unpaid',
-    chargeTransactionStatus: 'Completed',
-    chargeTransaction: '74190',
-    energyDelivered: '0.01 kWh',
-    appliedDiscount: '-',
-    amount: 0.15,
-    fleet: '-',
-    method: 'User Wallet',
-    customerDriver: { name: 'EV Driver', initial: 'E', bg: 'bg-indigo-600 text-white' },
-    chargePoint: 'Charge Point Station 28 AC',
-    chargePointId: 'cp-28',
-    chargingStation: 'DLF Cybercity Fast Hub',
-    chargingStationId: 'station-1',
-    appliedTariff: {
-      id: 'default-tariff',
-      name: 'Standard AC Tariff',
-      type: 'Default',
-      costingType: 'Charging Only',
-      baseRate: 15.0,
-      gstPercentage: 18.0
-    },
-    generatedOn: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
-  };
+  if (!bill) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-stone-500 gap-4">
+        <p className="text-base font-bold text-stone-700">Invoice not found</p>
+        <button
+          onClick={() => navigate('/bills')}
+          className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-xs transition cursor-pointer"
+        >
+          Back to Invoices
+        </button>
+      </div>
+    );
+  }
 
+  const b = bill;
   const isPaid = b.billStatus === 'Paid';
   const isCompleted = b.chargeTransactionStatus === 'Completed' || b.chargeTransactionStatus === 'Stopped';
   const isOngoing = b.chargeTransactionStatus === 'Ongoing';
 
-  const driverName = b.customerDriver?.name || b.driverName || 'EV Driver';
-  const driverInitial = (driverName.charAt(0) || 'E').toUpperCase();
+  const driverName = b.customerDriver?.name || b.driverName || '-';
+  const driverInitial = driverName !== '-' ? driverName.charAt(0).toUpperCase() : 'U';
   const fleetName = b.fleet || '-';
-  const cpName = b.chargePoint || 'Charge Point Station 28 AC';
+  const cpName = b.chargePoint || b.chargePointName || '-';
   const cpId = b.chargePointId || cpName;
-  const stationName = b.chargingStation || 'DLF Cybercity Fast Hub';
+  const stationName = b.chargingStation || b.chargingStationName || '-';
   const stationId = b.chargingStationId || stationName;
-  const txId = b.chargeTransaction || '74190';
-  const appliedTariff = b.appliedTariff || {
-    id: 'default-tariff',
-    name: 'Standard AC Tariff',
-    type: 'Default',
-    costingType: 'Charging Only',
-    baseRate: 15.0,
-    gstPercentage: 18.0
-  };
+  const txId = b.chargeTransaction || b.chargeTxCode || '-';
+  const appliedTariff = b.appliedTariff || null;
 
   return (
     <div className="flex flex-col gap-6 max-w-[1700px] w-full mx-auto pb-10 animate-in fade-in duration-200">
@@ -155,11 +137,20 @@ export default function ViewBill() {
               </div>
               <span>Customer / Driver</span>
             </div>
-            <div className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-white border border-indigo-200/70 rounded-xl shadow-2xs w-fit">
-              <span className="w-5 h-5 rounded-full bg-indigo-600 text-white font-extrabold text-[10px] flex items-center justify-center shrink-0">
+            <div className="flex items-center gap-3 bg-white/80 p-2 border border-indigo-200/50 rounded-xl shadow-2xs w-fit">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#4DA944]/20 to-[#4DA944]/10 border border-[#4DA944]/30 text-[#30702a] font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                 {driverInitial}
-              </span>
-              <span className="text-xs font-extrabold text-slate-800">{driverName}</span>
+              </div>
+              <div>
+                <span className="font-bold text-slate-900 block text-xs">
+                  {driverName}
+                </span>
+                {b.customerDriver?.phone && (
+                  <span className="text-[11px] text-stone-400 font-mono block">
+                    {b.customerDriver.phone}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 

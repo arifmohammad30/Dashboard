@@ -16,6 +16,7 @@ export async function getChargePoints(req, res) {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const searchTerm = req.query.search || '';
+        const chargingStationId = req.query.chargingStationId || req.query.stationId || null;
         let filters = {};
         if (req.query.filters) {
             try {
@@ -27,8 +28,11 @@ export async function getChargePoints(req, res) {
                 console.warn("Failed to parse filters in chargePoints:", err);
             }
         }
+        if (chargingStationId && !filters.chargingStationId) {
+            filters.chargingStationId = chargingStationId;
+        }
 
-        const result = await chargePointService.getChargePoints({ page, limit, searchTerm, filters });
+        const result = await chargePointService.getChargePoints({ page, limit, searchTerm, filters, chargingStationId });
         res.json(result);
     } catch (error) {
         console.error("Failed to fetch charge points:", error);

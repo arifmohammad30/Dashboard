@@ -137,7 +137,7 @@ const Select = forwardRef(({
                 }`}
               >
                 <span>{lbl}</span>
-                {isSelected && <Check className="w-3.5 h-3.5 text-orange-400" />}
+                {isSelected && <Check className="w-3.5 h-3.5 text-[#4DA944]" />}
               </div>
             );
           })}

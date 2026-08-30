@@ -32,10 +32,11 @@ import ExportButton from '../../../components/ui/ExportButton';
 import PrimaryButton from '../../../components/ui/PrimaryButton';
 import FilterSection from '../../../components/ui/FilterSection';
 import TableActions from '../../../components/ui/TableActions';
+import SearchInput from '../../../components/ui/SearchInput';
 import PermissionGuard from '../../../components/ui/PermissionGuard';
 import { PERMISSIONS } from '../../../config/permissions';
 
-import { getTariffs, createTariff, exportTariffs } from '../api/tariffService';
+import { getTariffs, getFilterOptions, createTariff, exportTariffs } from '../api/tariffService';
 
 import { useToast } from '../../../context/ToastContext';
 import { useTableData } from '../../../hooks/useTableData';
@@ -47,8 +48,22 @@ export default function TariffsList() {
   const initialSearch = searchParams.get('id') || searchParams.get('search') || '';
 
   const [filters, setFilters] = useState({ type: [], gstPercentage: [] });
+  const [filterOptions, setFilterOptions] = useState({ types: [], gstPercentages: [] });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterRef = useRef(null);
+
+  useEffect(() => {
+    getFilterOptions()
+      .then((data) => {
+        if (data) {
+          setFilterOptions({
+            types: data.types || [],
+            gstPercentages: data.gstPercentages || []
+          });
+        }
+      })
+      .catch((err) => console.error('Failed to load tariff filter options:', err));
+  }, []);
 
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [tariffToView, setTariffToView] = useState(null);
@@ -206,7 +221,7 @@ export default function TariffsList() {
               <Filter className="w-4 h-4 text-violet-600 shrink-0" />
               <span className="leading-none">Filter</span>
               {activeFiltersCount > 0 && (
-                <span className="flex items-center justify-center w-4 h-4 bg-orange-500 text-white rounded-full text-[10px] ml-1 font-bold">
+                <span className="flex items-center justify-center w-4 h-4 bg-[#4DA944] text-white rounded-full text-[10px] ml-1 font-bold">
                   {activeFiltersCount}
                 </span>
               )}
@@ -232,13 +247,13 @@ export default function TariffsList() {
                 <div className="space-y-6">
                   <FilterSection
                     title="Tariff Type"
-                    options={['Default', 'ToD', 'Event', 'SoC']}
+                    options={filterOptions.types}
                     selected={filters.type}
                     onChange={(val) => handleFilterChange('type', val)}
                   />
                   <FilterSection
                     title="GST Percentage"
-                    options={['18 %', '0 %']}
+                    options={filterOptions.gstPercentages}
                     selected={filters.gstPercentage}
                     onChange={(val) => handleFilterChange('gstPercentage', val)}
                   />
@@ -262,19 +277,12 @@ export default function TariffsList() {
             <span className="font-extrabold text-stone-900 text-xs">{totalRecords}</span> total tariffs
           </div>
 
-          <div className="relative w-full sm:w-[400px] group">
-            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-stone-400 group-focus-within:text-stone-900 transition-colors z-10">
-              <Search className="w-5 h-5" />
-            </div>
-
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search tariffs by name..."
-              className="w-full pl-14 pr-5 py-2.5 bg-white border border-stone-200/90 shadow-2xs focus:border-stone-900 focus:ring-1 focus:ring-stone-900/10 rounded-2xl text-xs font-medium focus:outline-none text-stone-800 placeholder:text-stone-400 transition-colors duration-150"
-            />
-          </div>
+          <SearchInput
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onClear={() => setSearchTerm('')}
+            placeholder="Search tariffs by name..."
+          />
         </div>
 
         <div className="overflow-x-auto scrollbar-none flex-1 transform-gpu translate-z-0">
@@ -313,7 +321,7 @@ export default function TariffsList() {
                 <tr>
                   <td colSpan="8" className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+                      <Loader2 className="w-8 h-8 text-[#4DA944] animate-spin" />
                       <p className="text-sm font-bold text-stone-500">Loading tariffs...</p>
                     </div>
                   </td>
@@ -322,7 +330,7 @@ export default function TariffsList() {
                 <tr>
                   <td colSpan="8" className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <div className="w-12 h-12 rounded-2xl bg-white/40 border border-white/60 flex items-center justify-center text-orange-500 mb-1">
+                      <div className="w-12 h-12 rounded-2xl bg-white/40 border border-stone-200/60 flex items-center justify-center text-[#4DA944] mb-1">
                         <Search className="w-6 h-6" />
                       </div>
                       <p className="text-sm font-bold text-stone-500">No tariffs found.</p>
@@ -384,7 +392,7 @@ export default function TariffsList() {
                         setViewModalOpen(true);
                       }}>
                         <div className="flex flex-col">
-                          <span className="text-slate-900 font-semibold text-[13px] hover:text-orange-600 transition-colors duration-150 cursor-pointer">
+                          <span className="text-slate-900 font-semibold text-[13px] hover:text-[#30702a] transition-colors duration-150 cursor-pointer">
                             {t.name}
                           </span>
                           <span className="text-[10px] font-mono font-medium text-stone-400">

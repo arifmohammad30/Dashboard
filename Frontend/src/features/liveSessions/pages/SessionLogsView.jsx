@@ -47,20 +47,18 @@ export default function SessionLogsView() {
   };
 
   const stationDisplayName =
-    (typeof activeSession.station === 'object' ? activeSession.station?.name : null) ||
-    (typeof activeSession.chargingStation === 'object' ? activeSession.chargingStation?.name : null) ||
+    activeSession.chargingStation?.name ||
     activeSession.chargingStationName ||
-    (typeof activeSession.station === 'string' ? activeSession.station : null) ||
-    'Charging Station';
+    activeSession.station?.name ||
+    '-';
 
   const cpDisplayName =
-    (typeof activeSession.chargePoint === 'object' ? (activeSession.chargePoint?.name || activeSession.chargePoint?.code) : null) ||
+    activeSession.chargePoint?.name ||
+    activeSession.chargePoint?.code ||
     activeSession.chargePointName ||
-    (typeof activeSession.chargePoint === 'string' && activeSession.chargePoint !== '-' ? activeSession.chargePoint : null) ||
-    activeSession.chargePointCode ||
-    'Charge Point';
+    '-';
 
-  const stationId = activeSession.chargingStationId || activeSession.stationId || activeSession.chargingStation?.id;
+  const stationId = activeSession.chargingStationId || activeSession.chargingStation?.id;
   const chargePointId = activeSession.chargePointId || activeSession.chargePoint?.id;
 
   const handleStationClick = (e) => {
@@ -85,9 +83,10 @@ export default function SessionLogsView() {
     }
   };
 
-  const cpMock = {
+  const cpInfo = {
+    id: chargePointId || null,
     name: cpDisplayName,
-    code: activeSession.chargePointCode || activeSession.chargePoint?.code || `CP-${activeSession.id || ''}`
+    code: activeSession.chargePointCode || activeSession.chargePoint?.code || activeSession.chargePointName || ''
   };
 
   return (
@@ -158,7 +157,7 @@ export default function SessionLogsView() {
           <div className="flex items-center gap-1.5 bg-slate-50 border border-stone-200/80 rounded-xl px-3 py-1.5 text-xs shadow-2xs">
             <UserIcon className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
             <span className="font-semibold text-stone-500">User:</span>
-            <span className="font-bold text-stone-900">{activeSession.userName || activeSession.driver?.name || 'Simulated Driver'}</span>
+            <span className="font-bold text-stone-900">{activeSession.driver?.name || activeSession.driverName || activeSession.userName || '-'}</span>
           </div>
 
           <div className="flex items-center gap-1.5 bg-slate-50 border border-stone-200/80 rounded-xl px-3 py-1.5 text-xs shadow-2xs">
@@ -197,7 +196,7 @@ export default function SessionLogsView() {
         </div>
       </div>
 
-      <LogsTab cp={cpMock} sessionData={activeSession} />
+      <LogsTab cp={cpInfo} sessionData={activeSession} />
     </div>
   );
 }

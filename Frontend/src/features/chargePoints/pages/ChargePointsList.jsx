@@ -38,6 +38,7 @@ import ExportButton from '../../../components/ui/ExportButton';
 import PrimaryButton from '../../../components/ui/PrimaryButton';
 import DeleteModal from '../../../components/ui/DeleteModal';
 import FilterSection from '../../../components/ui/FilterSection';
+import SearchInput from '../../../components/ui/SearchInput';
 import PermissionGuard from '../../../components/ui/PermissionGuard';
 import { PERMISSIONS } from '../../../config/permissions';
 
@@ -83,35 +84,14 @@ export default function ChargePointsList({ stationFilter, chargingStationId, hid
       if (chargingStationId) {
         activeFilters.chargingStationId = chargingStationId;
       }
-      const effectiveSearch = search || (!chargingStationId && stationFilter ? stationFilter : '');
-      return getChargePoints(page, limit, effectiveSearch, activeFilters);
+      return getChargePoints(page, limit, search, activeFilters);
     },
     [filters, stationFilter, chargingStationId]
   );
 
-  const matchedPoints = (stationFilter && !chargingStationId)
-    ? rawChargePoints.filter((cp) => {
-      const filterStr = String(stationFilter).toLowerCase();
-      const cpStationName = typeof cp.chargingStation === 'object' ? (cp.chargingStation?.name || '') : String(cp.chargingStation || '');
-      const cpStation = cpStationName.toLowerCase();
-      const cpCode = String(cp.code || cp.name || '').toLowerCase();
-      const cpStationId = String(cp.chargingStationId || '').toLowerCase();
-      return cpStation.includes(filterStr) || cpCode.includes(filterStr) || cpStationId.includes(filterStr);
-    })
-    : rawChargePoints;
-
-  const chargePoints =
-    stationFilter && matchedPoints.length === 0 && !loading
-      ? [
-        { id: 'cp-101', name: `${stationFilter}-CP-01`, code: 'CP-01', chargingStation: stationFilter, manufacturer: 'Exicom', mode: 'Public', type: 'DC', status: 'Available', connectors: ['CCS2', 'Type 2'], totalCapacity: 60, stage: 'Active', createdOn: new Date().toISOString() },
-        { id: 'cp-102', name: `${stationFilter}-CP-02`, code: 'CP-02', chargingStation: stationFilter, manufacturer: 'Delta', mode: 'Public', type: 'DC', status: 'Charging', connectors: ['CCS2'], totalCapacity: 50, stage: 'Active', createdOn: new Date().toISOString() },
-        { id: 'cp-103', name: `${stationFilter}-CP-03`, code: 'CP-03', chargingStation: stationFilter, manufacturer: 'ABB', mode: 'Private', type: 'AC', status: 'Available', connectors: ['Type 2'], totalCapacity: 22, stage: 'Active', createdOn: new Date().toISOString() },
-        { id: 'cp-104', name: `${stationFilter}-CP-04`, code: 'CP-04', chargingStation: stationFilter, manufacturer: 'Schneider', mode: 'Public', type: 'AC', status: 'Offline', connectors: ['Type 2'], totalCapacity: 11, stage: 'Inactive', createdOn: new Date().toISOString() },
-      ]
-      : matchedPoints;
-
-  const displayTotalItems = (stationFilter && !chargingStationId) ? chargePoints.length : rawTotalItems;
-  const displayTotalPages = (stationFilter && !chargingStationId) ? Math.max(1, Math.ceil(chargePoints.length / itemsPerPage)) : rawTotalPages;
+  const chargePoints = rawChargePoints;
+  const displayTotalItems = rawTotalItems;
+  const displayTotalPages = rawTotalPages;
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -209,7 +189,7 @@ export default function ChargePointsList({ stationFilter, chargingStationId, hid
               <Filter className="w-4 h-4 text-violet-600 shrink-0" />
               <span className="leading-none">Filter</span>
               {activeFiltersCount > 0 && (
-                <span className="flex items-center justify-center w-4 h-4 bg-orange-500 text-white rounded-full text-[10px] ml-1 font-bold">
+                <span className="flex items-center justify-center w-4 h-4 bg-[#4DA944] text-white rounded-full text-[10px] ml-1 font-bold">
                   {activeFiltersCount}
                 </span>
               )}
@@ -259,19 +239,15 @@ export default function ChargePointsList({ stationFilter, chargingStationId, hid
             <span className="font-extrabold text-stone-900 text-xs">{displayTotalItems}</span> total charge points
           </div>
 
-          <div className="relative w-full sm:w-[400px] group">
-            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-stone-400 group-focus-within:text-stone-900 transition-colors z-10">
-              <Search className="w-5 h-5" />
-            </div>
-
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={handleSearch}
-              placeholder="Search points by name, location..."
-              className="w-full pl-14 pr-5 py-2.5 bg-white border border-stone-200/90 shadow-2xs focus:border-stone-900 focus:ring-1 focus:ring-stone-900/10 rounded-2xl text-xs font-medium focus:outline-none text-stone-800 placeholder:text-stone-400 transition-colors duration-150"
-            />
-          </div>
+          <SearchInput
+            value={searchTerm}
+            onChange={handleSearch}
+            onClear={() => {
+              setSearchTerm('');
+              setCurrentPage(1);
+            }}
+            placeholder="Search points by name, location..."
+          />
         </div>
 
         <div className="overflow-x-auto scrollbar-none flex-1 transform-gpu translate-z-0">
@@ -343,7 +319,7 @@ export default function ChargePointsList({ stationFilter, chargingStationId, hid
                 <tr>
                   <td colSpan="19" className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+                      <Loader2 className="w-8 h-8 text-[#4DA944] animate-spin" />
                       <p className="text-sm font-bold text-stone-500">Loading charge points...</p>
                     </div>
                   </td>
@@ -353,7 +329,7 @@ export default function ChargePointsList({ stationFilter, chargingStationId, hid
                   <td colSpan="19" className="px-5 py-24 text-center">
                     <div className="text-stone-400 flex flex-col items-center">
                       <div className="w-20 h-20 bg-white/40 backdrop-blur-md rounded-3xl shadow-[inset_0_2px_10px_rgba(255,255,255,0.6)] border border-white/50 flex items-center justify-center mb-6">
-                        <Search className="w-10 h-10 text-orange-300" />
+                        <Search className="w-10 h-10 text-stone-400" />
                       </div>
                       <p className="text-sm font-bold text-stone-500">No charge points found.</p>
                     </div>
@@ -465,7 +441,7 @@ export default function ChargePointsList({ stationFilter, chargingStationId, hid
                     </td>
 
                     <td className="px-4 py-3 text-center whitespace-nowrap">
-                      <span className="text-orange-500 text-[13px] font-bold font-mono">{row.cpId || row.code}</span>
+                      <span className="text-[#30702a] text-[13px] font-bold font-mono">{row.cpId || row.code}</span>
                     </td>
 
                     <td className="px-4 py-3 text-center whitespace-nowrap">

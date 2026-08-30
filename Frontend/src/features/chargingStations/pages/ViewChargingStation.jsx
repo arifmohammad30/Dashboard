@@ -68,7 +68,6 @@ export default function ViewChargingStation() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   const [transactions, setTransactions] = useState([]);
-  const [stationChargePoints, setStationChargePoints] = useState([]);
   const [dateRange, setDateRange] = useState('Last 30 Days');
   const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
   const dateOptions = ['Today', 'Last 7 Days', 'Last 30 Days', 'Last 90 Days', 'All Time'];
@@ -76,18 +75,18 @@ export default function ViewChargingStation() {
   useEffect(() => {
     if (id) {
       setLoading(true);
-      const decodedId = decodeURIComponent(id);
       getChargingStationById(id)
         .then((data) => {
           if (data && (data.name || data.code)) {
             setStation(data);
           } else {
-            setStation((prev) => prev || { name: decodedId, code: 'HUB-001' });
+            setStation(null);
           }
         })
         .catch(async (err) => {
           console.warn("Could not fetch station by ID, attempting name search lookup:", err);
           try {
+            const decodedId = decodeURIComponent(id);
             const res = await apiClient(`/charging-stations?search=${encodeURIComponent(decodedId)}`);
             const list = Array.isArray(res) ? res : (res?.data && Array.isArray(res.data) ? res.data : []);
             if (list.length > 0) {
@@ -95,42 +94,15 @@ export default function ViewChargingStation() {
               return;
             }
           } catch {}
-          setStation((prev) => prev || { name: decodedId, code: 'HUB-001' });
+          setStation(null);
         })
         .finally(() => setLoading(false));
     }
   }, [id]);
 
-  useEffect(() => {
-    const sName = station?.name || 'Charging Station';
-    getChargePoints(1, 20, station?.name || '')
-      .then((res) => {
-        if (res && res.data && res.data.length > 0) {
-          setStationChargePoints(res.data);
-        } else {
-          setStationChargePoints([
-            { id: 'cp-101', name: `${sName}-CP-01`, code: 'CP-01', type: 'DC', capacity: 60, status: 'Available', connectors: ['CCS2', 'Type 2'] },
-            { id: 'cp-102', name: `${sName}-CP-02`, code: 'CP-02', type: 'DC', capacity: 50, status: 'Charging', connectors: ['CCS2'] },
-            { id: 'cp-103', name: `${sName}-CP-03`, code: 'CP-03', type: 'AC', capacity: 22, status: 'Available', connectors: ['Type 2'] },
-            { id: 'cp-104', name: `${sName}-CP-04`, code: 'CP-04', type: 'AC', capacity: 11, status: 'Offline', connectors: ['Type 2'] },
-          ]);
-        }
-      })
-      .catch(() => {
-        setStationChargePoints([
-          { id: 'cp-101', name: `${sName}-CP-01`, code: 'CP-01', type: 'DC', capacity: 60, status: 'Available', connectors: ['CCS2', 'Type 2'] },
-          { id: 'cp-102', name: `${sName}-CP-02`, code: 'CP-02', type: 'DC', capacity: 50, status: 'Charging', connectors: ['CCS2'] },
-          { id: 'cp-103', name: `${sName}-CP-03`, code: 'CP-03', type: 'AC', capacity: 22, status: 'Available', connectors: ['Type 2'] },
-          { id: 'cp-104', name: `${sName}-CP-04`, code: 'CP-04', type: 'AC', capacity: 11, status: 'Offline', connectors: ['Type 2'] },
-        ]);
-      });
-  }, [station]);
-
-
-
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-orange-500">
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-[#4DA944]">
         <Loader2 className="w-10 h-10 animate-spin mb-4" />
         <p className="text-sm font-bold text-stone-600">Loading charging station details...</p>
       </div>
@@ -138,7 +110,7 @@ export default function ViewChargingStation() {
   }
 
   const stationName = station?.name || 'Charging Station';
-  const stationCode = station?.code || 'HUB-001';
+  const stationCode = station?.code || '-';
 
   return (
     <div className="flex flex-col gap-6 max-w-[1400px] w-full mx-auto pb-10">
@@ -150,7 +122,7 @@ export default function ViewChargingStation() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-0.5">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-black text-stone-900 tracking-tight">{stationName}</h1>
-            <span className="px-2.5 py-0.5 rounded-md bg-orange-50 text-orange-600 border border-orange-200/80 font-mono font-bold text-xs">
+            <span className="px-2.5 py-0.5 rounded-md bg-[#4DA944]/10 text-[#30702a] border border-[#4DA944]/20 font-mono font-bold text-xs">
               {stationCode}
             </span>
           </div>
@@ -166,7 +138,7 @@ export default function ViewChargingStation() {
 
             <button
               onClick={() => navigate(`/charging-stations/edit/${station?.id || id}`, { state: { station } })}
-              className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-xs shadow-xs transition-colors cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 bg-[#4DA944] hover:bg-[#43953b] text-white font-bold rounded-xl text-xs shadow-xs transition-colors cursor-pointer"
             >
               <Edit className="w-4 h-4" />
               <span>Edit Details</span>
@@ -180,11 +152,11 @@ export default function ViewChargingStation() {
           <button
             onClick={() => setActiveTab('charge-points')}
             className={`flex items-center gap-2.5 px-4.5 py-3 text-xs font-bold tracking-tight transition-all duration-200 border-b-2 rounded-t-xl whitespace-nowrap cursor-pointer select-none relative ${activeTab === 'charge-points'
-              ? 'border-b-2 border-b-orange-500 text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-xs font-extrabold'
+              ? 'border-b-2 border-b-[#4DA944] text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-xs font-extrabold'
               : 'border-transparent text-stone-500 hover:text-stone-800 hover:bg-stone-100/60 font-medium'
               }`}
           >
-            <BatteryCharging strokeWidth={2.25} className={`w-4 h-4 transition-transform ${activeTab === 'charge-points' ? 'text-orange-500 scale-105' : 'text-stone-400'
+            <BatteryCharging strokeWidth={2.25} className={`w-4 h-4 transition-transform ${activeTab === 'charge-points' ? 'text-[#4DA944] scale-105' : 'text-stone-400'
               }`} />
             <span className="font-bold text-xs tracking-tight">Charge Points</span>
           </button>
@@ -192,11 +164,11 @@ export default function ViewChargingStation() {
           <button
             onClick={() => setActiveTab('transactions')}
             className={`flex items-center gap-2.5 px-4.5 py-3 text-xs font-bold tracking-tight transition-all duration-200 border-b-2 rounded-t-xl whitespace-nowrap cursor-pointer select-none relative ${activeTab === 'transactions'
-              ? 'border-b-2 border-b-orange-500 text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-xs font-extrabold'
+              ? 'border-b-2 border-b-[#4DA944] text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-xs font-extrabold'
               : 'border-transparent text-stone-500 hover:text-stone-800 hover:bg-stone-100/60 font-medium'
               }`}
           >
-            <Activity strokeWidth={2.25} className={`w-4 h-4 transition-transform ${activeTab === 'transactions' ? 'text-orange-500 scale-105' : 'text-stone-400'
+            <Activity strokeWidth={2.25} className={`w-4 h-4 transition-transform ${activeTab === 'transactions' ? 'text-[#4DA944] scale-105' : 'text-stone-400'
               }`} />
             <span className="font-bold text-xs tracking-tight">Charge Transactions</span>
           </button>
@@ -218,12 +190,12 @@ export default function ViewChargingStation() {
           <div className="bg-white rounded-3xl border border-stone-200 shadow-2xl max-w-2xl w-full p-6 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-stone-100 pb-4 mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-500 font-bold">
+                <div className="w-10 h-10 rounded-2xl bg-[#4DA944]/10 border border-[#4DA944]/20 flex items-center justify-center text-[#30702a] font-bold">
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div>
                   <h2 className="text-lg font-black text-stone-900">{stationName}</h2>
-                  <span className="text-xs font-bold text-orange-500 font-mono">{stationCode}</span>
+                  <span className="text-xs font-bold text-[#30702a] font-mono">{stationCode}</span>
                 </div>
               </div>
               <button
@@ -237,42 +209,42 @@ export default function ViewChargingStation() {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 py-2 text-xs">
               <div className="p-3 bg-stone-50/80 rounded-2xl border border-stone-100">
                 <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Brand</span>
-                <span className="font-bold text-stone-800 mt-0.5 block">{station?.brand || 'Pulse Energy'}</span>
+                <span className="font-bold text-stone-800 mt-0.5 block">{station?.brand || '-'}</span>
               </div>
 
               <div className="p-3 bg-stone-50/80 rounded-2xl border border-stone-100">
                 <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Mobility Type</span>
-                <span className="font-bold text-stone-800 mt-0.5 block">{station?.mobilityType || 'Stationary'}</span>
+                <span className="font-bold text-stone-800 mt-0.5 block">{station?.mobilityType || '-'}</span>
               </div>
 
               <div className="p-3 bg-stone-50/80 rounded-2xl border border-stone-100">
                 <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Category</span>
-                <span className="font-bold text-stone-800 mt-0.5 block">{station?.category || 'Public Hub'}</span>
+                <span className="font-bold text-stone-800 mt-0.5 block">{station?.category || '-'}</span>
               </div>
 
               <div className="p-3 bg-stone-50/80 rounded-2xl border border-stone-100 col-span-2">
                 <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Address</span>
-                <span className="font-bold text-stone-800 mt-0.5 block truncate">{station?.address || 'Tamil Nadu, Chennai'}</span>
+                <span className="font-bold text-stone-800 mt-0.5 block truncate">{station?.address || '-'}</span>
               </div>
 
               <div className="p-3 bg-stone-50/80 rounded-2xl border border-stone-100">
                 <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">State / Country</span>
-                <span className="font-bold text-stone-800 mt-0.5 block">{station?.state || 'Tamil Nadu'}, {station?.country || 'India'}</span>
+                <span className="font-bold text-stone-800 mt-0.5 block">{station?.state && station?.country ? `${station.state}, ${station.country}` : (station?.state || station?.country || '-')}</span>
               </div>
 
               <div className="p-3 bg-stone-50/80 rounded-2xl border border-stone-100">
                 <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Geolocation</span>
-                <span className="font-mono font-bold text-stone-800 mt-0.5 block">{station?.latitude || '18.09'}, {station?.longitude || '72.91'}</span>
+                <span className="font-mono font-bold text-stone-800 mt-0.5 block">{station?.latitude && station?.longitude ? `${station.latitude}, ${station.longitude}` : '-'}</span>
               </div>
 
               <div className="p-3 bg-stone-50/80 rounded-2xl border border-stone-100">
                 <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Grid Power</span>
-                <span className="font-bold text-stone-800 mt-0.5 block">{station?.gridPowerCapacity || '100'} kW</span>
+                <span className="font-bold text-stone-800 mt-0.5 block">{station?.gridPowerCapacity ? `${station.gridPowerCapacity} kW` : '-'}</span>
               </div>
 
               <div className="p-3 bg-stone-50/80 rounded-2xl border border-stone-100">
                 <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Availability</span>
-                <span className="font-bold text-stone-800 mt-0.5 block">{station?.open247 ? 'Open 24×7' : `${station?.opensAt || '08:00 am'} - ${station?.closesAt || '09:00 pm'}`}</span>
+                <span className="font-bold text-stone-800 mt-0.5 block">{station?.open247 ? 'Open 24×7' : (station?.opensAt && station?.closesAt ? `${station.opensAt} - ${station.closesAt}` : '-')}</span>
               </div>
             </div>
 

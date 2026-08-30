@@ -122,10 +122,10 @@ export default function AddNewDiscount({ isEditMode = false }) {
               chargePointsAccess: res.chargePointsAccess || 'All'
             });
 
-            try { setSelectedUsers(typeof res.selectedUsers === 'string' ? JSON.parse(res.selectedUsers) : res.selectedUsers || []); } catch (e) {}
-            try { setSelectedFleets(typeof res.selectedFleets === 'string' ? JSON.parse(res.selectedFleets) : res.selectedFleets || []); } catch (e) {}
-            try { setSelectedStations(typeof res.selectedStations === 'string' ? JSON.parse(res.selectedStations) : res.selectedStations || []); } catch (e) {}
-            try { setSelectedChargePoints(typeof res.selectedChargePoints === 'string' ? JSON.parse(res.selectedChargePoints) : res.selectedChargePoints || []); } catch (e) {}
+            setSelectedUsers(Array.isArray(res.selectedUsers) ? res.selectedUsers : []);
+            setSelectedFleets(Array.isArray(res.selectedFleets) ? res.selectedFleets : []);
+            setSelectedStations(Array.isArray(res.selectedStations) ? res.selectedStations : []);
+            setSelectedChargePoints(Array.isArray(res.selectedChargePoints) ? res.selectedChargePoints : []);
           }
         })
         .catch((err) => {
@@ -183,24 +183,15 @@ export default function AddNewDiscount({ isEditMode = false }) {
           >
             Cancel
           </button>
-          <PrimaryButton type="submit" disabled={isSubmitting || loading}>
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                <span>Saving...</span>
-              </>
-            ) : isEditMode ? (
-              <>
-                <Save className="w-3.5 h-3.5 mr-1.5" />
-                <span>Update</span>
-              </>
-            ) : (
-              <>
-                <Plus className="w-3.5 h-3.5 mr-1.5 stroke-[2.5]" />
-                <span>Add</span>
-              </>
-            )}
-          </PrimaryButton>
+          <PrimaryButton
+            type="submit"
+            isSubmitting={isSubmitting}
+            loading={loading}
+            isEditMode={isEditMode}
+            addLabel="Add"
+            editLabel="Update"
+            loadingText="Saving..."
+          />
         </div>
       </div>
 

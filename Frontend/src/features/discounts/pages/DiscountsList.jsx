@@ -21,6 +21,7 @@ import PrimaryButton from '../../../components/ui/PrimaryButton';
 import DeleteModal from '../../../components/ui/DeleteModal';
 import FilterSection from '../../../components/ui/FilterSection';
 import TableActions from '../../../components/ui/TableActions';
+import SearchInput from '../../../components/ui/SearchInput';
 import PermissionGuard from '../../../components/ui/PermissionGuard';
 import { PERMISSIONS } from '../../../config/permissions';
 
@@ -203,7 +204,7 @@ export default function DiscountsList() {
               <Filter className="w-4 h-4 text-violet-600 shrink-0" />
               <span className="leading-none">Filter</span>
               {activeFiltersCount > 0 && (
-                <span className="flex items-center justify-center w-4 h-4 bg-orange-500 text-white rounded-full text-[10px] ml-1 font-bold">
+                <span className="flex items-center justify-center w-4 h-4 bg-[#4DA944] text-white rounded-full text-[10px] ml-1 font-bold">
                   {activeFiltersCount}
                 </span>
               )}
@@ -253,22 +254,18 @@ export default function DiscountsList() {
             <span className="font-extrabold text-stone-900 text-xs">{totalRecords}</span> total discounts
           </div>
 
-          <div className="relative w-full sm:w-[400px] group">
-            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-stone-400 group-focus-within:text-stone-900 transition-colors z-10">
-              <Search className="w-5 h-5" />
-            </div>
-
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="Search by Name or Status..."
-              className="w-full pl-14 pr-5 py-2.5 bg-white border border-stone-200/90 shadow-2xs focus:border-stone-900 focus:ring-1 focus:ring-stone-900/10 rounded-2xl text-xs font-medium focus:outline-none text-stone-800 placeholder:text-stone-400 transition-colors duration-150"
-            />
-          </div>
+          <SearchInput
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            onClear={() => {
+              setSearchTerm('');
+              setCurrentPage(1);
+            }}
+            placeholder="Search by Name or Status..."
+          />
         </div>
 
         {/* Table Content */}
@@ -329,7 +326,7 @@ export default function DiscountsList() {
                 <tr>
                   <td colSpan="9" className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+                      <Loader2 className="w-8 h-8 text-[#4DA944] animate-spin" />
                       <p className="text-sm font-bold text-stone-500">Loading discounts...</p>
                     </div>
                   </td>
@@ -338,7 +335,7 @@ export default function DiscountsList() {
                 <tr>
                   <td colSpan="9" className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <div className="w-12 h-12 rounded-2xl bg-white/40 border border-stone-200/60 flex items-center justify-center text-orange-500 mb-1">
+                      <div className="w-12 h-12 rounded-2xl bg-white/40 border border-stone-200/60 flex items-center justify-center text-[#4DA944] mb-1">
                         <Search className="w-6 h-6" />
                       </div>
                       <p className="text-sm font-bold text-stone-500">No records found.</p>

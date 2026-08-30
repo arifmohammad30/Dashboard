@@ -2,6 +2,29 @@ import prisma from '../../prisma.js';
 import { isTokenMatchedServer } from '../../utils/search.js';
 import { formatCsvRow } from '../../utils/csvSanitizer.js';
 
+export async function getFilterOptions() {
+  const mobilityTypes = await prisma.chargingStation.findMany({
+    select: { mobilityType: true },
+    distinct: ['mobilityType']
+  });
+
+  const stationTypes = await prisma.chargingStation.findMany({
+    select: { stationType: true },
+    distinct: ['stationType']
+  });
+
+  const stages = await prisma.chargePoint.findMany({
+    select: { stage: true },
+    distinct: ['stage']
+  });
+
+  return {
+    mobilityType: mobilityTypes.map(m => m.mobilityType).filter(Boolean).sort(),
+    stationType: stationTypes.map(s => s.stationType).filter(Boolean).sort(),
+    stage: stages.map(s => s.stage).filter(Boolean).sort()
+  };
+}
+
 export async function getChargingStations({ page = 1, limit = 10, searchTerm = '', filters = {} }) {
   const whereClause = { AND: [] };
 

@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLiveSessions } from '../hooks/useLiveSessions';
-import { useLookupMaps } from '../hooks/useLookupMaps';
 import LiveSessionsToolbar from '../components/LiveSessionsToolbar';
 import LiveSessionsTable from '../components/LiveSessionsTable';
 
@@ -19,18 +18,22 @@ export default function LiveSessionsList() {
     setCurrentPage
   } = useLiveSessions();
 
-  const { resolveStation, resolveChargePoint } = useLookupMaps();
-
   const handleNavigateStation = (stationObj) => {
-    navigate(`/charging-stations/${stationObj.id}`, { state: { station: stationObj } });
+    if (stationObj?.id) {
+      navigate(`/charging-stations/${stationObj.id}`, { state: { station: stationObj } });
+    }
   };
 
   const handleNavigateChargePoint = (cpObj) => {
-    navigate(`/charge-points/${cpObj.id}`, { state: { chargePoint: cpObj } });
+    if (cpObj?.id) {
+      navigate(`/charge-points/${cpObj.id}`, { state: { chargePoint: cpObj } });
+    }
   };
 
   const handleNavigateLogs = (session) => {
-    navigate(`/session-logs/${session.id}`, { state: { session } });
+    if (session?.id) {
+      navigate(`/session-logs/${session.id}`, { state: { session } });
+    }
   };
 
   return (
@@ -55,8 +58,6 @@ export default function LiveSessionsList() {
       <LiveSessionsTable
         sessions={paginatedSessions}
         loading={loading}
-        resolveStation={resolveStation}
-        resolveChargePoint={resolveChargePoint}
         onNavigateStation={handleNavigateStation}
         onNavigateChargePoint={handleNavigateChargePoint}
         onNavigateLogs={handleNavigateLogs}

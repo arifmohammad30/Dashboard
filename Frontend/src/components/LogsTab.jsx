@@ -220,7 +220,7 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
               <Filter className="w-3.5 h-3.5 text-violet-500" />
               <span>Filter</span>
               {activeFiltersCount > 0 && (
-                <span className="flex items-center justify-center w-4 h-4 bg-orange-500 text-white rounded-full text-[10px] font-bold">
+                <span className="flex items-center justify-center w-4 h-4 bg-[#4DA944] text-white rounded-full text-[10px] font-bold">
                   {activeFiltersCount}
                 </span>
               )}

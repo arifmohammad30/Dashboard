@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Filter } from 'lucide-react';
+import { Filter } from 'lucide-react';
+import SearchInput from '../../../components/ui/SearchInput';
 import ExportButton from '../../../components/ui/ExportButton';
 import FilterSection from '../../../components/ui/FilterSection';
 
@@ -30,10 +31,8 @@ export default function SessionHistoryToolbar({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const defaultStations = ['Location 6 Hub', 'Location 20 Hub', 'DLF Cybercity Fast Hub'];
-  const defaultChargePoints = ['CP-1001', 'CP-1028', 'CP-1031', 'CP-1036'];
-  const stationsToRender = stationOptions.length > 0 ? stationOptions : defaultStations;
-  const cpToRender = cpOptions.length > 0 ? cpOptions : defaultChargePoints;
+  const stationsToRender = Array.isArray(stationOptions) ? stationOptions : [];
+  const cpToRender = Array.isArray(cpOptions) ? cpOptions : [];
 
   return (
     <div className="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -60,16 +59,13 @@ export default function SessionHistoryToolbar({
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 sm:w-64">
-          <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={onSearchChange}
-            placeholder="Search by User, Station, CP..."
-            className="w-full pl-9 pr-4 py-2 bg-stone-50 border border-stone-200/80 rounded-xl text-xs font-medium text-stone-800 placeholder-stone-400 focus:outline-hidden focus:border-slate-400 focus:bg-white transition-all"
-          />
-        </div>
+        <SearchInput
+          value={searchTerm}
+          onChange={onSearchChange}
+          onClear={() => onSearchChange({ target: { value: '' } })}
+          placeholder="Search by User, Station, CP..."
+          wrapperClassName="w-full sm:w-64"
+        />
 
         <div className="relative" ref={filterRef}>
           <button
@@ -80,7 +76,7 @@ export default function SessionHistoryToolbar({
             <Filter className="w-4 h-4 text-violet-600 shrink-0" />
             <span className="leading-none">Filter</span>
             {activeFiltersCount > 0 && (
-              <span className="flex items-center justify-center w-4 h-4 bg-orange-500 text-white rounded-full text-[10px] ml-1 font-bold">
+              <span className="flex items-center justify-center w-4 h-4 bg-[#4DA944] text-white rounded-full text-[10px] ml-1 font-bold">
                 {activeFiltersCount}
               </span>
             )}

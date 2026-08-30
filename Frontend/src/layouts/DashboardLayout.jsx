@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Menu, User, LogOut } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { useAuth } from '../features/auth/context/AuthContext';
 
@@ -21,6 +21,7 @@ export default function DashboardLayout({ children }) {
   const isAnalyticsPage = location.pathname.startsWith('/analytics');
 
   const isPaymentsPage = location.pathname.startsWith('/payment-providers') || location.pathname.startsWith('/payment-logs');
+  const isTeamsPage = location.pathname.startsWith('/team-members') || location.pathname.startsWith('/teams') || location.pathname.startsWith('/groups') || location.pathname.startsWith('/permission-rules');
 
 
   const { logout, user } = useAuth();
@@ -64,13 +65,30 @@ export default function DashboardLayout({ children }) {
         <header className="h-16 flex items-center justify-between px-6 bg-white border border-stone-200/80 shadow-2xs shrink-0 z-10 mx-4 md:mx-8 mt-3 rounded-2xl">
           <div className="flex items-center gap-3">
             {!isSidebarOpen && (
-              <button
-                onClick={() => setIsSidebarOpen(true)}
-                className="p-2 -ml-2 rounded-xl text-stone-500 hover:text-indigo-600 bg-stone-100/80 hover:bg-stone-200/80 transition cursor-pointer"
-                aria-label="Open menu"
-              >
-                <Menu size={20} />
-              </button>
+              <div className="flex items-center gap-3 animate-in fade-in duration-200">
+                <button
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="p-2 -ml-2 rounded-xl text-stone-600 hover:text-slate-900 bg-stone-100/90 hover:bg-stone-200 transition cursor-pointer border border-stone-200/80 shrink-0"
+                  aria-label="Open menu"
+                >
+                  <Menu size={20} />
+                </button>
+
+                {/* Brand Logo in Top Navbar when Sidebar is closed */}
+                <Link
+                  to="/"
+                  className="flex items-center bg-white border-2 border-[#4DA944] rounded-lg px-2.5 py-1 shadow-2xs shrink-0"
+                  title="openEV.io Dashboard"
+                >
+                  <img
+                    src="/logo-2.jpeg"
+                    alt="openev.io"
+                    className="h-5 sm:h-5.5 w-auto max-w-[125px] object-contain object-left"
+                  />
+                </Link>
+
+                <div className="h-5 w-px bg-stone-200 hidden sm:block mx-0.5"></div>
+              </div>
             )}
             <div className="font-semibold uppercase text-[17px] text-slate-800 tracking-tight hidden sm:block">
               {isChargePointsPage ? 'Charge Point Management' :
@@ -81,7 +99,8 @@ export default function DashboardLayout({ children }) {
                         isBillsPage ? 'Billing & Invoicing' :
                           isDiscountsPage ? 'Discount Management' :
                             isAnalyticsPage ? 'Analytics & Intelligence' :
-                              isPaymentsPage ? 'Payment Gateway & Integration' : ''}
+                              isPaymentsPage ? 'Payment Gateway & Integration' :
+                                isTeamsPage ? 'Teams & Access Management' : ''}
 
             </div>
           </div>
@@ -92,12 +111,12 @@ export default function DashboardLayout({ children }) {
 
             <div className="relative" ref={userMenuRef}>
               <div
-                className={`w-10 h-10 rounded-full bg-stone-100/80 hover:bg-stone-200/80 border-2 transition-colors duration-200 flex items-center justify-center cursor-pointer shadow-2xs active:scale-95 ${isUserMenuOpen ? 'border-orange-500 ring-2 ring-orange-500/20' : 'border-stone-300 hover:border-slate-800'
+                className={`w-10 h-10 rounded-full bg-stone-100/80 hover:bg-stone-200/80 border-2 transition-colors duration-200 flex items-center justify-center cursor-pointer shadow-2xs active:scale-95 ${isUserMenuOpen ? 'border-[#4DA944] ring-2 ring-[#4DA944]/20' : 'border-stone-300 hover:border-slate-800'
                   }`}
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               >
                 <button className="cursor-pointer outline-none flex items-center justify-center">
-                  <User className="w-5 h-5 text-indigo-600" />
+                  <User className="w-5 h-5 text-[#4DA944]" />
                 </button>
               </div>
 
@@ -105,7 +124,7 @@ export default function DashboardLayout({ children }) {
               {isUserMenuOpen && (
                 <div className="absolute right-0 mt-3 w-64 bg-white/95 backdrop-blur-xl border-2 border-stone-200 rounded-2xl shadow-xl p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
                   <div className="flex items-center gap-3 pb-3 border-b border-stone-100">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 font-bold shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-[#4DA944]/10 border border-[#4DA944]/20 flex items-center justify-center text-[#30702a] font-bold shrink-0">
                       <User className="w-5 h-5" />
                     </div>
                     <div className="min-w-0 flex-1">

@@ -26,6 +26,16 @@ export function calculateSessionTelemetry(s) {
 
   const currentVal = parseFloat(((powerKw * 1000) / (voltageVal * (isDc ? 1.0 : (1.732 * 0.95)))).toFixed(1));
 
+  const cp = s.chargePoint || null;
+  const station = s.chargingStation || null;
+
+  const stationId = s.chargingStationId || station?.id || null;
+  const stationName = station?.name || (typeof s.chargingStation === 'string' ? s.chargingStation : (typeof s.station === 'string' ? s.station : null)) || s.chargingStationName || null;
+
+  const cpId = s.chargePointId || cp?.id || null;
+  const cpName = cp?.name || cp?.code || (typeof s.chargePoint === 'string' ? s.chargePoint : null) || s.chargePointName || s.cpCode || null;
+  const cpCode = cp?.code || s.chargePointCode || s.cpCode || cpName || null;
+
   return {
     id: s.id,
     sessionId: s.id,
@@ -59,15 +69,15 @@ export function calculateSessionTelemetry(s) {
 
     userInitials: s.user?.initials || 'DR',
     userColor: s.user?.color || 'bg-indigo-100 text-indigo-700',
-    station: s.chargingStation?.name || (typeof s.chargingStation === 'string' ? s.chargingStation : (typeof s.station === 'string' ? s.station : 'Station')),
-    chargingStation: s.chargingStation,
-    chargingStationId: s.chargingStationId || s.chargingStation?.id,
-    chargingStationName: s.chargingStation?.name || (typeof s.chargingStation === 'string' ? s.chargingStation : (typeof s.station === 'string' ? s.station : 'Station')),
-    chargePoint: s.chargePoint,
-    chargePointId: s.chargePointId || s.chargePoint?.id,
-    chargePointName: s.chargePoint?.name || (typeof s.chargePoint === 'string' ? s.chargePoint : 'Charge Point'),
-    chargePointCode: s.chargePoint?.code || s.cpCode || s.chargePointCode || '',
-    cpCode: s.chargePoint?.code || s.cpCode || s.chargePointCode || '',
+    station: stationName,
+    chargingStation: station || (stationId || stationName ? { id: stationId, name: stationName } : null),
+    chargingStationId: stationId,
+    chargingStationName: stationName,
+    chargePoint: cp || (cpId || cpName ? { id: cpId, name: cpName, code: cpCode } : null),
+    chargePointId: cpId,
+    chargePointName: cpName,
+    chargePointCode: cpCode,
+    cpCode: cpCode,
     connector: s.connector ? `${s.connector.type} (${s.connector.connectorId})` : 'Type2 (1)',
     tariffName: s.tariff?.name || 'Standard Rate',
     createdAt: s.createdAt,
@@ -110,18 +120,27 @@ export async function saveSessionToDb(sessionData) {
 
   // 2. Resolve ChargePoint FK
   let chargePointId = sessionData.chargePoint?.id || sessionData.chargePointId;
+  let foundCp = null;
   if (chargePointId) {
-    const cpExists = await prisma.chargePoint.findUnique({ where: { id: chargePointId } });
-    if (!cpExists) chargePointId = null;
+    foundCp = await prisma.chargePoint.findUnique({ where: { id: chargePointId }, include: { chargingStation: true } });
+    if (!foundCp) chargePointId = null;
   }
-  if (!chargePointId && (sessionData.chargePointCode || sessionData.chargePoint?.code)) {
-    const cpCodeStr = sessionData.chargePointCode || sessionData.chargePoint?.code;
-    const cpByCode = await prisma.chargePoint.findUnique({ where: { code: cpCodeStr } });
-    if (cpByCode) chargePointId = cpByCode.id;
+  if (!chargePointId && (sessionData.chargePointCode || sessionData.chargePoint?.code || sessionData.chargePointName)) {
+    const cpCodeStr = sessionData.chargePointCode || sessionData.chargePoint?.code || sessionData.chargePointName;
+    foundCp = await prisma.chargePoint.findFirst({
+      where: {
+        OR: [
+          { code: cpCodeStr },
+          { name: cpCodeStr }
+        ]
+      },
+      include: { chargingStation: true }
+    });
+    if (foundCp) chargePointId = foundCp.id;
   }
   if (!chargePointId) {
-    const firstCp = await prisma.chargePoint.findFirst();
-    if (firstCp) chargePointId = firstCp.id;
+    foundCp = await prisma.chargePoint.findFirst({ include: { chargingStation: true } });
+    if (foundCp) chargePointId = foundCp.id;
   }
 
   // 3. Resolve ChargingStation FK
@@ -133,6 +152,9 @@ export async function saveSessionToDb(sessionData) {
   if (!chargingStationId && sessionData.station) {
     const stByName = await prisma.chargingStation.findFirst({ where: { name: sessionData.station } });
     if (stByName) chargingStationId = stByName.id;
+  }
+  if (!chargingStationId && foundCp?.chargingStationId) {
+    chargingStationId = foundCp.chargingStationId;
   }
   if (!chargingStationId && chargePointId) {
     const cp = await prisma.chargePoint.findUnique({ where: { id: chargePointId } });
@@ -155,7 +177,10 @@ export async function saveSessionToDb(sessionData) {
       currentSoc,
       kwhDelivered,
       totalCost,
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      ...(chargingStationId ? { chargingStationId } : {}),
+      ...(chargePointId ? { chargePointId } : {}),
+      ...(connectorId ? { connectorId } : {})
     },
     create: {
       id: sessionId,
@@ -175,7 +200,11 @@ export async function saveSessionToDb(sessionData) {
     include: {
       user: true,
       chargingStation: true,
-      chargePoint: true,
+      chargePoint: {
+        include: {
+          chargingStation: true
+        }
+      },
       connector: true,
       tariff: true
     }
@@ -280,7 +309,11 @@ export async function getLiveSessionsFromDb(query = {}) {
     include: {
       user: true,
       chargingStation: true,
-      chargePoint: true,
+      chargePoint: {
+        include: {
+          chargingStation: true
+        }
+      },
       connector: true,
       tariff: true
     },
@@ -446,7 +479,11 @@ export async function getSessionHistoryFromDb(query = {}) {
     include: {
       user: true,
       chargingStation: true,
-      chargePoint: true,
+      chargePoint: {
+        include: {
+          chargingStation: true
+        }
+      },
       connector: true,
       tariff: true,
       bill: true

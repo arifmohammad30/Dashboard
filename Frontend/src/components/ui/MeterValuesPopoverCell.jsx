@@ -18,9 +18,9 @@ export default function MeterValuesPopoverCell({ meterValues, row }) {
   }, [isOpen]);
 
   const energyVal = meterValues?.energy || row?.meterValues?.energy || (row?.kwhDelivered !== undefined ? `${Number(row.kwhDelivered).toFixed(2)} kWh` : (row?.energy || '0.00 kWh'));
-  const powerVal = meterValues?.power || row?.meterValues?.power || (row?.powerKw !== undefined ? `${Number(row.powerKw).toFixed(2)} kW` : (row?.power || '28.50 kW'));
-  const voltageVal = meterValues?.voltage || row?.meterValues?.voltage || (row?.voltage ? String(row.voltage) : '235.00 V');
-  const currentVal = meterValues?.current || row?.meterValues?.current || (row?.current ? String(row.current) : '16.50 A');
+  const powerVal = meterValues?.power || row?.meterValues?.power || (row?.powerKw !== undefined ? `${Number(row.powerKw).toFixed(2)} kW` : (row?.power || '0.00 kW'));
+  const voltageVal = meterValues?.voltage || row?.meterValues?.voltage || (row?.voltage ? `${Number(row.voltage).toFixed(1)} V` : '-');
+  const currentVal = meterValues?.current || row?.meterValues?.current || (row?.current ? `${Number(row.current).toFixed(1)} A` : '-');
 
   return (
     <div className="relative inline-block" ref={popoverRef}>

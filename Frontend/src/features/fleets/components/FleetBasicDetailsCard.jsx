@@ -93,7 +93,7 @@ export default function FleetBasicDetailsCard({
                 : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
             }`}
           >
-            <span className={`w-1.5 h-1.5 rounded-full ${paymentType === 'Prepaid' ? 'bg-orange-400' : 'bg-stone-300'}`} />
+            <span className={`w-1.5 h-1.5 rounded-full ${paymentType === 'Prepaid' ? 'bg-[#4DA944]' : 'bg-stone-300'}`} />
             <span>Prepaid</span>
           </button>
           <button
@@ -106,7 +106,7 @@ export default function FleetBasicDetailsCard({
                 : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
             }`}
           >
-            <span className={`w-1.5 h-1.5 rounded-full ${paymentType === 'Postpaid' ? 'bg-orange-400' : 'bg-stone-300'}`} />
+            <span className={`w-1.5 h-1.5 rounded-full ${paymentType === 'Postpaid' ? 'bg-[#4DA944]' : 'bg-stone-300'}`} />
             <span>Postpaid</span>
           </button>
         </div>

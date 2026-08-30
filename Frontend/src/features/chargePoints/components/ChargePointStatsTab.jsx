@@ -99,7 +99,7 @@ export default function ChargePointStatsTab({ cp }) {
     <div className="flex flex-col gap-6 w-full animate-in fade-in duration-200">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-stone-200/90 rounded-2xl p-4 shadow-2xs relative z-30">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-orange-50 border border-orange-200/60 flex items-center justify-center text-orange-600">
+          <div className="w-8 h-8 rounded-xl bg-[#4DA944]/10 border border-[#4DA944]/20 flex items-center justify-center text-[#30702a]">
             <Activity className="w-4 h-4 stroke-[2]" />
           </div>
           <div>

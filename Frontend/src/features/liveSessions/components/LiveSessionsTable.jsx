@@ -18,8 +18,6 @@ import Pagination from '../../../components/ui/Pagination';
 export default function LiveSessionsTable({
   sessions,
   loading,
-  resolveStation,
-  resolveChargePoint,
   onNavigateStation,
   onNavigateChargePoint,
   onNavigateLogs,
@@ -93,8 +91,6 @@ export default function LiveSessionsTable({
                 <LiveSessionsRow
                   key={session.id || idx}
                   session={session}
-                  resolveStation={resolveStation}
-                  resolveChargePoint={resolveChargePoint}
                   onNavigateStation={onNavigateStation}
                   onNavigateChargePoint={onNavigateChargePoint}
                   onNavigateLogs={onNavigateLogs}

@@ -1,5 +1,6 @@
 import React from 'react';
 import BackButton from '../../../components/ui/BackButton';
+import PrimaryButton from '../../../components/ui/PrimaryButton';
 import { Plus, Loader2 } from 'lucide-react';
 import { useFleetForm } from '../hooks/useFleetForm';
 import FleetBasicDetailsCard from '../components/FleetBasicDetailsCard';
@@ -21,7 +22,7 @@ export default function AddNewFleet({ isViewMode = false, isEditMode = false }) 
 
   if (loadingData) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-orange-500">
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-[#4DA944]">
         <Loader2 className="w-10 h-10 animate-spin mb-4" />
         <p className="text-sm font-bold text-stone-600">Loading fleet details...</p>
       </div>
@@ -49,14 +50,13 @@ export default function AddNewFleet({ isViewMode = false, isEditMode = false }) 
           </button>
 
           {!isViewMode && (
-            <button
+            <PrimaryButton
               type="submit"
-              disabled={isSubmitting}
-              className="px-5 py-2 text-xs font-bold bg-gradient-to-b from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl shadow-xs border border-orange-700/40 transition-all duration-150 flex items-center gap-2 disabled:opacity-70 cursor-pointer active:scale-95"
-            >
-              {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5 stroke-[2.5]" />}
-              <span>{isEditMode ? 'Save Changes' : 'Add'}</span>
-            </button>
+              isSubmitting={isSubmitting}
+              isEditMode={isEditMode}
+              addLabel="Add"
+              editLabel="Save Changes"
+            />
           )}
         </div>
       </div>

@@ -19,8 +19,6 @@ import Pagination from '../../../components/ui/Pagination';
 export default function SessionHistoryTable({
   sessions,
   loading,
-  resolveStation,
-  resolveChargePoint,
   onNavigateStation,
   onNavigateChargePoint,
   onNavigateLogs,
@@ -97,8 +95,6 @@ export default function SessionHistoryTable({
                 <SessionHistoryRow
                   key={session.id || idx}
                   session={session}
-                  resolveStation={resolveStation}
-                  resolveChargePoint={resolveChargePoint}
                   onNavigateStation={onNavigateStation}
                   onNavigateChargePoint={onNavigateChargePoint}
                   onNavigateLogs={onNavigateLogs}

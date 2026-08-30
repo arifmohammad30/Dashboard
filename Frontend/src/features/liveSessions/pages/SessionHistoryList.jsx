@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { useToast } from '../../../context/ToastContext';
 import { useSessionHistory } from '../hooks/useSessionHistory';
-import { useLookupMaps } from '../hooks/useLookupMaps';
 import { exportSessionsToCsv } from '../utils/exportSessionsCsv';
 import { apiClient } from '../../../lib/apiClient';
 import SessionHistoryToolbar from '../components/SessionHistoryToolbar';
@@ -31,8 +30,6 @@ export default function SessionHistoryList() {
     setCurrentPage
   } = useSessionHistory();
 
-  const { resolveStation, resolveChargePoint } = useLookupMaps();
-
   const [stationOptions, setStationOptions] = useState([]);
   const [cpOptions, setCpOptions] = useState([]);
 
@@ -59,15 +56,21 @@ export default function SessionHistoryList() {
   };
 
   const handleNavigateStation = (stationObj) => {
-    navigate(`/charging-stations/${stationObj.id}`, { state: { station: stationObj } });
+    if (stationObj?.id) {
+      navigate(`/charging-stations/${stationObj.id}`, { state: { station: stationObj } });
+    }
   };
 
   const handleNavigateChargePoint = (cpObj) => {
-    navigate(`/charge-points/${cpObj.id}`, { state: { chargePoint: cpObj } });
+    if (cpObj?.id) {
+      navigate(`/charge-points/${cpObj.id}`, { state: { chargePoint: cpObj } });
+    }
   };
 
   const handleNavigateLogs = (session) => {
-    navigate(`/session-logs/${session.id}`, { state: { session } });
+    if (session?.id) {
+      navigate(`/session-logs/${session.id}`, { state: { session } });
+    }
   };
 
   return (
@@ -111,8 +114,6 @@ export default function SessionHistoryList() {
       <SessionHistoryTable
         sessions={paginatedSessions}
         loading={loading}
-        resolveStation={resolveStation}
-        resolveChargePoint={resolveChargePoint}
         onNavigateStation={handleNavigateStation}
         onNavigateChargePoint={handleNavigateChargePoint}
         onNavigateLogs={handleNavigateLogs}

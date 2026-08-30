@@ -10,6 +10,7 @@ import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import LabelWithInfo from '../../../components/ui/LabelWithInfo';
 import FormCard from '../../../components/ui/FormCard';
+import PrimaryButton from '../../../components/ui/PrimaryButton';
 import { createChargingStation, updateChargingStation, getChargingStationById } from '../api/chargingStationService';
 import { useToast } from '../../../context/ToastContext';
 
@@ -283,7 +284,7 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
 
   if (loadingData) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-orange-500">
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-[#4DA944]">
         <Loader2 className="w-10 h-10 animate-spin mb-4" />
         <p className="text-sm font-bold text-stone-600">Loading charging station details...</p>
       </div>
@@ -307,14 +308,13 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
           </button>
 
           {!isViewMode && (
-            <button
+            <PrimaryButton
               type="submit"
-              disabled={isSubmitting}
-              className="px-5 py-2 text-sm bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-xl shadow-sm transition-colors duration-200 flex items-center gap-2 disabled:opacity-70 cursor-pointer"
-            >
-              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-              {isEditMode ? 'Save Changes' : 'Add'}
-            </button>
+              isSubmitting={isSubmitting}
+              isEditMode={isEditMode}
+              addLabel="Add"
+              editLabel="Save Changes"
+            />
           )}
         </div>
       </div>
@@ -434,9 +434,9 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
                   <button
                     type="button"
                     onClick={() => append({ number: '' })}
-                    className="self-start mt-1 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:text-orange-600 bg-white hover:bg-stone-50 border border-stone-200 shadow-2xs rounded-xl transition-all duration-150 cursor-pointer flex items-center gap-2 group active:scale-98"
+                    className="self-start mt-1 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:text-[#4DA944] bg-white hover:bg-stone-50 border border-stone-200 shadow-2xs rounded-xl transition-all duration-150 cursor-pointer flex items-center gap-2 group active:scale-98"
                   >
-                    <Plus className="w-3.5 h-3.5 text-orange-500 group-hover:scale-110 transition-transform" />
+                    <Plus className="w-3.5 h-3.5 text-[#4DA944] group-hover:scale-110 transition-transform" />
                     <span>Add New Contact Number</span>
                   </button>
                 )}
@@ -521,7 +521,7 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
                   {...register('open247')}
                   className="peer sr-only"
                 />
-                <div className="w-5 h-5 rounded-md border border-stone-300 peer-checked:bg-orange-500 peer-checked:border-orange-500 flex items-center justify-center text-white transition-all shadow-2xs">
+                <div className="w-5 h-5 rounded-md border border-stone-300 peer-checked:bg-[#4DA944] peer-checked:border-[#4DA944] flex items-center justify-center text-white transition-all shadow-2xs">
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>

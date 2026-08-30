@@ -33,10 +33,11 @@ import ExportButton from '../../../components/ui/ExportButton';
 import PrimaryButton from '../../../components/ui/PrimaryButton';
 import DeleteModal from '../../../components/ui/DeleteModal';
 import TableActions from '../../../components/ui/TableActions';
+import SearchInput from '../../../components/ui/SearchInput';
 import PermissionGuard from '../../../components/ui/PermissionGuard';
 import { PERMISSIONS } from '../../../config/permissions';
 
-import { getChargingStations, deleteChargingStation, exportStations } from '../api/chargingStationService';
+import { getChargingStations, getFilterOptions, deleteChargingStation, exportStations } from '../api/chargingStationService';
 import { useTableData } from '../../../hooks/useTableData';
 import { useToast } from '../../../context/ToastContext';
 import FilterSection from '../../../components/ui/FilterSection';
@@ -56,14 +57,23 @@ export default function ChargingStationsList() {
   const [stationToView, setStationToView] = useState(null);
 
   const [filters, setFilters] = useState({ mobilityType: [], stationType: [], stage: [] });
+  const [filterOptions, setFilterOptions] = useState({ mobilityType: [], stationType: [], stage: [] });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterRef = React.useRef(null);
 
-  const filterOptions = {
-    mobilityType: ['Stationary', 'Mobile', 'Portable'],
-    stationType: ['Public Hub', 'Commercial', 'Residential', 'Highway Hub', 'Fleet Hub'],
-    stage: ['Active', 'Inactive', 'Under Maintenance']
-  };
+  useEffect(() => {
+    getFilterOptions()
+      .then((data) => {
+        if (data) {
+          setFilterOptions({
+            mobilityType: data.mobilityType || [],
+            stationType: data.stationType || [],
+            stage: data.stage || []
+          });
+        }
+      })
+      .catch((err) => console.error('Failed to load station filter options:', err));
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -177,13 +187,13 @@ export default function ChargingStationsList() {
             <button
               onClick={() => setIsFilterOpen(!isFilterOpen)}
               className={`inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 font-bold rounded-xl shadow-2xs transition-colors duration-150 text-xs cursor-pointer ${
-                activeFilterCount > 0 ? 'border-orange-500 text-orange-600 bg-orange-50/50' : ''
+                activeFilterCount > 0 ? 'border-[#4DA944] text-[#30702a] bg-[#4DA944]/10' : ''
               }`}
             >
               <Filter className="w-4 h-4 text-violet-600 shrink-0" />
               <span className="leading-none">Filter</span>
               {activeFilterCount > 0 && (
-                <span className="w-4 h-4 bg-orange-500 text-white rounded-full text-[10px] flex items-center justify-center font-bold">
+                <span className="w-4 h-4 bg-[#4DA944] text-white rounded-full text-[10px] flex items-center justify-center font-bold">
                   {activeFilterCount}
                 </span>
               )}
@@ -199,7 +209,7 @@ export default function ChargingStationsList() {
                         setFilters({ mobilityType: [], stationType: [], stage: [] });
                         setCurrentPage(1);
                       }}
-                      className="text-[11px] font-bold text-orange-600 hover:text-orange-700 cursor-pointer"
+                      className="text-[11px] font-bold text-[#4DA944] hover:text-[#30702a] cursor-pointer"
                     >
                       Reset All
                     </button>
@@ -248,19 +258,15 @@ export default function ChargingStationsList() {
             <span className="font-extrabold text-stone-900 text-xs">{totalItems}</span> total stations
           </div>
 
-          <div className="relative w-full sm:w-[400px] group">
-            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-stone-400 group-focus-within:text-stone-900 transition-colors z-10">
-              <Search className="w-5 h-5" />
-            </div>
-
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={handleSearch}
-              placeholder="Search stations by name, location..."
-              className="w-full pl-14 pr-5 py-2.5 bg-white border border-stone-200/90 shadow-2xs focus:border-stone-900 focus:ring-1 focus:ring-stone-900/10 rounded-2xl text-xs font-medium focus:outline-none text-stone-800 placeholder:text-stone-400 transition-colors duration-150"
-            />
-          </div>
+          <SearchInput
+            value={searchTerm}
+            onChange={handleSearch}
+            onClear={() => {
+              setSearchTerm('');
+              setCurrentPage(1);
+            }}
+            placeholder="Search stations by name, location..."
+          />
         </div>
 
         <div className="overflow-x-auto scrollbar-none flex-1 transform-gpu translate-z-0">
@@ -304,7 +310,7 @@ export default function ChargingStationsList() {
               {loading ? (
                 <tr>
                   <td colSpan="10" className="px-5 py-24 text-center">
-                    <div className="text-orange-400 flex flex-col items-center">
+                    <div className="text-[#4DA944] flex flex-col items-center">
                       <Loader2 className="w-10 h-10 animate-spin mb-4" />
                       <p className="text-sm font-bold text-stone-500">Loading charging stations...</p>
                     </div>
@@ -392,12 +398,12 @@ export default function ChargingStationsList() {
           <div className="bg-white rounded-3xl border border-stone-200 shadow-2xl max-w-xl w-full p-6 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-stone-100 pb-4 mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-500">
+                <div className="w-10 h-10 rounded-2xl bg-[#4DA944]/10 border border-[#4DA944]/20 flex items-center justify-center text-[#30702a]">
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div>
                   <h2 className="text-lg font-black text-stone-800">{stationToView.name}</h2>
-                  <span className="text-xs font-bold text-orange-500 font-mono">{stationToView.code}</span>
+                  <span className="text-xs font-bold text-[#30702a] font-mono">{stationToView.code}</span>
                 </div>
               </div>
               <button
@@ -411,20 +417,24 @@ export default function ChargingStationsList() {
             <div className="grid grid-cols-2 gap-4 py-2">
               <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100 col-span-2">
                 <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Associated Charge Point</span>
-                <button
-                  onClick={() => {
-                    setViewModalOpen(false);
-                    if (stationToView.chargePointId) {
-                      navigate(`/charge-points/${stationToView.chargePointId}`);
-                    } else {
-                      navigate(`/charge-points?search=${encodeURIComponent(stationToView.chargePointName || stationToView.name)}`);
-                    }
-                  }}
-                  className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200/80 rounded-xl font-bold text-xs transition-colors duration-200 cursor-pointer group mt-1"
-                >
-                  <Zap className="w-4 h-4 text-emerald-500 group-hover:text-white transition-colors" />
-                  <span>{stationToView.chargePointName || `${stationToView.code}-CP1`}</span>
-                </button>
+                {stationToView.chargePointId || stationToView.chargePointName ? (
+                  <button
+                    onClick={() => {
+                      setViewModalOpen(false);
+                      if (stationToView.chargePointId) {
+                        navigate(`/charge-points/${stationToView.chargePointId}`);
+                      } else {
+                        navigate(`/charge-points?search=${encodeURIComponent(stationToView.chargePointName)}`);
+                      }
+                    }}
+                    className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200/80 rounded-xl font-bold text-xs transition-colors duration-200 cursor-pointer group mt-1"
+                  >
+                    <Zap className="w-4 h-4 text-emerald-500 group-hover:text-white transition-colors" />
+                    <span>{stationToView.chargePointName || stationToView.chargePointId}</span>
+                  </button>
+                ) : (
+                  <span className="text-stone-400 font-normal text-xs italic block mt-1">No charge points linked</span>
+                )}
               </div>
 
               <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">

@@ -26,7 +26,7 @@ export function useChargePointTransactions(cp) {
         ? `chargePointId=${encodeURIComponent(cpId)}`
         : `chargePointCode=${encodeURIComponent(cpCode)}`;
       const res = await apiClient(`/api/live-sessions/history?${queryStr}&page=${page}&limit=${limit}&search=${encodeURIComponent(search || '')}`);
-      return res || { data: [], total: 0, totalPages: 1 };
+      return res;
     },
     [cpId, cpCode]
   );

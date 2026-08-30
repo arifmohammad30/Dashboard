@@ -1,5 +1,4 @@
 import { checkPermission } from '../hooks/useAuthorization';
-import { mapBackendUserToAuthUser } from '../utils/authAdapter';
 import { PERMISSIONS } from '../../../config/permissions';
 
 /**
@@ -30,27 +29,29 @@ export function runAuthorizationTests() {
   const nullUser = null;
   assert(checkPermission(nullUser, PERMISSIONS.STATION_VIEW) === false, 'Test 1: Deny safely when user is null');
 
-  const emptyUser = mapBackendUserToAuthUser({ id: 'u1', role: 'OPERATOR', permissions: [] });
+  const emptyUser = { id: 'u1', name: 'Op User', email: 'op@test.com', role: 'OPERATOR', permissions: [] };
   assert(checkPermission(emptyUser, PERMISSIONS.STATION_CREATE) === false, 'Test 2: Deny safely when permissions array is empty');
 
   // Test 3: Granted access when permission exists
-  const authorizedUser = mapBackendUserToAuthUser({
+  const authorizedUser = {
     id: 'u2',
     name: 'Test Manager',
+    email: 'manager@test.com',
     role: 'Arbitrary Custom Role XYZ', // Role name does not affect permissions
     permissions: [PERMISSIONS.STATION_VIEW, PERMISSIONS.STATION_CREATE, PERMISSIONS.TARIFF_VIEW]
-  });
+  };
 
   assert(checkPermission(authorizedUser, PERMISSIONS.STATION_VIEW) === true, 'Test 3: Access granted when permission exists');
   assert(checkPermission(authorizedUser, PERMISSIONS.STATION_DELETE) === false, 'Test 4: Access denied when specific permission is missing');
 
   // Test 5: Role-Agnostic Behavior - Adding a brand new backend role works with zero frontend code changes
-  const newCustomRoleUser = mapBackendUserToAuthUser({
+  const newCustomRoleUser = {
     id: 'u3',
     name: 'Auditor User',
+    email: 'auditor@test.com',
     role: 'Auditor_Role_2026_V2', // Completely new, arbitrary role name
     permissions: [PERMISSIONS.BILL_VIEW, PERMISSIONS.BILL_EXPORT]
-  });
+  };
 
   assert(checkPermission(newCustomRoleUser, PERMISSIONS.BILL_VIEW) === true, 'Test 5: Brand new backend role grants access via permissions');
   assert(checkPermission(newCustomRoleUser, PERMISSIONS.STATION_CREATE) === false, 'Test 6: Brand new backend role denies ungranted actions');

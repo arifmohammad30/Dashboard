@@ -12,6 +12,7 @@ import {
 import Pagination from '../../../components/ui/Pagination';
 import ExportButton from '../../../components/ui/ExportButton';
 import FilterSection from '../../../components/ui/FilterSection';
+import SearchInput from '../../../components/ui/SearchInput';
 import PermissionGuard from '../../../components/ui/PermissionGuard';
 import { PERMISSIONS } from '../../../config/permissions';
 import { useBillsList } from '../hooks/useBillsList';
@@ -97,7 +98,7 @@ export default function BillsList() {
               <Filter className="w-4 h-4 text-violet-600 shrink-0" />
               <span className="leading-none">Filter</span>
               {activeFiltersCount > 0 && (
-                <span className="flex items-center justify-center w-4 h-4 bg-orange-500 text-white rounded-full text-[10px] ml-1 font-bold">
+                <span className="flex items-center justify-center w-4 h-4 bg-[#4DA944] text-white rounded-full text-[10px] ml-1 font-bold">
                   {activeFiltersCount}
                 </span>
               )}
@@ -137,19 +138,12 @@ export default function BillsList() {
             <span className="font-extrabold text-stone-900 text-xs">{totalRecords}</span> total billing records
           </div>
 
-          <div className="relative w-full sm:w-[400px] group">
-            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-stone-400 group-focus-within:text-stone-900 transition-colors z-10">
-              <Search className="w-5 h-5" />
-            </div>
-
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by Bill Number, Driver, CP..."
-              className="w-full pl-14 pr-5 py-2.5 bg-white border border-stone-200/90 shadow-2xs focus:border-stone-900 focus:ring-1 focus:ring-stone-900/10 rounded-2xl text-xs font-medium focus:outline-none text-stone-800 placeholder:text-stone-400 transition-colors duration-150"
-            />
-          </div>
+          <SearchInput
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onClear={() => setSearchTerm('')}
+            placeholder="Search by Bill Number, Driver, CP..."
+          />
         </div>
 
         {/* Table Content */}
@@ -225,8 +219,8 @@ export default function BillsList() {
                   const isPaid = row.billStatus === 'Paid';
                   const isUnpaid = row.billStatus === 'Unpaid' || row.billStatus === 'Generated';
                   const isCompleted = row.chargeTransactionStatus === 'Completed' || row.chargeTransactionStatus === 'Stopped';
-                  const isOngoing = row.chargeTransactionStatus === 'Ongoing';
-                  const driverInitial = (row.customerDriver?.name || row.customerDriver?.initial || 'E').toUpperCase().charAt(0);
+                  const driverName = row.customerDriver?.name || row.driverName || '-';
+                  const driverInitial = driverName !== '-' ? driverName.charAt(0).toUpperCase() : 'U';
 
                   return (
                     <tr
@@ -333,13 +327,22 @@ export default function BillsList() {
                         {row.method}
                       </td>
 
-                      {/* 10. Driver */}
+                      {/* 10. Driver / User */}
                       <td className="px-4 py-3.5 whitespace-nowrap">
-                        <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-stone-50 border border-stone-200/80 rounded-full shadow-2xs">
-                          <span className={`w-5 h-5 rounded-full ${getAvatarStyle(row.customerDriver?.bg)} font-extrabold text-[10px] flex items-center justify-center shrink-0 shadow-2xs`}>
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#4DA944]/20 to-[#4DA944]/10 border border-[#4DA944]/30 text-[#30702a] font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                             {driverInitial}
-                          </span>
-                          <span className="text-xs font-bold text-slate-800 pr-1">{row.customerDriver?.name || 'EV Driver'}</span>
+                          </div>
+                          <div>
+                            <span className="font-bold text-slate-900 block group-hover:text-[#4DA944] transition-colors">
+                              {row.customerDriver?.name || 'EV Driver'}
+                            </span>
+                            {row.customerDriver?.phone && (
+                              <span className="text-[11px] text-stone-400 font-mono block">
+                                {row.customerDriver.phone}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </td>
 

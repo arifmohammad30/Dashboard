@@ -1,5 +1,15 @@
 import * as chargeStationService from './chargeStations.service.js';
 
+export async function getFilters(req, res) {
+  try {
+    const filters = await chargeStationService.getFilterOptions();
+    res.json(filters);
+  } catch (error) {
+    console.error("Error fetching station filter options:", error);
+    res.status(500).json({ error: "Failed to fetch station filter options" });
+  }
+}
+
 export async function getChargingStations(req, res) {
   try {
     const page = parseInt(req.query.page) || 1;

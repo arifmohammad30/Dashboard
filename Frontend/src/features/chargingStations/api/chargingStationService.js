@@ -1,24 +1,23 @@
 import { apiClient } from '../../../lib/apiClient';
 import { downloadFileFromEndpoint } from '../../../utils/downloadUtils';
 
+export const getFilterOptions = async () => {
+  return await apiClient('/charging-stations/filters');
+};
+
 export const getChargingStations = async (page = 1, limit = 10, searchTerm = '', filters = {}) => {
-  try {
-    const params = new URLSearchParams({
-      page: String(page),
-      limit: String(limit),
-      search: searchTerm
-    });
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+    search: searchTerm
+  });
 
-    if (filters && Object.keys(filters).length > 0) {
-      params.append('filters', JSON.stringify(filters));
-    }
-
-    const url = `/charging-stations?${params.toString()}`;
-    return await apiClient(url);
-  } catch (error) {
-    console.error("Failed to fetch charging stations:", error);
-    return null;
+  if (filters && Object.keys(filters).length > 0) {
+    params.append('filters', JSON.stringify(filters));
   }
+
+  const url = `/charging-stations?${params.toString()}`;
+  return await apiClient(url);
 };
 
 export const getChargingStationById = async (id) => {

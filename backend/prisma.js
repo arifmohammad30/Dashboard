@@ -10,7 +10,8 @@ const prisma = new PrismaClient({
   datasources: {
     db: {
       url: dbUrl
-    }do  }
+    }
+  }
 });
 
 export default prisma;

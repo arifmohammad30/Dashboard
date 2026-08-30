@@ -22,21 +22,21 @@ export default function DataTable({
         
         {/* Left Side: Title / Count */}
         <div className="flex items-center gap-2 text-sm text-stone-600 font-medium px-4 py-2 rounded-lg bg-white border border-stone-200 shadow-sm">
-          <span className="font-extrabold text-orange-600 text-base">{totalItems}</span> {subtitle || 'items'}
+          <span className="font-extrabold text-[#30702a] text-base">{totalItems}</span> {subtitle || 'items'}
         </div>
 
         {/* Center: Search */}
         {onSearchChange !== undefined && (
           <div className="relative w-full sm:w-96 group">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-stone-400 group-focus-within:text-orange-500 transition-colors" />
+              <Search className="h-5 w-5 text-stone-400 group-focus-within:text-[#4DA944] transition-colors" />
             </div>
             <input
               type="text"
               placeholder={`Search ${subtitle || 'items'}...`}
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="block w-full pl-11 pr-4 py-3 border border-white/60 rounded-2xl leading-5 bg-white/50 backdrop-blur-md placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 focus:bg-white text-stone-800 transition-all shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)]"
+              className="block w-full pl-11 pr-4 py-3 border border-white/60 rounded-2xl leading-5 bg-white/50 backdrop-blur-md placeholder-stone-400 focus:outline-none focus:ring-0 focus:border-[#4DA944] focus:bg-white text-stone-800 transition-all shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)]"
             />
           </div>
         )}
@@ -69,7 +69,7 @@ export default function DataTable({
               <tr>
                 <td colSpan={columns.length} className="px-6 py-20 text-center">
                   <div className="flex flex-col items-center justify-center">
-                    <Loader2 className="w-8 h-8 text-orange-500 animate-spin mb-4" />
+                    <Loader2 className="w-8 h-8 text-[#4DA944] animate-spin mb-4" />
                     <p className="text-stone-500 font-medium">Loading {subtitle || 'data'}...</p>
                   </div>
                 </td>

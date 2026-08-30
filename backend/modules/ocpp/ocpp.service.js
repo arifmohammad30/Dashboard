@@ -75,20 +75,20 @@ function formatSessionForReact(s) {
       initials: s.user?.initials || 'SD',
       color: s.user?.color || 'bg-emerald-100 text-emerald-700'
     },
-    station: s.chargingStation?.name || 'Station',
-    chargingStationId: s.chargingStationId,
-    chargingStationName: s.chargingStation?.name || 'Station',
+    station: s.chargingStation?.name || s.chargePoint?.chargingStation?.name || 'Charging Station',
+    chargingStationId: s.chargingStationId || s.chargingStation?.id || s.chargePoint?.chargingStationId || '',
+    chargingStationName: s.chargingStation?.name || s.chargePoint?.chargingStation?.name || 'Charging Station',
     chargingStation: {
-      id: s.chargingStation?.id || '',
-      name: s.chargingStation?.name || 'Station'
+      id: s.chargingStation?.id || s.chargePoint?.chargingStation?.id || s.chargingStationId || s.chargePoint?.chargingStationId || '',
+      name: s.chargingStation?.name || s.chargePoint?.chargingStation?.name || 'Charging Station'
     },
-    chargePointId: s.chargePointId,
+    chargePointId: s.chargePointId || s.chargePoint?.id || '',
     chargePointCode: s.chargePoint?.code || '',
-    chargePointName: s.chargePoint?.name || 'Charge Point',
+    chargePointName: s.chargePoint?.name || s.chargePoint?.code || 'Charge Point',
     chargePoint: {
-      id: s.chargePoint?.id || '',
+      id: s.chargePoint?.id || s.chargePointId || '',
       code: s.chargePoint?.code || '',
-      name: s.chargePoint?.name || 'Charge Point'
+      name: s.chargePoint?.name || s.chargePoint?.code || 'Charge Point'
     },
     connector: {
       id: s.connector?.id || '',

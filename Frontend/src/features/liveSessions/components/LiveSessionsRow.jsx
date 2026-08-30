@@ -6,34 +6,16 @@ import TelemetryActionButton from './TelemetryActionButton';
 
 function LiveSessionsRow({
   session,
-  resolveStation,
-  resolveChargePoint,
   onNavigateStation,
   onNavigateChargePoint,
   onNavigateLogs
 }) {
-  const stationObj = typeof resolveStation === 'function' ? resolveStation(session.chargingStationId || session.chargingStation || session.station) : null;
-  const cpObj = typeof resolveChargePoint === 'function' ? resolveChargePoint(session.chargePointId || session.chargePoint || session.chargePointCode) : null;
+  // Read relationships directly from authoritative session payload
+  const cpObj = typeof session.chargePoint === 'object' && session.chargePoint !== null ? session.chargePoint : null;
+  const cpName = cpObj?.name || cpObj?.code || session.chargePointName || (typeof session.chargePoint === 'string' ? session.chargePoint : null) || '-';
 
-  const stationName =
-    stationObj?.name ||
-    (typeof session.chargingStation === 'object' ? session.chargingStation?.name : null) ||
-    session.chargingStationName ||
-    (typeof session.station === 'object' ? session.station?.name : (typeof session.station === 'string' ? session.station : null)) ||
-    (typeof session.chargingStation === 'string' ? session.chargingStation : null) ||
-    'DLF Cybercity Fast Hub';
-
-  const cpName =
-    cpObj?.name ||
-    (typeof session.chargePoint === 'object' ? (session.chargePoint?.name || session.chargePoint?.code) : null) ||
-    session.chargePointName ||
-    (typeof session.chargePoint === 'string' && session.chargePoint !== '-' ? session.chargePoint : null) ||
-    session.chargePointCode ||
-    session.cpCode ||
-    'Fast Charger CP1';
-
-  const activeStationObj = stationObj || (typeof session.chargingStation === 'object' ? session.chargingStation : { id: session.chargingStationId || stationObj?.id || session.station || stationName, name: stationName });
-  const activeCpObj = cpObj || (typeof session.chargePoint === 'object' ? session.chargePoint : { id: session.chargePointId || cpObj?.id || session.chargePointCode || session.chargePoint || cpName, name: cpName, code: cpName });
+  const stationObj = typeof session.chargingStation === 'object' && session.chargingStation !== null ? session.chargingStation : null;
+  const stationName = stationObj?.name || stationObj?.code || session.chargingStationName || session.station || (typeof session.chargingStation === 'string' ? session.chargingStation : null) || '-';
 
   return (
     <tr className="hover:bg-slate-50/80 transition-colors duration-150 text-xs group/row">
@@ -44,19 +26,28 @@ function LiveSessionsRow({
 
       {/* 2. User */}
       <td className="px-4 py-3 whitespace-nowrap">
-        <div className="flex items-center gap-2.5">
-          <div className={`w-7 h-7 rounded-full ${session.userColor || 'bg-indigo-100 text-indigo-700'} flex items-center justify-center font-bold text-[11px] shrink-0`}>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#4DA944]/20 to-[#4DA944]/10 border border-[#4DA944]/30 text-[#30702a] font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
             {session.userInitials || session.userName?.[0] || 'U'}
           </div>
-          <span className="font-semibold text-slate-800">{session.userName || 'EV Driver'}</span>
+          <div>
+            <span className="font-bold text-slate-900 block group-hover/row:text-[#4DA944] transition-colors">
+              {session.userName || 'EV Driver'}
+            </span>
+            {session.userPhone && (
+              <span className="text-[11px] text-stone-400 font-mono block">
+                {session.userPhone}
+              </span>
+            )}
+          </div>
         </div>
       </td>
 
       {/* 3. Charge Point */}
       <td className="px-4 py-3 whitespace-nowrap">
-        {activeCpObj ? (
+        {cpObj?.id && onNavigateChargePoint ? (
           <button
-            onClick={() => onNavigateChargePoint(activeCpObj)}
+            onClick={() => onNavigateChargePoint(cpObj)}
             className="text-[13px] font-semibold text-slate-800 hover:text-sky-600 cursor-pointer transition-colors text-left"
           >
             {cpName}
@@ -68,9 +59,9 @@ function LiveSessionsRow({
 
       {/* 4. Charging Station */}
       <td className="px-4 py-3 whitespace-nowrap">
-        {activeStationObj ? (
+        {stationObj?.id && onNavigateStation ? (
           <button
-            onClick={() => onNavigateStation(activeStationObj)}
+            onClick={() => onNavigateStation(stationObj)}
             className="text-[13px] font-semibold text-slate-800 hover:text-sky-600 cursor-pointer transition-colors text-left"
           >
             {stationName}

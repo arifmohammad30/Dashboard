@@ -3,6 +3,7 @@ import * as chargeStationController from './chargeStation.controller.js';
 
 const router = express.Router();
 
+router.get('/filters', chargeStationController.getFilters);
 router.get('/export', chargeStationController.exportChargingStationsCsv);
 router.get('/', chargeStationController.getChargingStations);
 router.post('/', chargeStationController.createChargingStation);

@@ -1,5 +1,6 @@
 import React from 'react';
 import BackButton from '../../../components/ui/BackButton';
+import PrimaryButton from '../../../components/ui/PrimaryButton';
 import { Plus, Loader2, AlertCircle } from 'lucide-react';
 import { useTariffForm } from '../hooks/useTariffForm';
 
@@ -42,19 +43,15 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
             {isViewMode ? 'Back' : 'Cancel'}
           </button>
           {!isViewMode && (
-            <button
+            <PrimaryButton
               type="button"
               onClick={form.handleSubmit}
-              disabled={form.isSubmitting}
-              className={`px-5 py-2 text-xs font-bold rounded-xl shadow-2xs transition-all cursor-pointer flex items-center gap-2 active:scale-95 disabled:opacity-50 ${
-                form.validationError
-                  ? 'bg-rose-600 hover:bg-rose-700 text-white'
-                  : 'bg-slate-900 hover:bg-slate-800 text-white'
-              }`}
-            >
-              {form.isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
-              {isEditMode ? 'Save Changes' : 'Save Tariff'}
-            </button>
+              isSubmitting={form.isSubmitting}
+              isEditMode={isEditMode}
+              addLabel="Save Tariff"
+              editLabel="Save Changes"
+              className={form.validationError ? 'bg-rose-600 hover:bg-rose-700 border-rose-700/30' : ''}
+            />
           )}
         </div>
       </div>

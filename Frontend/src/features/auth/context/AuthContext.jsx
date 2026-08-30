@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { mapBackendUserToAuthUser, DEV_MOCK_USER } from '../utils/authAdapter';
+import { apiClient } from '../../../lib/apiClient';
 
 const AuthContext = createContext(null);
 
@@ -8,24 +8,23 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Load persisted user or initialize development mock user
     try {
       const savedUser = localStorage.getItem('user');
-      if (savedUser) {
+      const savedToken = localStorage.getItem('token');
+      if (savedUser && savedToken) {
         const parsed = JSON.parse(savedUser);
-        const mapped = mapBackendUserToAuthUser(parsed);
-        setUser(mapped);
-      } else {
-        // In local development mode, if no user is saved, initialize dev mock user
-        const isDev = import.meta.env?.DEV || process.env.NODE_ENV === 'development';
-        if (isDev) {
-          const devUser = mapBackendUserToAuthUser(DEV_MOCK_USER);
-          setUser(devUser);
-          localStorage.setItem('user', JSON.stringify(devUser));
+        if (parsed && typeof parsed === 'object' && Array.isArray(parsed.permissions)) {
+          setUser(parsed);
+        } else {
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+          setUser(null);
         }
       }
     } catch (err) {
       console.error('[AuthContext] Failed to parse stored user:', err);
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -38,6 +37,7 @@ export const AuthProvider = ({ children }) => {
       console.warn('[AuthContext] Global 401 Unauthorized event received. Clearing auth state.');
       setUser(null);
       localStorage.removeItem('user');
+      localStorage.removeItem('token');
     };
 
     window.addEventListener('auth:unauthorized', handleUnauthorizedEvent);
@@ -49,19 +49,20 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     setIsLoading(true);
     try {
-      // Create backend user response payload structure
-      const rawBackendUser = {
-        id: `usr_${Date.now()}`,
-        email,
-        name: email.split('@')[0],
-        role: 'Fleet Operator',
-        permissions: DEV_MOCK_USER.permissions,
-      };
+      const response = await apiClient('/auth/login', {
+        method: 'POST',
+        body: { email, password },
+      });
 
-      const mappedUser = mapBackendUserToAuthUser(rawBackendUser);
-      setUser(mappedUser);
-      localStorage.setItem('user', JSON.stringify(mappedUser));
-      return mappedUser;
+      if (!response?.token || !response?.user) {
+        throw new Error('Invalid response from authentication server');
+      }
+
+      const { token, user: userData } = response;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      return userData;
     } catch (error) {
       throw error;
     } finally {
@@ -72,6 +73,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
   };
 
   // Helper for testing/dev: dynamically set permissions on auth user

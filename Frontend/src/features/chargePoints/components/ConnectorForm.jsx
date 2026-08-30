@@ -121,25 +121,13 @@ export default function ConnectorForm({
           </button>
           <PrimaryButton
             type="submit"
-            disabled={isSubmitting || loading}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                <span>{isEditMode ? 'Updating...' : 'Adding...'}</span>
-              </>
-            ) : isEditMode ? (
-              <>
-                <Save className="w-3.5 h-3.5 mr-1.5" />
-                <span>Update</span>
-              </>
-            ) : (
-              <>
-                <Plus className="w-3.5 h-3.5 mr-1.5 stroke-[2.5]" />
-                <span>Add</span>
-              </>
-            )}
-          </PrimaryButton>
+            isSubmitting={isSubmitting}
+            loading={loading}
+            isEditMode={isEditMode}
+            addLabel="Add"
+            editLabel="Update"
+            loadingText={isEditMode ? 'Updating...' : 'Adding...'}
+          />
         </div>
       </div>
 

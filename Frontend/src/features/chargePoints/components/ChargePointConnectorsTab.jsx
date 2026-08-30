@@ -127,7 +127,7 @@ export default function ChargePointConnectorsTab({
               <td colSpan="8" className="px-4 py-12 text-center">
                 <div className="flex flex-col items-center justify-center gap-3">
                   <div className="w-12 h-12 rounded-2xl bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-400 mb-1">
-                    <PlugZap className="w-6 h-6 text-orange-500" />
+                    <PlugZap className="w-6 h-6 text-[#4DA944]" />
                   </div>
                   <div>
                     <p className="text-sm font-bold text-stone-700">No connectors found for this charge point.</p>
@@ -178,7 +178,7 @@ export default function ChargePointConnectorsTab({
                               state: { conn, cpData: cp }
                             });
                           }}
-                          className="p-1.5 text-stone-600 hover:text-orange-500 rounded-lg hover:bg-white/80 transition cursor-pointer"
+                          className="p-1.5 text-stone-600 hover:text-[#4DA944] rounded-lg hover:bg-white/80 transition cursor-pointer"
                           title="Edit Connector"
                         >
                           <Edit strokeWidth={2.5} className="w-3.5 h-3.5" />
@@ -348,7 +348,7 @@ export default function ChargePointConnectorsTab({
           <div className="bg-white border border-stone-200 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100 bg-stone-50/60">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-orange-50 border border-orange-200 flex items-center justify-center text-orange-600">
+                <div className="w-8 h-8 rounded-xl bg-[#4DA944]/10 border border-[#4DA944]/20 flex items-center justify-center text-[#30702a]">
                   <Plus className="w-4 h-4 stroke-[2.5]" />
                 </div>
                 <div>

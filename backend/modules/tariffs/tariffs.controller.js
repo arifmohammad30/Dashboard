@@ -1,5 +1,15 @@
 import * as tariffService from './tariffs.service.js';
 
+export async function getFilters(req, res) {
+  try {
+    const filters = await tariffService.getFilterOptions();
+    res.json(filters);
+  } catch (error) {
+    console.error("Error fetching tariff filter options:", error);
+    res.status(500).json({ error: "Failed to fetch tariff filter options" });
+  }
+}
+
 export async function getTariffs(req, res) {
   try {
     const page = parseInt(req.query.page) || 1;

@@ -28,6 +28,11 @@ const ViewBill = lazy(() => import('./features/bills/pages/ViewBill'));
 const DiscountsList = lazy(() => import('./features/discounts/pages/DiscountsList'));
 const AddNewDiscount = lazy(() => import('./features/discounts/pages/AddNewDiscount'));
 
+const TeamMembersList = lazy(() => import('./features/teams/pages/TeamMembersList'));
+const AddTeamMember = lazy(() => import('./features/teams/pages/AddTeamMember'));
+const GroupsList = lazy(() => import('./features/teams/pages/GroupsList'));
+const PermissionRulesList = lazy(() => import('./features/teams/pages/PermissionRulesList'));
+
 const Login = lazy(() => import('./features/auth/pages/Login'));
 
 // Dummy component for unused pages
@@ -74,25 +79,7 @@ function App() {
                   element={
                     <PermissionRoute permission={PERMISSIONS.REPORTS_VIEW}>
                       <DummyPage title="Reports" />
-                    </PermissionRoute>[plugin:vite:oxc] Transform failed with 1 error:
-
-                [PARSE_ERROR] Type assertion expressions can only be used in TypeScript files.
-                ╭─[ src/config/permissions.js:10:28 ]
-                │
-                10 │ ╭─▶ export const PERMISSIONS = {
-    ┆ ┆   
- 6} as const;
-                │ │
-                │ ╰─────────────────
-                ────╯
-                C:/Users/DELL/Desktop/Project/Frontend/src/config/permissions.js
-                at transformWithOxc (file:///C:/Users/DELL/Desktop/Project/Frontend/node_modules/vite/dist/node/chunks/node.js:3344:19)
-                at TransformPluginContext.transform (file:///C:/Users/DELL/Desktop/Project/Frontend/node_modules/vite/dist/node/chunks/node.js:3415:26)
-                at EnvironmentPluginContainer.transform (file:///C:/Users/DELL/Desktop/Project/Frontend/node_modules/vite/dist/node/chunks/node.js:30387:51)
-                at async loadAndTransform (file:///C:/Users/DELL/Desktop/Project/Frontend/node_modules/vite/dist/node/chunks/node.js:24646:26)
-                at async viteTransformMiddleware (file:///C:/Users/DELL/Desktop/Project/Frontend/node_modules/vite/dist/node/chunks/node.js:24440:20)
-                Click outside, press Esc key, or fix the code to dismiss.
-                You can also disable this overlay by setting server.hmr.overlay to false in vite.config.js.
+                    </PermissionRoute>
                   }
                 />
                 <Route
@@ -380,6 +367,56 @@ function App() {
                   element={
                     <PermissionRoute permission={PERMISSIONS.DISCOUNT_UPDATE}>
                       <AddNewDiscount isEditMode={true} />
+                    </PermissionRoute>
+                  }
+                />
+
+                {/* Teams & Access Management */}
+                <Route
+                  path="/team-members"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.TEAM_VIEW}>
+                      <TeamMembersList />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/team-members/new"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.TEAM_CREATE}>
+                      <AddTeamMember />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/team-members/edit/:id"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.TEAM_UPDATE}>
+                      <AddTeamMember isEditMode={true} />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/team-members/view/:id"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.TEAM_VIEW}>
+                      <AddTeamMember isViewMode={true} />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/groups"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.GROUP_VIEW}>
+                      <GroupsList />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="/permission-rules"
+                  element={
+                    <PermissionRoute permission={PERMISSIONS.PERMISSION_RULE_VIEW}>
+                      <PermissionRulesList />
                     </PermissionRoute>
                   }
                 />

@@ -12,7 +12,7 @@ export function useChargePointTariff(cp, onUpdate) {
 
   const activeTariff = cp?.tariff || null;
   const activeTariffId = cp?.tariffId || activeTariff?.id || null;
-  const activeTariffName = activeTariff?.name || cp?.tariffProfiles || 'Default Commercial Tariff';
+  const activeTariffName = activeTariff?.name || cp?.tariffProfiles || 'No Tariff Assigned';
 
   useEffect(() => {
     let isMounted = true;

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Search, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
+import SearchInput from '../../../components/ui/SearchInput';
 
 export default function LiveSessionsToolbar({
   searchTerm,
@@ -19,16 +20,13 @@ export default function LiveSessionsToolbar({
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 sm:w-64">
-          <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={onSearchChange}
-            placeholder="Search live sessions..."
-            className="w-full pl-9 pr-4 py-2 bg-stone-50 border border-stone-200/80 rounded-xl text-xs font-medium text-stone-800 placeholder-stone-400 focus:outline-hidden focus:border-slate-400 focus:bg-white transition-all"
-          />
-        </div>
+        <SearchInput
+          value={searchTerm}
+          onChange={onSearchChange}
+          onClear={() => onSearchChange({ target: { value: '' } })}
+          placeholder="Search live sessions..."
+          wrapperClassName="w-full sm:w-64"
+        />
 
         <button
           onClick={onNavigateHistory}

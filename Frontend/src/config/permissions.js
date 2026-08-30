@@ -55,6 +55,14 @@ const _PERMISSIONS = {
   // Payments
   PAYMENT_VIEW: 'payment:view',
   PAYMENT_LOGS_VIEW: 'payment_logs:view',
+
+  // Teams & Users
+  TEAM_VIEW: 'team:view',
+  TEAM_CREATE: 'team:create',
+  TEAM_UPDATE: 'team:update',
+  TEAM_DELETE: 'team:delete',
+  GROUP_VIEW: 'group:view',
+  PERMISSION_RULE_VIEW: 'permission_rule:view',
 };
 
 export const PERMISSIONS = Object.freeze(_PERMISSIONS);

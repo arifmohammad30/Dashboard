@@ -134,7 +134,7 @@ export default function ViewChargePoint({ defaultTab }) {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[500px] text-orange-500">
+      <div className="flex flex-col items-center justify-center min-h-[500px] text-[#4DA944]">
         <Loader2 className="w-12 h-12 animate-spin mb-4" />
         <p className="text-sm font-bold text-stone-600">Loading station details...</p>
       </div>
@@ -249,7 +249,7 @@ export default function ViewChargePoint({ defaultTab }) {
 
             <button
               onClick={() => navigate(`/charge-points/edit/${cp.id || id}`, { state: { chargePoint: cp } })}
-              className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-xs shadow-xs transition-colors cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 bg-[#4DA944] hover:bg-[#43953b] text-white font-bold rounded-xl text-xs shadow-xs transition-colors cursor-pointer"
             >
               <Edit className="w-4 h-4" />
               <span>Edit Details</span>
@@ -268,15 +268,15 @@ export default function ViewChargePoint({ defaultTab }) {
                 key={t.id}
                 onClick={() => handleTabChange(t.id)}
                 className={`flex items-center gap-2 px-4.5 py-3 text-xs font-bold tracking-tight transition-all duration-150 border-b-2 rounded-t-xl whitespace-nowrap cursor-pointer select-none relative ${isActive
-                  ? 'border-b-2 border-b-orange-500 text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-2xs font-extrabold'
+                  ? 'border-b-2 border-b-[#4DA944] text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-2xs font-extrabold'
                   : 'border-transparent text-stone-500 hover:text-stone-900 hover:bg-stone-100/60 font-medium'
                   }`}
               >
-                <Icon strokeWidth={2.25} className={`w-4 h-4 transition-transform ${isActive ? 'text-orange-500 scale-105' : 'text-stone-400'
+                <Icon strokeWidth={2.25} className={`w-4 h-4 transition-transform ${isActive ? 'text-[#4DA944] scale-105' : 'text-stone-400'
                   }`} />
                 <span>{t.label}</span>
                 {t.count !== undefined && (
-                  <span className={`px-2 py-0.5 text-[11px] font-mono font-bold rounded transition-colors ${isActive ? 'bg-orange-100/80 text-orange-700 border border-orange-200/60' : 'bg-stone-100 text-stone-600 border border-stone-200/60'
+                  <span className={`px-2 py-0.5 text-[11px] font-mono font-bold rounded transition-colors ${isActive ? 'bg-[#4DA944]/10 text-[#30702a] border border-[#4DA944]/20' : 'bg-stone-100 text-stone-600 border border-stone-200/60'
                     }`}>
                     {t.count}
                   </span>

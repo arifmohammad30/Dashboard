@@ -183,7 +183,7 @@ export default function ChargePointControlTab({
       <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs flex flex-col justify-between hover:border-stone-300 transition-all">
         <div>
           <h3 className="text-sm font-extrabold text-slate-900 pb-3 mb-4 border-b border-stone-200/80 flex items-center gap-2">
-            <RotateCcw className="w-4 h-4 text-orange-500 stroke-[2.5]" /> Reset Charge Point
+            <RotateCcw className="w-4 h-4 text-[#4DA944] stroke-[2.5]" /> Reset Charge Point
           </h3>
           <p className="text-xs text-stone-500 mb-5 font-medium">Issue a soft or hard reset to restart the charge point controller hardware.</p>
           <div className="flex flex-wrap items-center gap-3">

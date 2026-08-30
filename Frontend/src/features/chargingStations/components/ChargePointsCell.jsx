@@ -111,7 +111,7 @@ export const ChargePointsCell = ({ station, navigate }) => {
                   </span>
                 </div>
                 <span className="text-[9.5px] font-mono font-medium text-stone-400 group-hover/item:text-emerald-600 shrink-0 ml-1.5">
-                  {cp.code || `CP-${i + 1}`}
+                  {cp.code || '-'}
                 </span>
               </div>
             ))}

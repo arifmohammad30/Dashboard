@@ -304,7 +304,7 @@ export default function PaymentProvidersView() {
                     onClick={() => handleFieldChange('environment', 'live')}
                     className={`flex-1 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
                       currentFormData.environment === 'live'
-                        ? 'bg-white text-orange-700 border border-orange-500 shadow-2xs'
+                        ? 'bg-white text-[#30702a] border border-[#4DA944] shadow-2xs'
                         : 'text-stone-600 hover:text-stone-900'
                     }`}
                   >

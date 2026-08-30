@@ -10,19 +10,18 @@ function ToastItem({ toast, onRemove }) {
 
   useEffect(() => {
     if (duration <= 0 || isHovered) return;
-    const intervalTime = 50;
-    const step = (intervalTime / duration) * 100;
 
+    const startTime = Date.now();
     const timer = setInterval(() => {
-      setProgress((prev) => {
-        if (prev <= step) {
-          clearInterval(timer);
-          onRemove(toast.id);
-          return 0;
-        }
-        return prev - step;
-      });
-    }, intervalTime);
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
+      setProgress(remaining);
+
+      if (remaining <= 0) {
+        clearInterval(timer);
+        onRemove(toast.id);
+      }
+    }, 50);
 
     return () => clearInterval(timer);
   }, [duration, isHovered, onRemove, toast.id]);

@@ -31,7 +31,7 @@ export default function TableActions({
             e.stopPropagation();
             onEdit && onEdit(e);
           }}
-          className="p-1.5 text-orange-500 bg-orange-50/80 border border-orange-200/80 hover:bg-orange-500 hover:text-white hover:border-orange-500 rounded-xl shadow-2xs hover:shadow-xs transition active:scale-95 duration-150 cursor-pointer"
+          className="p-1.5 text-[#4DA944] bg-[#4DA944]/10 border border-[#4DA944]/30 hover:bg-[#4DA944] hover:text-white hover:border-[#4DA944] rounded-xl shadow-2xs hover:shadow-xs transition active:scale-95 duration-150 cursor-pointer"
           title={editTitle}
         >
           <Edit className="w-3.5 h-3.5" />

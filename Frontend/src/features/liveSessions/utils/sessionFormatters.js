@@ -6,9 +6,8 @@ export const getConnectorLabel = (connector, session = {}) => {
   }
   if (typeof connector === 'number') return `Type2 (${connector})`;
   if (typeof connector === 'object' && connector !== null) {
-    const rawType = connector.type || connector.name || connector.connectorType || session.connectorType;
-    const type = (rawType && rawType !== 'undefined') ? rawType : 'Type2';
-    const cId = connector.connectorId || connector.id || session.connectorId || 1;
+    const type = connector.type || connector.connectorType || session.connectorType || 'Type2';
+    const cId = connector.connectorId ?? connector.id ?? session.connectorId ?? 1;
     return `${type} (${cId})`;
   }
   if (typeof connector === 'string') {
@@ -25,8 +24,9 @@ export const getConnectorLabel = (connector, session = {}) => {
 };
 
 export const getTxId = (id) => {
-  if (!id) return '#81427';
-  const raw = typeof id === 'object' ? String(id.chargeTxCode || id.sessionId || id.id || '') : String(id);
+  if (!id) return '-';
+  const raw = typeof id === 'object' ? String(id.chargeTxCode || id.id || '') : String(id);
+  if (!raw) return '-';
   if (raw.startsWith('sess_')) {
     const parts = raw.split('_');
     if (parts.length >= 4 && parts[2] === 'tx') {
@@ -34,7 +34,6 @@ export const getTxId = (id) => {
     }
     return `#${(parts[1] || 'TX').toUpperCase()}`;
   }
-  if (/^\d+$/.test(raw)) return `#${raw}`;
   return `#${raw}`;
 };
 

@@ -1,6 +1,10 @@
 import { apiClient } from '../../../lib/apiClient';
 import { downloadFileFromEndpoint } from '../../../utils/downloadUtils';
 
+export const getFilterOptions = async () => {
+  return await apiClient('/tariffs/filters');
+};
+
 export const getTariffs = async (page = 1, limit = 10, searchTerm = '', filters = {}) => {
   try {
     const filterString = encodeURIComponent(JSON.stringify(filters));

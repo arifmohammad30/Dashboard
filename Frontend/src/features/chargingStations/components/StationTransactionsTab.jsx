@@ -1,9 +1,12 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Zap, Loader2 } from 'lucide-react';
 import { useStationTransactions } from '../hooks/useStationTransactions';
 import SessionHistoryTable from '../../liveSessions/components/SessionHistoryTable';
 
 export default function StationTransactionsTab({ station, transactions: propTransactions }) {
+  const navigate = useNavigate();
+
   const {
     sessions,
     loading,
@@ -14,10 +17,28 @@ export default function StationTransactionsTab({ station, transactions: propTran
     itemsPerPage
   } = useStationTransactions(station, propTransactions);
 
+  const handleNavigateStation = (st) => {
+    if (st?.id && st.id !== '-') {
+      navigate(`/charging-stations/${st.id}`, { state: { station: st } });
+    }
+  };
+
+  const handleNavigateChargePoint = (cpObj) => {
+    if (cpObj?.id && cpObj.id !== '-') {
+      navigate(`/charge-points/${cpObj.id}`, { state: { chargePoint: cpObj } });
+    }
+  };
+
+  const handleNavigateLogs = (session) => {
+    if (session?.id) {
+      navigate(`/session-logs/${session.id}`, { state: { session } });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16 text-stone-400 gap-2">
-        <Loader2 className="w-5 h-5 animate-spin text-orange-500" />
+        <Loader2 className="w-5 h-5 animate-spin text-[#4DA944]" />
         <span className="text-xs font-semibold">Loading station transactions...</span>
       </div>
     );
@@ -38,6 +59,9 @@ export default function StationTransactionsTab({ station, transactions: propTran
       <SessionHistoryTable
         sessions={sessions}
         loading={loading}
+        onNavigateStation={handleNavigateStation}
+        onNavigateChargePoint={handleNavigateChargePoint}
+        onNavigateLogs={handleNavigateLogs}
         currentPage={currentPage}
         totalPages={totalPages}
         totalItems={totalItems}

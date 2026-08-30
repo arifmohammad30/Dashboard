@@ -18,8 +18,11 @@ export function getApiUrl(endpoint) {
 export async function apiClient(endpoint, options = {}) {
   const url = getApiUrl(endpoint);
 
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
   const headers = {
     'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };
 

@@ -2,6 +2,23 @@ import prisma from '../../prisma.js';
 import { formatCsvRow } from '../../utils/csvSanitizer.js';
 import { validatePricingConfig } from './tariffs.validator.js';
 
+export async function getFilterOptions() {
+  const types = await prisma.tariff.findMany({
+    select: { type: true },
+    distinct: ['type']
+  });
+
+  const gsts = await prisma.tariff.findMany({
+    select: { gstPercentage: true },
+    distinct: ['gstPercentage']
+  });
+
+  return {
+    types: types.map(t => t.type).filter(Boolean).sort(),
+    gstPercentages: gsts.map(g => `${g.gstPercentage} %`).filter(g => g && g !== 'null %' && g !== 'undefined %').sort()
+  };
+}
+
 export async function getTariffs({ page = 1, limit = 10, searchTerm = '', filters = {} } = {}) {
   const whereClause = { AND: [] };
 

@@ -2,13 +2,7 @@ import { apiClient } from '../../../lib/apiClient';
 import { downloadFileFromEndpoint } from '../../../utils/downloadUtils';
 
 export const getFilterOptions = async () => {
-  try {
-    const data = await apiClient('/charge-points/filters');
-    return data;
-  } catch (error) {
-    console.error("Failed to fetch filters, using fallback:", error);
-    return null;
-  }
+  return await apiClient('/charge-points/filters');
 };
 
 export const getChargePoints = async (page = 1, limit = 10, searchTerm = '', filters = {}) => {

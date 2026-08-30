@@ -247,3 +247,16 @@ model Discount {
   updatedAt             DateTime  @updatedAt
 }
 
+model TeamMember {
+  id         String    @id @default(uuid())
+  name       String
+  email      String    @unique
+  userType   String    @default("Team Member")
+  status     String    @default("Active")
+  joinedAt   DateTime  @default(now())
+  lastActive DateTime?
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+

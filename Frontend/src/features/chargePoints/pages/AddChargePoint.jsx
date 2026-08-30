@@ -10,6 +10,7 @@ import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import LabelWithInfo from '../../../components/ui/LabelWithInfo';
 import FormCard from '../../../components/ui/FormCard';
+import PrimaryButton from '../../../components/ui/PrimaryButton';
 import { createChargePoint, updateChargePoint, getChargePointById } from '../api/chargePointService';
 import { getTariffs } from '../../tariffs/api/tariffService';
 import { getChargingStations } from '../../chargingStations/api/chargingStationService';
@@ -193,7 +194,7 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
 
   if (loadingData) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-orange-500">
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-[#4DA944]">
         <Loader2 className="w-10 h-10 animate-spin mb-4" />
         <p className="text-sm font-bold text-stone-600">Loading charge point details...</p>
       </div>
@@ -235,14 +236,13 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
             {isViewMode ? 'Back' : 'Cancel'}
           </button>
           {!isViewMode && (
-            <button
+            <PrimaryButton
               type="submit"
-              disabled={isSubmitting}
-              className="px-4 py-2 text-sm bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg shadow-sm transition-colors duration-200 flex items-center gap-2 disabled:opacity-70"
-            >
-              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-              {isEditMode ? 'Save Changes' : 'Add'}
-            </button>
+              isSubmitting={isSubmitting}
+              isEditMode={isEditMode}
+              addLabel="Add"
+              editLabel="Save Changes"
+            />
           )}
         </div>
       </div>
@@ -324,7 +324,7 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
                           {...register(`chargingMethods.${index}.selected`)}
                           className="peer sr-only"
                         />
-                        <div className={`w-5 h-5 rounded-md transition-all flex items-center justify-center text-transparent peer-checked:text-orange-600 bg-white border border-stone-300 shadow-2xs ${isViewMode ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                        <div className={`w-5 h-5 rounded-md transition-all flex items-center justify-center text-transparent peer-checked:text-[#4DA944] peer-checked:border-[#4DA944] bg-white border border-stone-300 shadow-2xs ${isViewMode ? 'opacity-50 cursor-not-allowed' : ''}`}>
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
@@ -360,7 +360,7 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
                           className="peer sr-only"
                         />
                         <div className={`w-5 h-5 rounded-full transition-all flex items-center justify-center bg-white border border-stone-300 shadow-2xs ${(!method.selected || isViewMode) ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                          <div className={`w-2 h-2 rounded-full bg-orange-500 transition-all ${method.isFirst && method.selected ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}></div>
+                          <div className={`w-2 h-2 rounded-full bg-[#4DA944] transition-all ${method.isFirst && method.selected ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}></div>
                         </div>
                       </label>
                     </div>

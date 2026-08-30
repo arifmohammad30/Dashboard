@@ -43,9 +43,9 @@ export default function SocPricingTable({
           <button
             type="button"
             onClick={onAdd}
-            className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 font-bold rounded-lg text-xs transition-all cursor-pointer flex items-center gap-1 active:scale-95"
+            className="px-3 py-1.5 bg-[#4DA944]/10 hover:bg-[#4DA944]/20 text-[#30702a] border border-[#4DA944]/30 font-bold rounded-lg text-xs transition-all cursor-pointer flex items-center gap-1 active:scale-95"
           >
-            <Plus className="w-3.5 h-3.5 text-stone-600" /> Add SOC Range
+            <Plus className="w-3.5 h-3.5 text-[#4DA944]" /> Add SOC Range
           </button>
         )}
       </div>

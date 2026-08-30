@@ -117,13 +117,31 @@ export async function getFilterOptions() {
   };
 }
 
-export async function getChargePoints({ page = 1, limit = 10, searchTerm = '', filters = {} }) {
+export async function getChargePoints({ page = 1, limit = 10, searchTerm = '', filters = {}, chargingStationId = null }) {
   const whereClause = {
     AND: []
   };
 
-  if (filters.location && filters.location.length > 0) {
-    whereClause.AND.push({ chargingStation: { name: { in: filters.location } } });
+  const targetStationId = chargingStationId || filters.chargingStationId;
+  if (targetStationId) {
+    whereClause.AND.push({
+      OR: [
+        { chargingStationId: targetStationId },
+        { chargingStation: { id: targetStationId } },
+        { chargingStation: { name: targetStationId } },
+        { chargingStation: { code: targetStationId } }
+      ]
+    });
+  }
+
+  if (filters.location && Array.isArray(filters.location) && filters.location.length > 0) {
+    whereClause.AND.push({
+      OR: [
+        { chargingStation: { name: { in: filters.location } } },
+        { chargingStation: { code: { in: filters.location } } },
+        { chargingStationId: { in: filters.location } }
+      ]
+    });
   }
   if (filters.manufacturer && filters.manufacturer.length > 0) {
     whereClause.AND.push({ manufacturer: { in: filters.manufacturer } });

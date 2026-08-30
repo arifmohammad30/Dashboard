@@ -20,6 +20,8 @@ import sessionRouter from './modules/livesessions/session.routes.js';
 import fleetRouter from './modules/fleets/fleet.routes.js';
 import billRouter from './modules/bills/bill.routes.js';
 import discountRouter from './modules/discounts/discounts.routes.js';
+import authRouter from './modules/auth/auth.routes.js';
+import teamRouter from './modules/teams/team.routes.js';
 import { registerSocketHandlers } from './socket.js';
 import { startSessionSweeper } from './modules/livesessions/session.sweeper.js';
 
@@ -46,6 +48,7 @@ app.use((req, res, next) => {
 });
 
 // API Routes
+app.use('/api/auth', authRouter);
 app.use(['/api/charge-points', '/api/chargepoints'], chargePointRouter);
 app.use(['/api/charging-stations', '/api/chargingstations'], chargeStationRouter);
 app.use('/api/tariffs', tariffRouter);
@@ -53,6 +56,7 @@ app.use(['/api/live-sessions', '/api/livesessions'], sessionRouter);
 app.use('/api/fleets', fleetRouter);
 app.use('/api/bills', billRouter);
 app.use('/api/discounts', discountRouter);
+app.use(['/api/teams', '/api/team-members'], teamRouter);
 
 
 

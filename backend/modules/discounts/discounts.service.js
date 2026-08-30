@@ -1,5 +1,23 @@
 import prisma from '../../prisma.js';
 
+export function formatDiscountData(disc) {
+  if (!disc) return disc;
+  const parseArr = (val) => {
+    if (Array.isArray(val)) return val;
+    if (typeof val === 'string') {
+      try { return JSON.parse(val); } catch (e) { return []; }
+    }
+    return [];
+  };
+  return {
+    ...disc,
+    selectedUsers: parseArr(disc.selectedUsers),
+    selectedFleets: parseArr(disc.selectedFleets),
+    selectedStations: parseArr(disc.selectedStations),
+    selectedChargePoints: parseArr(disc.selectedChargePoints)
+  };
+}
+
 export async function getAllDiscountsFromDb(search = '', page, limit, filtersStr = '') {
   let where = {};
   
@@ -41,7 +59,7 @@ export async function getAllDiscountsFromDb(search = '', page, limit, filtersStr
     ]);
 
     return {
-      data,
+      data: data.map(formatDiscountData),
       total,
       page: p,
       limit: l,
@@ -49,10 +67,11 @@ export async function getAllDiscountsFromDb(search = '', page, limit, filtersStr
     };
   }
 
-  return prisma.discount.findMany({
+  const rawDiscounts = await prisma.discount.findMany({
     where,
     orderBy: { createdAt: 'desc' }
   });
+  return rawDiscounts.map(formatDiscountData);
 }
 
 export async function getDiscountByIdFromDb(id) {
@@ -60,7 +79,7 @@ export async function getDiscountByIdFromDb(id) {
     where: { OR: [{ id }, { name: id }] }
   });
   if (!disc) throw new Error('Discount offer not found');
-  return disc;
+  return formatDiscountData(disc);
 }
 
 export async function createDiscountInDb(data) {

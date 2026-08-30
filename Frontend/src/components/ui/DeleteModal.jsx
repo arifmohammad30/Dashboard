@@ -1,33 +1,74 @@
 import React from 'react';
-import { Trash2, Loader2 } from 'lucide-react';
+import { Trash2, Loader2, X } from 'lucide-react';
 
-export default function DeleteModal({ isOpen, onClose, onConfirm, itemName, isDeleting }) {
+export default function DeleteModal({ isOpen, onClose, onConfirm, itemName, isDeleting, title = 'Delete Confirmation' }) {
   if (!isOpen) return null;
   
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-md transition-all duration-300">
-      <div className="bg-white/70 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.2)] rounded-3xl w-full max-w-md overflow-hidden transform transition-all p-8">
-        <div className="flex items-center justify-center w-16 h-16 mx-auto bg-rose-100/80 backdrop-blur-sm border border-rose-200 rounded-full mb-6 shadow-[inset_0_2px_10px_rgba(255,255,255,0.8)]">
-          <Trash2 className="w-8 h-8 text-rose-500" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs transition-opacity duration-200 animate-in fade-in">
+      <div 
+        className="bg-white rounded-2xl border border-stone-200/90 shadow-[0_20px_50px_rgba(0,0,0,0.15)] w-full max-w-[420px] overflow-hidden p-6 relative animate-in fade-in zoom-in-95 duration-150"
+        role="dialog"
+        aria-modal="true"
+      >
+        {/* Top Close Button */}
+        <button
+          onClick={onClose}
+          disabled={isDeleting}
+          className="absolute top-4 right-4 p-1.5 rounded-xl text-stone-400 hover:text-slate-700 hover:bg-stone-100 transition-colors cursor-pointer disabled:opacity-40"
+          aria-label="Close modal"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        <div className="flex items-start gap-4">
+          {/* Alert Icon Badge */}
+          <div className="w-11 h-11 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 shrink-0 shadow-2xs">
+            <Trash2 className="w-5 h-5" />
+          </div>
+
+          <div className="flex-1 min-w-0 pr-4">
+            <h3 className="text-base font-extrabold text-slate-900 tracking-tight">
+              {title}
+            </h3>
+            <p className="text-xs text-stone-500 font-medium mt-1 leading-relaxed">
+              Are you sure you want to permanently delete{' '}
+              {itemName ? (
+                <span className="font-bold text-slate-900 bg-stone-100 px-1.5 py-0.5 rounded border border-stone-200/80 font-mono text-[11px]">
+                  {itemName}
+                </span>
+              ) : (
+                'this record'
+              )}
+              ? This action cannot be undone.
+            </p>
+          </div>
         </div>
-        <h3 className="text-xl font-extrabold text-center text-stone-800 mb-2">Delete Item</h3>
-        <p className="text-center text-stone-500 text-sm mb-8">
-          Are you sure you want to delete <span className="font-bold text-stone-800">{itemName}</span>? This action cannot be undone.
-        </p>
-        <div className="flex gap-4">
+
+        {/* Action Buttons */}
+        <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-stone-100">
           <button
+            type="button"
             onClick={onClose}
             disabled={isDeleting}
-            className="flex-1 px-4 py-3 bg-white/50 hover:bg-white/80 backdrop-blur-md border border-white/60 text-stone-600 font-bold rounded-2xl transition-all shadow-sm hover:shadow-md disabled:opacity-50"
+            className="px-4 py-2 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 font-bold rounded-xl text-xs transition cursor-pointer shadow-2xs disabled:opacity-50"
           >
             Cancel
           </button>
           <button
+            type="button"
             onClick={onConfirm}
             disabled={isDeleting}
-            className="flex-1 px-4 py-3 bg-gradient-to-br from-rose-400 to-rose-600 hover:from-rose-500 hover:to-rose-700 text-white font-bold rounded-2xl shadow-[0_4px_15px_rgba(244,63,94,0.3)] hover:shadow-[0_6px_20px_rgba(244,63,94,0.4)] transition-all flex items-center justify-center disabled:opacity-70 border border-rose-400/50"
+            className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs shadow-sm hover:shadow transition-all flex items-center justify-center gap-1.5 disabled:opacity-70 cursor-pointer active:scale-95"
           >
-            {isDeleting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Delete'}
+            {isDeleting ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Deleting...</span>
+              </>
+            ) : (
+              'Delete Record'
+            )}
           </button>
         </div>
       </div>
