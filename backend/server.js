@@ -22,6 +22,7 @@ import billRouter from './modules/bills/bill.routes.js';
 import discountRouter from './modules/discounts/discounts.routes.js';
 import authRouter from './modules/auth/auth.routes.js';
 import teamRouter from './modules/teams/team.routes.js';
+import paymentRouter from './modules/payments/payments.routes.js';
 import { registerSocketHandlers } from './socket.js';
 import { startSessionSweeper } from './modules/livesessions/session.sweeper.js';
 
@@ -57,6 +58,7 @@ app.use('/api/fleets', fleetRouter);
 app.use('/api/bills', billRouter);
 app.use('/api/discounts', discountRouter);
 app.use(['/api/teams', '/api/team-members'], teamRouter);
+app.use('/api/payments', paymentRouter);
 
 
 

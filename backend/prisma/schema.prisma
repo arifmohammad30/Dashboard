@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  url      = "file:./dev.db"
 }
 
 
@@ -259,4 +259,30 @@ model TeamMember {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 }
+
+model PaymentGatewayConfig {
+  id                 String    @id @default(uuid())
+  provider           String    @default("razorpay")
+  environment        Int       @default(0) // 0 = Test, 1 = Live
+  configured         Boolean   @default(false)
+  active             Boolean   @default(false)
+  displayName        String?   @default("")
+  keyId              String?   @default("")
+  keySecret          String?   @default("")
+  webhookSecret      String?   @default("")
+  webhookUrl         String?   @default("")
+  currency           String    @default("INR")
+  settlementCurrency String    @default("INR")
+  description        String?   @default("")
+  autoCapture        Boolean   @default(true)
+  autoRefund         Boolean   @default(true)
+  connectionStatus   String    @default("not_tested")
+  lastTestedAt       DateTime?
+
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@unique([provider, environment])
+}
+
 

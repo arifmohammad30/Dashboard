@@ -27,7 +27,7 @@ export default function FilterSection({ title, options = [], selected = [], sele
             <label 
               key={optKey} 
               className={`flex items-center px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition-colors duration-200 border ${isSelected
-                ? 'bg-[#4DA944]/15 border-[#4DA944]/40 text-[#30702a] shadow-[inset_0_1px_3px_rgba(77,169,68,0.1)]'
+                ? 'bg-[#4DA944]/8 border-[#4DA944]/35 text-[#2d7a26] shadow-2xs'
                 : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50 shadow-sm'
               }`}
             >

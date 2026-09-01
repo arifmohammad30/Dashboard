@@ -3,6 +3,7 @@ import { Menu, User, LogOut } from 'lucide-react';
 import { useLocation, Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { useAuth } from '../features/auth/context/AuthContext';
+import finalLogoSvg from '../assets/final-logo.svg';
 
 export default function DashboardLayout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768);
@@ -62,7 +63,7 @@ export default function DashboardLayout({ children }) {
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
       <div className="flex-1 flex flex-col h-full overflow-hidden w-full relative z-0">
-        <header className="h-16 flex items-center justify-between px-6 bg-white border border-stone-200/80 shadow-2xs shrink-0 z-10 mx-4 md:mx-8 mt-3 rounded-2xl">
+        <header className="h-16 flex items-center justify-between px-6 bg-white border border-stone-200/80 shadow-2xs shrink-0 z-10 mx-3 md:mx-4 mt-1.5 rounded-2xl">
           <div className="flex items-center gap-3">
             {!isSidebarOpen && (
               <div className="flex items-center gap-3 animate-in fade-in duration-200">
@@ -77,13 +78,13 @@ export default function DashboardLayout({ children }) {
                 {/* Brand Logo in Top Navbar when Sidebar is closed */}
                 <Link
                   to="/"
-                  className="flex items-center bg-white border-2 border-[#4DA944] rounded-lg px-2.5 py-1 shadow-2xs shrink-0"
+                  className="flex items-center min-w-0 focus:outline-none"
                   title="openEV.io Dashboard"
                 >
                   <img
-                    src="/logo-2.jpeg"
+                    src={finalLogoSvg}
                     alt="openev.io"
-                    className="h-5 sm:h-5.5 w-auto max-w-[125px] object-contain object-left"
+                    className="h-5 sm:h-5.5 w-auto max-w-[110px] object-contain"
                   />
                 </Link>
 
@@ -109,27 +110,30 @@ export default function DashboardLayout({ children }) {
               <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
             </button>
 
+            {/* User Profile Pill & Dropdown Menu */}
             <div className="relative" ref={userMenuRef}>
-              <div
-                className={`w-10 h-10 rounded-full bg-stone-100/80 hover:bg-stone-200/80 border-2 transition-colors duration-200 flex items-center justify-center cursor-pointer shadow-2xs active:scale-95 ${isUserMenuOpen ? 'border-[#4DA944] ring-2 ring-[#4DA944]/20' : 'border-stone-300 hover:border-slate-800'
-                  }`}
+              <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className={`w-10 h-10 rounded-full bg-stone-100/80 hover:bg-stone-200/80 border-2 transition-colors duration-200 flex items-center justify-center cursor-pointer shadow-2xs active:scale-95 ${isUserMenuOpen ? 'border-[#4DA944] ring-2 ring-[#4DA944]/20' : 'border-stone-300 hover:border-slate-800'}`}
+                aria-label="User Profile"
               >
-                <button className="cursor-pointer outline-none flex items-center justify-center">
-                  <User className="w-5 h-5 text-[#4DA944]" />
-                </button>
-              </div>
+                <span className="font-extrabold text-sm text-[#4DA944]">
+                  {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
+                </span>
+              </button>
 
-              {/* Larger Existing Profile Dropdown Card */}
               {isUserMenuOpen && (
                 <div className="absolute right-0 mt-3 w-64 bg-white/95 backdrop-blur-xl border-2 border-stone-200 rounded-2xl shadow-xl p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="flex items-center gap-3 pb-3 border-b border-stone-100">
-                    <div className="w-10 h-10 rounded-xl bg-[#4DA944]/10 border border-[#4DA944]/20 flex items-center justify-center text-[#30702a] font-bold shrink-0">
-                      <User className="w-5 h-5" />
+                  <div className="flex items-center gap-3 pb-3 border-b border-stone-200">
+                    <div className="w-10 h-10 rounded-full bg-[#4DA944]/10 border-2 border-[#4DA944]/30 flex items-center justify-center text-[#4DA944] font-extrabold text-base shrink-0">
+                      {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-bold text-stone-900 truncate">{user?.email || 'admin@example.com'}</p>
-                      <p className="text-xs font-semibold text-stone-500">Administrator</p>
+                    <div className="min-w-0">
+                      <p className="font-extrabold text-stone-900 text-sm truncate">{user?.name || 'Admin User'}</p>
+                      <p className="text-xs text-stone-500 font-medium truncate">{user?.email || 'admin@openev.io'}</p>
+                      <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-extrabold bg-[#4DA944]/15 text-[#30702a] border border-[#4DA944]/30 rounded-full uppercase tracking-wider">
+                        {role || 'System Admin'}
+                      </span>
                     </div>
                   </div>
 
@@ -146,7 +150,7 @@ export default function DashboardLayout({ children }) {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto px-6 md:px-8 py-4 transform-gpu translate-z-0 custom-scrollbar">
+        <main className="flex-1 overflow-y-auto px-4 md:px-5 pt-2.5 pb-4 transform-gpu translate-z-0 custom-scrollbar">
           <div className="w-full max-w-[1380px] mx-auto">
             {children}
           </div>

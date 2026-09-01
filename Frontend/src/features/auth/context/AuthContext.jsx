@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { apiClient } from '../../../lib/apiClient';
+import { sendOtp as sendOtpApi, verifyOtp as verifyOtpApi } from '../api/authService';
 
 const AuthContext = createContext(null);
 
@@ -46,13 +46,14 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const login = async (email, password) => {
+  const sendOtp = async (email) => {
+    return sendOtpApi(email);
+  };
+
+  const verifyOtp = async (email, otp) => {
     setIsLoading(true);
     try {
-      const response = await apiClient('/auth/login', {
-        method: 'POST',
-        body: { email, password },
-      });
+      const response = await verifyOtpApi(email, otp);
 
       if (!response?.token || !response?.user) {
         throw new Error('Invalid response from authentication server');
@@ -91,7 +92,9 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
-        login,
+        sendOtp,
+        verifyOtp,
+        login: verifyOtp,
         logout,
         setAuthPermissions,
         isAuthenticated: !!user,
