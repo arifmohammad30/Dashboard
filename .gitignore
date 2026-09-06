@@ -31,3 +31,11 @@ prisma/dev.db-journal
 .DS_Store
 Thumbs.db
 *.swp
+
+# Demos & Scratch
+websocket-demo/
+
+# Documentation & API Contracts (kept locally)
+/*.md
+!/Frontend/README.md
+
