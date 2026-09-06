@@ -1,10 +1,20 @@
 import { apiClient } from '../../../lib/apiClient';
 import { downloadFileFromEndpoint } from '../../../utils/downloadUtils';
 
+// ----------------------------------------------------------------------
+// Charging Station API Client Services
+// ----------------------------------------------------------------------
+
+// ----------------------------------------------------------------------
+// 1. Fetch Dynamic Filter Options (e.g. Brands, Mobility Types, States)
+// ----------------------------------------------------------------------
 export const getFilterOptions = async () => {
   return await apiClient('/charging-stations/filters');
 };
 
+// ----------------------------------------------------------------------
+// 2. Fetch Paginated Charging Stations List with Search and Filters
+// ----------------------------------------------------------------------
 export const getChargingStations = async (page = 1, limit = 10, searchTerm = '', filters = {}) => {
   const params = new URLSearchParams({
     page: String(page),
@@ -12,6 +22,7 @@ export const getChargingStations = async (page = 1, limit = 10, searchTerm = '',
     search: searchTerm
   });
 
+  // Attach structured multi-criteria filters if present
   if (filters && Object.keys(filters).length > 0) {
     params.append('filters', JSON.stringify(filters));
   }
@@ -20,6 +31,9 @@ export const getChargingStations = async (page = 1, limit = 10, searchTerm = '',
   return await apiClient(url);
 };
 
+// ----------------------------------------------------------------------
+// 3. Fetch Single Charging Station Specification by Primary ID
+// ----------------------------------------------------------------------
 export const getChargingStationById = async (id) => {
   try {
     const data = await apiClient(`/charging-stations/${id}`);
@@ -30,6 +44,9 @@ export const getChargingStationById = async (id) => {
   }
 };
 
+// ----------------------------------------------------------------------
+// 4. Create New Charging Station Record (POST /charging-stations)
+// ----------------------------------------------------------------------
 export const createChargingStation = async (data) => {
   return await apiClient('/charging-stations', {
     method: 'POST',
@@ -37,6 +54,9 @@ export const createChargingStation = async (data) => {
   });
 };
 
+// ----------------------------------------------------------------------
+// 5. Update Existing Charging Station by Primary ID (PUT /charging-stations/:id)
+// ----------------------------------------------------------------------
 export const updateChargingStation = async (id, data) => {
   return await apiClient(`/charging-stations/${id}`, {
     method: 'PUT',
@@ -44,12 +64,18 @@ export const updateChargingStation = async (id, data) => {
   });
 };
 
+// ----------------------------------------------------------------------
+// 6. Delete Charging Station Record by Primary ID (DELETE /charging-stations/:id)
+// ----------------------------------------------------------------------
 export const deleteChargingStation = async (id) => {
   return await apiClient(`/charging-stations/${id}`, {
     method: 'DELETE'
   });
 };
 
+// ----------------------------------------------------------------------
+// 7. Export Filtered/Searched Charging Stations to CSV File
+// ----------------------------------------------------------------------
 export const exportStations = async (searchTerm = '') => {
   const params = new URLSearchParams();
   if (searchTerm && searchTerm.trim()) params.append('search', searchTerm.trim());
@@ -57,3 +83,4 @@ export const exportStations = async (searchTerm = '') => {
   const url = `/api/charging-stations/export?${params.toString()}`;
   await downloadFileFromEndpoint(url, `charging_stations_export_${new Date().toISOString().slice(0, 10)}.csv`);
 };
+

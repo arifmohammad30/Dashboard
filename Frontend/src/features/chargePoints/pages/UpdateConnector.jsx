@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import ConnectorForm from '../components/ConnectorForm';
 import { useToast } from '../../../context/ToastContext';
-import { getChargePointById, updateChargePoint } from '../api/chargePointService';
+import { getChargePointById, updateChargePointConnector } from '../api/chargePointService';
 
 export default function UpdateConnector() {
   const navigate = useNavigate();
@@ -61,10 +61,18 @@ export default function UpdateConnector() {
   const handleSubmit = async (data) => {
     setIsSubmitting(true);
     try {
-      if (id) {
-        await updateChargePoint(id, {
-          connectorDetails: data
-        });
+      if (id && (connectorId || data.connectorId)) {
+        const targetConnectorId = connectorId || data.connectorId;
+        const payload = {
+          connectorId: parseInt(data.connectorId, 10) || parseInt(targetConnectorId, 10),
+          type: data.type,
+          maxPower: data.powerRating ? parseFloat(data.powerRating) : undefined,
+          maxCurrent: data.maxCurrent ? parseFloat(data.maxCurrent) : undefined,
+          maxVoltage: data.maxVoltage ? parseFloat(data.maxVoltage) : undefined,
+          powerType: data.powerType,
+          connectorFormat: data.connectorFormat
+        };
+        await updateChargePointConnector(id, targetConnectorId, payload);
       }
       toast.success(`Connector #${data.connectorId} updated successfully`, { code: 200 });
       navigate(`/charge-points/${id || ''}?tab=connectors`);

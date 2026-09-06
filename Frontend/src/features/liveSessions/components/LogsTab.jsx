@@ -4,7 +4,6 @@ import {
   Hash,
   Tag,
   Clock,
-  Play,
   Search,
   Filter,
   ArrowDownRight,
@@ -12,14 +11,16 @@ import {
   Check,
   X,
   Copy,
-  Settings2
+  Settings2,
+  RefreshCw
 } from 'lucide-react';
-import FilterSection from './ui/FilterSection';
-import { useToast } from '../context/ToastContext';
-import ExportButton from './ui/ExportButton';
-import { exportLogs } from '../features/liveSessions/api/sessionService';
+import FilterSection from '../../../components/ui/FilterSection';
+import ExportButton from '../../../components/ui/ExportButton';
+import { useToast } from '../../../context/ToastContext';
+import { exportLogs } from '../api/sessionService';
 import { useSessionLogs } from '../hooks/useSessionLogs';
 
+// Helper component for syntax-highlighted JSON inspection
 const JsonSyntaxHighlighter = ({ json }) => {
   const formatted = useMemo(() => {
     try {
@@ -69,7 +70,12 @@ const JsonSyntaxHighlighter = ({ json }) => {
   );
 };
 
-export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }) {
+// UI component rendering telemetry logs table, search, filters, and inspector
+export default function LogsTab({ sessionData, sessionId: propSessionId }) {
+  const toast = useToast();
+  const sessionId = sessionData?.id || propSessionId;
+  const isOngoing = sessionData?.status === 'Ongoing';
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLog, setSelectedLog] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
@@ -82,13 +88,11 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
 
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 15;
-  const isOngoing = sessionData?.status === 'Ongoing';
 
-  const { logsList, total, totalPages } = useSessionLogs({
-    sessionData,
-    cp,
-    chargePointCode,
-    refreshKey,
+  // Consume session logs from custom hook
+  const { logsList, total, totalPages, loading } = useSessionLogs({
+    sessionId,
+    sessionStatus: sessionData?.status,
     page: currentPage,
     limit: pageSize,
     search: searchTerm,
@@ -96,10 +100,12 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
     logTypes: selectedLogTypes
   });
 
+  // Reset to page 1 on filter or search change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, selectedCommands, selectedLogTypes]);
 
+  // Handle clicking outside filter dropdown
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (filterRef.current && !filterRef.current.contains(e.target)) {
@@ -123,10 +129,6 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
   };
 
   const activeFiltersCount = selectedCommands.length + selectedLogTypes.length;
-
-  const paginatedLogs = logsList;
-
-  const toast = useToast();
 
   const handleCopy = (text, idKey) => {
     navigator.clipboard.writeText(text);
@@ -154,10 +156,10 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
   const getCommandBadge = (command, direction) => {
     const isIp = direction === 'INBOUND' || !direction;
     let colorStyle = 'bg-stone-100 text-stone-700 border-stone-200';
-    if (command.includes('MeterValues')) colorStyle = 'bg-purple-50 text-purple-700 border-purple-200/80';
-    if (command.includes('StatusNotification')) colorStyle = 'bg-cyan-50 text-cyan-700 border-cyan-200/80';
-    if (command.includes('BootNotification')) colorStyle = 'bg-amber-50 text-amber-700 border-amber-200/80';
-    if (command.includes('StartTransaction') || command.includes('StopTransaction')) colorStyle = 'bg-sky-50 text-sky-700 border-sky-200/80';
+    if (command?.includes('MeterValues')) colorStyle = 'bg-purple-50 text-purple-700 border-purple-200/80';
+    if (command?.includes('StatusNotification')) colorStyle = 'bg-cyan-50 text-cyan-700 border-cyan-200/80';
+    if (command?.includes('BootNotification')) colorStyle = 'bg-amber-50 text-amber-700 border-amber-200/80';
+    if (command?.includes('StartTransaction') || command?.includes('StopTransaction')) colorStyle = 'bg-sky-50 text-sky-700 border-sky-200/80';
 
     return (
       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-extrabold border ${colorStyle}`}>
@@ -173,6 +175,7 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
 
   return (
     <div className="bg-white border border-stone-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col w-full min-h-[220px] animate-in fade-in duration-200 relative">
+      {/* Header bar with search and actions */}
       <div className="px-5 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white border-b border-stone-200/80">
         <div className="flex items-center gap-2 text-xs">
           <div className={`w-2 h-2 rounded-full ${isOngoing ? 'bg-cyan-500 animate-pulse' : 'bg-slate-400'}`}></div>
@@ -180,9 +183,13 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
           <span className="bg-stone-100 text-stone-700 border border-stone-200 px-2 py-0.5 rounded-md font-mono text-[11px] font-bold ml-1">
             {total} {total === 1 ? 'message' : 'messages'}
           </span>
+          {loading && (
+            <RefreshCw className="w-3 h-3 text-slate-400 animate-spin ml-1" />
+          )}
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
+          {/* Search Input */}
           <div className="relative flex-1 sm:flex-initial">
             <Search className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
@@ -206,6 +213,7 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
             )}
           </div>
 
+          {/* Live Socket Indicator */}
           {isOngoing && (
             <div className="px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-2 bg-cyan-50 text-cyan-700 border border-cyan-300 shadow-2xs">
               <span className="relative flex h-2 w-2">
@@ -216,6 +224,7 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
             </div>
           )}
 
+          {/* Filter Popover */}
           <div className="relative" ref={filterRef}>
             <button
               onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -275,6 +284,7 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
         </div>
       </div>
 
+      {/* Main Table + Inspector Pane */}
       <div className="flex flex-col lg:flex-row gap-0 w-full items-start flex-1">
         <div className={`flex-1 w-full transition-all duration-300 ${selectedLog ? 'lg:w-3/5' : 'w-full'}`}>
           <div className="overflow-x-auto scrollbar-thin transform-gpu translate-z-0">
@@ -310,7 +320,7 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
               </thead>
 
               <tbody className="divide-y divide-stone-100/90 bg-white text-xs font-medium">
-                {paginatedLogs.length === 0 ? (
+                {logsList.length === 0 ? (
                   <tr>
                     <td colSpan="5" className="py-14 text-center text-stone-400 font-bold text-xs">
                       <div className="flex flex-col items-center justify-center gap-2">
@@ -320,7 +330,7 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
                     </td>
                   </tr>
                 ) : (
-                  paginatedLogs.map((log) => {
+                  logsList.map((log) => {
                     const isSelected = selectedLog?.id === log.id;
                     return (
                       <tr
@@ -356,7 +366,7 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
 
                         <td className="py-3.5 px-4 whitespace-nowrap">
                           <span className="font-mono text-sky-700 font-bold text-xs tracking-tight bg-sky-50/70 px-2 py-1 rounded-md border border-sky-200/60 shadow-2xs inline-block">
-                            {log.messageId}
+                            {log.messageId || '-'}
                           </span>
                         </td>
 
@@ -408,6 +418,7 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
           )}
         </div>
 
+        {/* Selected Log Inspector Panel */}
         {selectedLog && (
           <div className="w-full lg:w-[480px] bg-white border border-stone-200/90 rounded-2xl shadow-xl p-5 flex flex-col justify-between animate-in slide-in-from-right duration-200 shrink-0 self-start sticky top-4">
             <div className="space-y-4">
@@ -417,7 +428,7 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
                     {selectedLog.command}
                   </h3>
                   <span className="font-mono text-sky-700 text-xs font-bold bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-200/70">
-                    {selectedLog.messageId}
+                    {selectedLog.messageId || '-'}
                   </span>
                 </div>
 
@@ -453,7 +464,7 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
                   onClick={() => handleCopy(
                     inspectorTab === 'json'
                       ? JSON.stringify(selectedLog.body, null, 2)
-                      : `[2, "${selectedLog.messageId}", "${selectedLog.command}", ${JSON.stringify(selectedLog.body)}]`,
+                      : `[2, "${selectedLog.messageId || ''}", "${selectedLog.command}", ${JSON.stringify(selectedLog.body, null, 2)}]`,
                     'inspector_copy'
                   )}
                   className="px-3 py-1.5 bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
@@ -479,7 +490,7 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
               ) : (
                 <div className="bg-[#0B0F17] text-amber-300 font-mono text-xs p-4 rounded-xl border border-slate-800 overflow-x-auto leading-relaxed max-h-[380px] scrollbar-none">
                   <code>
-                    {`[2, "${selectedLog.messageId}", "${selectedLog.command}", ${JSON.stringify(selectedLog.body, null, 2)}]`}
+                    {`[2, "${selectedLog.messageId || ''}", "${selectedLog.command}", ${JSON.stringify(selectedLog.body, null, 2)}]`}
                   </code>
                 </div>
               )}

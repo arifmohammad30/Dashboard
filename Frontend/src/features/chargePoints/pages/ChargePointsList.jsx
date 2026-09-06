@@ -50,7 +50,7 @@ import ConnectorBadgesCell from '../components/ConnectorBadgesCell';
 import { getConnectorText, formatCreatedOn } from '../utils/formatters';
 
 
-export default function ChargePointsList({ stationFilter, chargingStationId, hideHeader = false }) {
+export default function ChargePointsList({ chargingStationId, hideHeader = false }) {
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -86,7 +86,7 @@ export default function ChargePointsList({ stationFilter, chargingStationId, hid
       }
       return getChargePoints(page, limit, search, activeFilters);
     },
-    [filters, stationFilter, chargingStationId]
+    [filters, chargingStationId]
   );
 
   const chargePoints = rawChargePoints;
@@ -366,10 +366,9 @@ export default function ChargePointsList({ stationFilter, chargingStationId, hid
 
                     <td className="px-4 py-3 text-left whitespace-nowrap" onClick={(e) => {
                       e.stopPropagation();
-                      if (row.chargingStation) {
-                        const stationName = typeof row.chargingStation === 'object' ? (row.chargingStation.name || '') : row.chargingStation;
-                        const targetId = row.chargingStationId || (typeof row.chargingStation === 'object' ? row.chargingStation.id : null) || encodeURIComponent(stationName);
-                        navigate(`/charging-stations/${targetId}`, { state: { station: { name: stationName, id: targetId } } });
+                      const stationId = row.chargingStationId || (typeof row.chargingStation === 'object' ? row.chargingStation?.id : null);
+                      if (stationId) {
+                        navigate(`/charging-stations/${stationId}`, { state: { station: row.chargingStation } });
                       }
                     }}>
                       <span className="text-sky-600 font-bold text-[13px] hover:text-sky-800 transition-colors duration-200 cursor-pointer max-w-[250px] truncate block">
@@ -455,15 +454,15 @@ export default function ChargePointsList({ stationFilter, chargingStationId, hid
                     <td className="px-4 py-3 text-center whitespace-nowrap" onClick={(e) => {
                       e.stopPropagation();
                       const tariffId = row.tariffId || (typeof row.tariff === 'object' ? row.tariff?.id : null);
-                      const tariffName = row.tariff?.name || row.tariffProfiles || 'DLF Park Place DC';
+                      const tariffName = row.tariff?.name || row.tariffProfiles || '';
                       if (tariffId) {
                         navigate(`/tariffs?id=${encodeURIComponent(tariffId)}`);
-                      } else {
+                      } else if (tariffName) {
                         navigate(`/tariffs?search=${encodeURIComponent(tariffName)}`);
                       }
                     }}>
                       <span className="text-slate-600 hover:text-sky-600 font-semibold text-[13px] transition-colors duration-150 cursor-pointer inline-block max-w-[200px] truncate" title="View Tariff Record">
-                        {row.tariff?.name || row.tariffProfiles || 'DLF Park Place DC'}
+                        {row.tariff?.name || row.tariffProfiles || '-'}
                       </span>
                     </td>
 

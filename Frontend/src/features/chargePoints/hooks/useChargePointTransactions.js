@@ -5,7 +5,6 @@ import { apiClient } from '../../../lib/apiClient';
 
 export function useChargePointTransactions(cp) {
   const cpId = cp?.id;
-  const cpCode = cp?.code;
 
   // Join targeted room chargepoint:<cpId> with automatic unmount cleanup
   useSocketRoom(cpId ? `chargepoint:${cpId}` : null);
@@ -21,20 +20,17 @@ export function useChargePointTransactions(cp) {
     itemsPerPage,
   } = useTableData(
     async (page, limit, search) => {
-      if (!cpId && !cpCode) return { data: [], total: 0, totalPages: 1 };
-      const queryStr = cpId
-        ? `chargePointId=${encodeURIComponent(cpId)}`
-        : `chargePointCode=${encodeURIComponent(cpCode)}`;
-      const res = await apiClient(`/api/live-sessions/history?${queryStr}&page=${page}&limit=${limit}&search=${encodeURIComponent(search || '')}`);
+      if (!cpId) return { data: [], total: 0, totalPages: 1 };
+      const res = await apiClient(`/api/live-sessions/history?chargePointId=${encodeURIComponent(cpId)}&page=${page}&limit=${limit}&search=${encodeURIComponent(search || '')}`);
       return res;
     },
-    [cpId, cpCode]
+    [cpId]
   );
-
 
   useSocketEvents({
     'session:created': (session) => {
       if (!session || !session.id) return;
+      if (session.chargePointId && cpId && session.chargePointId !== cpId) return;
       setSessions(prev => {
         if (prev.some(s => s.id === session.id)) {
           return prev.map(s => s.id === session.id ? { ...s, ...session } : s);
@@ -44,10 +40,12 @@ export function useChargePointTransactions(cp) {
     },
     'session:updated': (session) => {
       if (!session || !session.id) return;
+      if (session.chargePointId && cpId && session.chargePointId !== cpId) return;
       setSessions(prev => prev.map(s => s.id === session.id ? { ...s, ...session } : s));
     },
     'session:stopped': (session) => {
       if (!session || !session.id) return;
+      if (session.chargePointId && cpId && session.chargePointId !== cpId) return;
       setSessions(prev => prev.map(s => s.id === session.id ? { ...s, ...session, status: session.status || 'Completed' } : s));
     }
   });

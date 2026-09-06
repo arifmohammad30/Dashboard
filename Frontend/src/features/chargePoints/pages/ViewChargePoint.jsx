@@ -50,9 +50,8 @@ import {
   Trash2,
   Sparkles
 } from 'lucide-react';
-import { getChargePointById, updateChargePoint } from '../api/chargePointService';
+import { getChargePointById } from '../api/chargePointService';
 import { useToast } from '../../../context/ToastContext';
-import { apiClient } from '../../../lib/apiClient';
 
 export default function ViewChargePoint({ defaultTab }) {
   const { id } = useParams();
@@ -115,17 +114,8 @@ export default function ViewChargePoint({ defaultTab }) {
       setLoading(true);
       getChargePointById(id)
         .then(data => setChargePoint(data))
-        .catch(async (err) => {
-          console.warn("Could not load charge point by ID directly, attempting name search lookup:", err);
-          try {
-            const decoded = decodeURIComponent(id);
-            const res = await apiClient(`/charge-points?search=${encodeURIComponent(decoded)}`);
-            const list = Array.isArray(res) ? res : (res?.data && Array.isArray(res.data) ? res.data : []);
-            if (list.length > 0) {
-              setChargePoint(list[0]);
-              return;
-            }
-          } catch { }
+        .catch((err) => {
+          console.error("Failed to load charge point by ID:", err);
           setChargePoint(null);
         })
         .finally(() => setLoading(false));

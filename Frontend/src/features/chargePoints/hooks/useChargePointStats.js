@@ -8,10 +8,10 @@ export function useChargePointStats(cp) {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const cpId = cp?.id || cp?.code;
+  const cpId = cp?.id;
 
   // Join targeted room chargepoint:<cpId> with automatic unmount cleanup
-  useSocketRoom(cp?.id ? `chargepoint:${cp.id}` : null);
+  useSocketRoom(cpId ? `chargepoint:${cpId}` : null);
 
   const fetchStats = useCallback(() => {
     if (!cpId) return;

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import BackButton from '../../../components/ui/BackButton';
-import { filterTableData } from '../../../utils/searchUtils';
 import {
   ArrowLeft,
   Search,
@@ -38,43 +37,61 @@ import {
 import StationChargePointsTab from '../components/StationChargePointsTab';
 import StationTransactionsTab from '../components/StationTransactionsTab';
 import { getChargingStationById } from '../api/chargingStationService';
-import { getChargePoints } from '../../chargePoints/api/chargePointService';
 import { useToast } from '../../../context/ToastContext';
-import { apiClient } from '../../../lib/apiClient';
 import { useSocketRoom } from '../../../hooks/useSocketRoom';
 
+
+// Charging Station Details & Monitoring View Page
+
 export default function ViewChargingStation() {
+
+  // 1. URL Route Parameters & Room Subscriptions
+
+  // Authoritative Charging Station primary ID extracted from URL path (/charging-stations/:id)
   const { id } = useParams();
 
-  // Join targeted room chargingstation:<id> with automatic unmount cleanup
+  // Join targeted real-time WebSocket room 'chargingstation:<id>' with automatic unmount cleanup
   useSocketRoom(id ? `chargingstation:${id}` : null);
 
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Prefetched station data passed via React Router navigation state (if available)
   const initialStation = location.state?.station;
 
+
+  // 2. Tab Synchronization with URL Query Parameters
+
+  // Valid active tab identifiers
   const validTabs = ['charge-points', 'transactions'];
+  // Read active tab from URL query params (e.g., ?tab=transactions), fallback to 'charge-points'
   const tabFromUrl = searchParams.get('tab');
   const activeTab = validTabs.includes(tabFromUrl) ? tabFromUrl : 'charge-points';
 
+  // Update URL search parameters when user toggles tabs
   const setActiveTab = (tabId) => {
     setSearchParams({ tab: tabId }, { replace: true });
   };
 
+
+  // 3. Component State
+
+  // Station metadata entity
   const [station, setStation] = useState(initialStation);
+  // Loading indicator state: active if initialStation was not passed via state and ID exists
   const [loading, setLoading] = useState(!initialStation && Boolean(id));
+  // Toggle for full station specification modal dialog
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
-  const [transactions, setTransactions] = useState([]);
-  const [dateRange, setDateRange] = useState('Last 30 Days');
-  const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
-  const dateOptions = ['Today', 'Last 7 Days', 'Last 30 Days', 'Last 90 Days', 'All Time'];
+
+  // 4. Lifecycle: Fetch Authoritative Station Details by ID
 
   useEffect(() => {
     if (id) {
       setLoading(true);
+      // Fetch authoritative station record directly by ID (no search fallbacks)
       getChargingStationById(id)
         .then((data) => {
           if (data && (data.name || data.code)) {
@@ -83,22 +100,16 @@ export default function ViewChargingStation() {
             setStation(null);
           }
         })
-        .catch(async (err) => {
-          console.warn("Could not fetch station by ID, attempting name search lookup:", err);
-          try {
-            const decodedId = decodeURIComponent(id);
-            const res = await apiClient(`/charging-stations?search=${encodeURIComponent(decodedId)}`);
-            const list = Array.isArray(res) ? res : (res?.data && Array.isArray(res.data) ? res.data : []);
-            if (list.length > 0) {
-              setStation(list[0]);
-              return;
-            }
-          } catch {}
+        .catch((err) => {
+          console.error("Failed to fetch charging station by ID:", err);
           setStation(null);
         })
         .finally(() => setLoading(false));
     }
   }, [id]);
+
+
+  // 5. Loading State Render
 
   if (loading) {
     return (
@@ -109,17 +120,22 @@ export default function ViewChargingStation() {
     );
   }
 
+  // Display labels with fallback defaults
   const stationName = station?.name || 'Charging Station';
   const stationCode = station?.code || '-';
 
   return (
     <div className="flex flex-col gap-6 max-w-[1400px] w-full mx-auto pb-10">
+
+      {/* Header: Back Button, Station Title, Code Badge, Action Buttons */}
+
       <div className="shrink-0 space-y-2">
         <div>
           <BackButton to="/charging-stations" label="Back to Charging Stations" />
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-0.5">
+          {/* Station Title & Code Badge */}
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-black text-stone-900 tracking-tight">{stationName}</h1>
             <span className="px-2.5 py-0.5 rounded-md bg-[#1EB8D4]/10 text-[#148296] border border-[#1EB8D4]/20 font-mono font-bold text-xs">
@@ -127,7 +143,9 @@ export default function ViewChargingStation() {
             </span>
           </div>
 
+          {/* Quick Action Buttons: Show Specifications Modal & Edit Station */}
           <div className="flex flex-wrap items-center gap-2.5">
+            {/* Show Details Modal Button */}
             <button
               onClick={() => setShowDetailsModal(true)}
               className="flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 font-semibold rounded-xl text-xs shadow-2xs transition-colors cursor-pointer"
@@ -136,6 +154,7 @@ export default function ViewChargingStation() {
               <span>Show Details</span>
             </button>
 
+            {/* Edit Station Navigation Button */}
             <button
               onClick={() => navigate(`/charging-stations/edit/${station?.id || id}`, { state: { station } })}
               className="flex items-center gap-2 px-4 py-2 bg-[#1EB8D4] hover:bg-[#19A5C0] text-slate-950 font-bold rounded-xl text-xs shadow-xs transition-colors cursor-pointer"
@@ -147,8 +166,13 @@ export default function ViewChargingStation() {
         </div>
       </div>
 
+
+      {/* Main Tabbed Container: Charge Points & Live Transactions       */}
+
       <div className="bg-white/70 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] rounded-[32px] overflow-hidden flex flex-col flex-1 min-h-0">
+        {/* Tab Navigation Header */}
         <div className="shrink-0 px-6 pt-3 pb-0 bg-[#F8FAFC] border-b border-stone-200/80 overflow-x-auto md:overflow-x-visible flex items-center gap-2.5 z-10 scrollbar-none">
+          {/* Charge Points Sub-Tab */}
           <button
             onClick={() => setActiveTab('charge-points')}
             className={`flex items-center gap-2.5 px-4.5 py-3 text-xs font-bold tracking-tight transition-all duration-200 border-b-2 rounded-t-xl whitespace-nowrap cursor-pointer select-none relative ${activeTab === 'charge-points'
@@ -161,6 +185,7 @@ export default function ViewChargingStation() {
             <span className="font-bold text-xs tracking-tight">Charge Points</span>
           </button>
 
+          {/* Charge Transactions Sub-Tab */}
           <button
             onClick={() => setActiveTab('transactions')}
             className={`flex items-center gap-2.5 px-4.5 py-3 text-xs font-bold tracking-tight transition-all duration-200 border-b-2 rounded-t-xl whitespace-nowrap cursor-pointer select-none relative ${activeTab === 'transactions'
@@ -174,20 +199,27 @@ export default function ViewChargingStation() {
           </button>
         </div>
 
+        {/* Tab Content Body */}
         <div className="p-6 sm:p-8 flex-1 overflow-y-auto custom-scrollbar">
+          {/* Charge Points List Filtered to this Station */}
           {activeTab === 'charge-points' && (
-            <StationChargePointsTab stationName={stationName} stationId={station?.id || id} />
+            <StationChargePointsTab stationId={station?.id || id} />
           )}
 
+          {/* Realtime & Historical Charge Sessions Table */}
           {activeTab === 'transactions' && (
             <StationTransactionsTab station={station} />
           )}
         </div>
       </div>
 
+
+      {/* Station Technical Specification & Geolocation Modal            */}
+
       {showDetailsModal && (
         <div className="fixed inset-0 z-50 bg-stone-900/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl border border-stone-200 shadow-2xl max-w-2xl w-full p-6 animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-stone-100 pb-4 mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-[#1EB8D4]/10 border border-[#1EB8D4]/20 flex items-center justify-center text-[#148296] font-bold">
@@ -206,48 +238,58 @@ export default function ViewChargingStation() {
               </button>
             </div>
 
+            {/* Specifications Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 py-2 text-xs">
+              {/* Brand */}
               <div className="p-3 bg-stone-50/80 rounded-2xl border border-stone-100">
                 <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Brand</span>
                 <span className="font-bold text-stone-800 mt-0.5 block">{station?.brand || '-'}</span>
               </div>
 
+              {/* Mobility Type */}
               <div className="p-3 bg-stone-50/80 rounded-2xl border border-stone-100">
                 <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Mobility Type</span>
                 <span className="font-bold text-stone-800 mt-0.5 block">{station?.mobilityType || '-'}</span>
               </div>
 
+              {/* Category */}
               <div className="p-3 bg-stone-50/80 rounded-2xl border border-stone-100">
                 <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Category</span>
                 <span className="font-bold text-stone-800 mt-0.5 block">{station?.category || '-'}</span>
               </div>
 
+              {/* Street Address */}
               <div className="p-3 bg-stone-50/80 rounded-2xl border border-stone-100 col-span-2">
                 <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Address</span>
                 <span className="font-bold text-stone-800 mt-0.5 block truncate">{station?.address || '-'}</span>
               </div>
 
+              {/* State & Country */}
               <div className="p-3 bg-stone-50/80 rounded-2xl border border-stone-100">
                 <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">State / Country</span>
                 <span className="font-bold text-stone-800 mt-0.5 block">{station?.state && station?.country ? `${station.state}, ${station.country}` : (station?.state || station?.country || '-')}</span>
               </div>
 
+              {/* Geolocation Coordinates */}
               <div className="p-3 bg-stone-50/80 rounded-2xl border border-stone-100">
                 <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Geolocation</span>
                 <span className="font-mono font-bold text-stone-800 mt-0.5 block">{station?.latitude && station?.longitude ? `${station.latitude}, ${station.longitude}` : '-'}</span>
               </div>
 
+              {/* Grid Power Capacity */}
               <div className="p-3 bg-stone-50/80 rounded-2xl border border-stone-100">
                 <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Grid Power</span>
                 <span className="font-bold text-stone-800 mt-0.5 block">{station?.gridPowerCapacity ? `${station.gridPowerCapacity} kW` : '-'}</span>
               </div>
 
+              {/* Operating Hours / 24x7 Status */}
               <div className="p-3 bg-stone-50/80 rounded-2xl border border-stone-100">
                 <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Availability</span>
                 <span className="font-bold text-stone-800 mt-0.5 block">{station?.open247 ? 'Open 24×7' : (station?.opensAt && station?.closesAt ? `${station.opensAt} - ${station.closesAt}` : '-')}</span>
               </div>
             </div>
 
+            {/* Modal Actions */}
             <div className="flex items-center justify-end pt-4 mt-3 border-t border-stone-100">
               <button
                 onClick={() => setShowDetailsModal(false)}
