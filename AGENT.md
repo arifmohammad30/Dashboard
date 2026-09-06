@@ -1,427 +1,975 @@
-I need you to work with me on a staged implementation of the live charging-session data flow in this existing EV charging application.
+# AGENT.md
 
-IMPORTANT:
-Do NOT start coding immediately.
-First inspect the existing repository and understand the current architecture, Prisma schema, Live Sessions implementation, ChargePoint/ChargingStation/Connector relationships, Socket.IO setup, and existing mock/simulation code.
+## EV Charging Management Dashboard — Project-Wide Agent Instructions
 
-After inspection, give me an implementation plan for ONLY the first phase described below.
-Do not make code changes until I approve the plan.
+This document is the **primary development instruction for the coding agent working on this project**.
 
-==================================================
-PROJECT CONTEXT
-==================================================
+The agent MUST follow these rules for every task unless the user explicitly overrides them.
 
-This is an EV charging management application.
+---
 
-Backend:
-- Node.js
-- Express
-- Prisma
-- SQLite
-- REST APIs
-- Socket.IO
+# 1. PROJECT PURPOSE
 
-Frontend:
-- React
-- React Router
-- Socket.IO client
-- Feature-driven architecture
+This project is an EV Charging Management Dashboard.
 
-Existing domain entities include:
-- ChargingStation
-- ChargePoint
-- Connector
-- Tariff
-- LiveSession
-- Session history
+The application manages and displays information related to:
 
-The backend already handles normal REST request/response communication with the React UI.
+* Authentication and RBAC
+* Charging Stations
+* Charge Points
+* Live Charging Sessions
+* Session History and Logs
+* Tariffs and Pricing
+* Bills and Invoices
+* Fleets
+* Discounts
+* Team Members
+* Payment Gateways
+* Future/placeholder modules such as Groups, Permission Rules, Analytics, Reports and Alerts
 
-Socket.IO is also already initialized in server.js and currently has basic connection/disconnection logging.
+The frontend is primarily responsible for the user interface, client-side validation, API consumption, navigation, and real-time UI updates.
 
-The application already has Live Sessions and Charge Point Stats UI.
+The backend is responsible for persistence, business logic, authorization, validation, OCPP processing, database operations, and server-side filtering/pagination.
 
-==================================================
-THE EVENTUAL ARCHITECTURE
-==================================================
+The frontend and backend communicate through explicitly defined API contracts.
 
-Eventually the system should work like this:
+---
 
-Real Charger
-    ↓
-OCPP 1.6J WebSocket
-    ↓
-Backend OCPP processing
-    ↓
-Clean application-level JSON
-    ↓
-Socket.IO
-    ↓
-React UI
+# 2. MOST IMPORTANT RULE
 
-However, we are NOT implementing the complete OCPP system right now.
+## DO NOT GO OUT OF SCOPE.
 
-We are deliberately building this in stages.
+Before making any change, determine:
 
-==================================================
-WHY WE NEED A CLEAN DATA CONTRACT
-==================================================
+1. Which feature/module is being changed.
+2. Which exact files are involved.
+3. Whether the requested behavior already exists.
+4. Whether the change is required for the current task.
+5. Whether the change would affect an already-frozen API contract or another module.
 
-A real charger communicates using OCPP 1.6J messages.
+Do NOT make unrelated improvements.
 
-Those messages are not supposed to become the frontend's data model.
+Do NOT redesign architecture unless explicitly requested.
 
-The backend will eventually receive OCPP messages, process them, map them to our database entities, extract the useful information, and produce a clean application-level object.
+Do NOT refactor unrelated files.
 
-The frontend should consume that clean object.
+Do NOT introduce new libraries unless explicitly required.
 
-Therefore:
+Do NOT change working behavior merely because another implementation looks cleaner.
 
-Frontend MUST NOT depend on raw OCPP message structures.
+Prefer the smallest correct change that satisfies the requirement.
 
-The future OCPP layer and the current mock generator must both produce the same application-level data contract.
+---
 
-This gives us:
+# 3. SOURCE OF TRUTH
 
-Mock generator
-    ↓
-Clean application JSON
-    ↓
-Frontend
+When implementing or auditing a feature, use this priority order:
 
-and later:
+1. Explicit user requirement
+2. Frozen API contract for that feature
+3. Existing frontend source code
+4. Existing backend implementation
+5. Existing database/schema
+6. General engineering assumptions
 
-OCPP processor
-    ↓
-Clean application JSON
-    ↓
-Frontend
+Never reverse this order.
 
-The React application should not need to know whether the data came from a mock generator or a real charger.
+If the frontend and backend disagree, do NOT silently modify one side to make the other work.
 
-==================================================
-CURRENT PHASE — ONLY THIS PHASE
-==================================================
+Identify the mismatch and report it.
 
-We first need to define and implement the clean application-level Live Session data contract and a mock generator that produces it.
+If the API contract is frozen, treat it as authoritative unless the user explicitly asks to change it.
 
-Do NOT implement the OCPP WebSocket flow yet.
+---
 
-Do NOT implement Socket.IO events yet.
+# 4. NO INVENTED DATA
 
-Do NOT redesign the frontend.
+The application must NOT contain fake business data.
 
-Do NOT replace existing REST APIs.
+Do NOT add:
 
-Do NOT make unrelated architectural changes.
+* fake stations
+* fake charge points
+* fake transactions
+* fake users
+* fake tariffs
+* fake bills
+* fake statistics
+* fake payment data
+* fake API responses
+* hardcoded business records
 
-==================================================
-DATA CONTRACT
-==================================================
+Do NOT add fallback business values such as:
 
-Inspect the existing Prisma schema and current Live Sessions API/frontend code first.
+```text
+"DLF Park Place DC"
+"Sample Station"
+"Test Charger"
+"₹500"
+"10 Sessions"
+```
 
-Do NOT blindly introduce new field names if equivalent fields already exist.
+unless the user explicitly requests mock/demo data.
 
-We need one canonical application-level Live Session object conceptually containing:
+If the backend does not provide required business data:
 
-{
-    sessionId,
+* do not invent it;
+* do not silently substitute another record;
+* do not search by an unrelated field;
+* do not fabricate a fallback.
 
-    chargePointId,
-    chargingStationId,
-    connectorId,
+Instead, handle the actual absence according to the existing UI/error behavior or report the backend contract gap.
 
-    chargePoint: {
-        id,
-        code,
-        name
-    },
+---
 
-    chargingStation: {
-        id,
-        name
-    },
+# 5. IDs ARE AUTHORITATIVE
 
-    connector: {
-        id,
-        type
-    },
+When an entity is accessed through a route such as:
 
-    driver: {
-        id,
-        name
-    },
+```text
+/charging-stations/:id
+/charge-points/:id
+/live-sessions/:id
+```
 
-    status,
+the URL ID is authoritative.
 
-    soc,
+Do NOT add fallback logic such as:
 
-    energyDeliveredKwh,
+```text
+If ID lookup fails → search by name/code → use first result
+```
 
-    powerKw,
+Do NOT resolve an entity using an unrelated name merely because the ID request failed.
 
-    voltage,
+Entity relationships must use actual IDs.
 
-    current,
+Examples:
 
-    cost,
+```text
+chargingStationId
+chargePointId
+connectorId
+sessionId
+tariffId
+billId
+```
 
-    startedAt,
+must remain authoritative identifiers.
 
-    updatedAt
-}
+---
 
-Adapt this to the existing project's actual schema and naming conventions.
+# 6. API CONTRACT RULES
 
-The objective is consistency, not adding duplicate data structures.
+Every feature must be audited against the actual frontend before its API contract is created or modified.
 
-==================================================
-STABLE VS DYNAMIC DATA
-==================================================
+For each endpoint establish:
 
-Stable during one charging session:
+* HTTP method
+* URL
+* path parameters
+* query parameters
+* request body
+* response structure
+* response fields actually consumed by frontend
+* pagination behavior
+* search behavior
+* filtering behavior
+* error requirements if already established
+* Socket.IO events if applicable
 
-- sessionId
-- chargePointId
-- chargingStationId
-- connectorId
-- chargePoint information
-- chargingStation information
-- connector information
-- driver information
-- startedAt
+Do NOT invent response fields simply because they seem useful.
 
-Dynamic:
+Do NOT add aliases such as:
 
-- status
-- soc
-- energyDeliveredKwh
-- powerKw
-- voltage
-- current
-- cost
-- updatedAt
+```text
+totalRevenue / revenueGenerated
+manufacturer / oem
+id / cpId
+```
 
-The generator must NOT regenerate the entire session randomly on every tick.
+just to make the frontend more tolerant.
 
-It must represent ONE session progressing over time.
+Prefer one canonical contract.
 
-==================================================
-DATABASE RELATIONSHIPS
-==================================================
+If a field is not required by the frontend and has not been explicitly requested, do not make it mandatory in the contract.
 
-This is very important.
+---
 
-The mock generator must use REAL existing database records.
+# 7. API CONTRACT FREEZE
 
-For example:
+Once a feature contract has been verified and declared FROZEN:
 
-ChargingStation
-    ↓
-ChargePoint belonging to that station
-    ↓
-Connector belonging to that ChargePoint
+## DO NOT MODIFY IT CASUALLY.
 
-Do not invent random IDs.
+Before changing a frozen contract:
 
-Do not create invalid combinations such as:
+1. Identify why the change is necessary.
+2. Verify the frontend requirement.
+3. Determine whether the change is actually a bug.
+4. Explain the impact.
+5. Only then modify it with explicit approval.
 
-station A
-+
-charge point belonging to station B
-+
-connector belonging to another charge point.
+A backend implementation must adapt to a frozen frontend contract rather than forcing undocumented changes into the frontend.
 
-Inspect the actual Prisma relations before implementing this.
+---
 
-==================================================
-TELEMETRY GENERATION
-==================================================
+# 8. FRONTEND-BACKEND RESPONSIBILITY
 
-The generated values must behave logically.
+Do not move responsibilities between frontend and backend without a reason.
 
-SoC:
-- Gradually increases during charging.
-- Do NOT generate completely random values.
+### Frontend
+
+The frontend may handle:
+
+* form state
+* UI state
+* client-side validation
+* formatting
+* navigation
+* pagination controls
+* debounced search input
+* rendering
+* Socket.IO subscriptions
+* displaying backend data
+
+### Backend
+
+The backend should handle:
+
+* persistence
+* database operations
+* business rules
+* authorization
+* server-side validation
+* server-side pagination
+* server-side searching
+* server-side filtering
+* OCPP processing
+* transaction processing
+* billing/business calculations
+* real-time event generation
+
+Do not implement database/business logic in the frontend merely to compensate for a missing backend endpoint.
+
+---
+
+# 9. PAGINATION
+
+For production data, pagination must remain server-side unless explicitly stated otherwise.
+
+The frontend should request:
+
+```text
+?page=1&limit=10
+```
+
+or the exact parameters defined by the feature contract.
+
+Do NOT:
+
+1. fetch the entire dataset;
+2. filter it in memory;
+3. slice it in JavaScript;
+4. pretend that is server-side pagination.
+
+The backend should return the requested page and pagination metadata according to the frozen contract.
+
+---
+
+# 10. SEARCH AND FILTERING
+
+Search/filter behavior must follow the feature contract.
+
+Do NOT silently convert:
+
+```text
+server-side search
+```
+
+into:
+
+```text
+client-side filtering
+```
+
+Do NOT fetch unrelated large datasets merely to implement a UI filter.
+
+If a required filter cannot be supported by the current backend contract, report the gap instead of creating an artificial frontend workaround.
+
+---
+
+# 11. FORMS
+
+For every create/edit form:
+
+1. Identify the actual fields.
+2. Preserve existing validation.
+3. Preserve existing transformations unless the requirement changes.
+4. Send the exact API contract payload.
+5. Do not drop fields merely because the temporary backend does not currently store them.
+
+If the frontend requires a field and the backend does not support it, that is a backend contract/implementation gap.
+
+Do NOT remove the frontend field to hide the backend limitation unless explicitly instructed.
+
+---
+
+# 12. CREATE AND EDIT
+
+When the contract specifies a complete create/edit representation:
+
+```text
+POST → complete create payload
+PUT  → complete editable representation
+```
+
+Do not silently convert the operation into partial updates.
+
+Do not remove fields because they are currently unchanged.
+
+GET detail responses must provide every field required to reliably populate the Edit form when the contract says so.
+
+---
+
+# 13. REAL-TIME / SOCKET.IO
+
+Socket.IO must be treated as a real-time synchronization mechanism, not a replacement for REST APIs.
+
+Typical architecture:
+
+```text
+Backend
+   ↓
+Database / OCPP
+   ↓
+Socket.IO event
+   ↓
+React listener
+   ↓
+UI update
+```
+
+Use the exact room and event names defined by the feature contract.
+
+Examples currently used by the project include:
+
+```text
+chargepoint:<id>
+chargingstation:<id>
+
+session:created
+session:updated
+session:stopped
+session:completed
+session:log
+
+chargePointUpdated
+```
+
+Do not invent new event names when an existing event already represents the required behavior.
+
+When receiving an event for an entity-specific subscription, verify the event belongs to the currently viewed entity before updating that entity's UI.
 
 Example:
 
-40
-41
-42
-43
-44
+```text
+current chargePointId
+        ==
+event chargePointId
+```
 
-Power:
-- Can fluctuate slightly.
+If they do not match, ignore the event.
 
-Example:
+---
 
-7.1
-7.3
-7.2
-7.4
-7.2
+# 14. REST + SOCKET RESPONSIBILITY
 
-Energy:
-- Must be cumulative.
-- Must not randomly decrease during normal charging.
-- Prefer calculating it from power and elapsed time.
+REST should normally establish the initial state.
 
-Conceptually:
+Socket.IO should keep the UI synchronized afterward.
 
-energy += powerKw * elapsedHours
+Preferred pattern:
 
-Cost:
-- Should increase as energy increases.
-- If existing tariff/business logic can be reused, use it.
-- Otherwise use a simple consistent calculation for the mock.
-- Frontend should receive the final cost rather than calculating it itself.
+```text
+Initial page load
+      ↓
+GET API
+      ↓
+Render current state
+      ↓
+Join Socket room
+      ↓
+Receive real-time events
+      ↓
+Update/refetch affected UI
+```
 
-Timestamp:
-- updatedAt must change for every telemetry update.
-- Use ISO-8601 format.
+Do not remove the initial REST request merely because Socket.IO exists.
 
-==================================================
-MOCK GENERATOR
-==================================================
+Do not depend on Socket.IO alone for initial page state.
 
-After understanding the existing repository, create the smallest appropriate mock/simulation module.
+---
 
-It should:
+# 15. NAVIGATION
 
-1. Read real Station/ChargePoint/Connector data from Prisma.
-2. Select a valid relationship.
-3. Create one simulated charging session.
-4. Maintain the session state.
-5. Update telemetry periodically.
-6. Produce the canonical application JSON.
-7. Log consecutive updates for verification.
+Navigation between entities must use canonical IDs.
 
-The exact file location should follow the existing backend architecture.
+Examples:
 
-Do not create unnecessary folders or abstractions.
+```text
+/stations/view/:id
+/charge-points/view/:id
+/session-logs/:id
+```
 
-==================================================
-IMPORTANT NON-GOALS
-==================================================
+Do not navigate using names when IDs are available.
 
-Do NOT implement these yet:
+Do not add name-based entity resolution as a fallback.
 
-1. Real OCPP charger communication.
-2. OCPP WebSocket server.
-3. OCPP message parsing.
-4. StatusNotification processing.
-5. StartTransaction processing.
-6. MeterValues processing.
-7. StopTransaction processing.
-8. Socket.IO session:created.
-9. Socket.IO session:updated.
-10. Socket.IO session:stopped.
-11. React real-time integration.
+If a required ID is missing, handle the missing ID explicitly instead of guessing.
 
-Those will be later phases.
+---
 
-==================================================
-FUTURE PHASES
-==================================================
+# 16. ERROR HANDLING
 
-The overall development sequence will eventually be:
+Do not hide real backend errors by replacing them with fake successful data.
 
-PHASE 1
-Clean application JSON contract
-+
-Mock telemetry generator
+Bad:
 
-PHASE 2
-Mock charger sends actual OCPP 1.6J JSON-array messages over WebSocket.
+```text
+API fails
+↓
+show fake/default station
+```
 
-PHASE 3
-Backend OCPP WebSocket server receives those messages.
+Correct:
 
-PHASE 4
-Backend processes:
-- StatusNotification
-- StartTransaction
-- MeterValues
-- StopTransaction
+```text
+API fails
+↓
+show appropriate error/empty state
+```
 
-PHASE 5
-Backend maps OCPP data to:
-- ChargingStation
-- ChargePoint
-- Connector
-- LiveSession
+Error handling should preserve the distinction between:
 
-PHASE 6
-Backend emits clean Socket.IO events:
-- session:created
-- session:updated
-- session:stopped
+* loading
+* successful empty result
+* failed request
+* missing entity
+* invalid input
+* unauthorized/forbidden state
 
-PHASE 7
-React Live Sessions consumes those events.
+Do not invent backend error codes or response structures unless they are already defined.
 
-PHASE 8
-ChargePoint Stats and other relevant UI components consume the same live data.
+---
 
-We are currently ONLY doing PHASE 1.
+# 17. FALLBACKS
 
-==================================================
-ARCHITECTURAL PRINCIPLE
-==================================================
+Fallbacks are allowed only when they are safe and do not change business meaning.
 
-The most important boundary is:
+Acceptable examples:
 
-OCPP / database / backend processing
-                ↓
-       CLEAN APPLICATION JSON
-                ↓
-             Socket.IO
-                ↓
-             React UI
+```text
+optional UI formatting
+empty array for rendering when appropriate
+safe display of optional text
+```
 
-The frontend should not understand OCPP.
+Dangerous fallbacks that are NOT allowed:
 
-The mock generator and future OCPP processor must produce the same clean application-level contract.
+```text
+ID → name search
+missing API data → fake business data
+missing tariff → arbitrary tariff
+missing station → first station
+missing user → fake user
+failed request → successful-looking data
+```
 
-==================================================
-WHAT I WANT FROM YOU NOW
-==================================================
+Never use a fallback that can cause the UI to display another real entity.
 
-STEP 1:
-Inspect the repository.
+---
 
-Specifically inspect:
+# 18. PLACEHOLDER MODULES
 
-- Prisma schema
-- ChargePoint model
-- ChargingStation model
-- Connector model
-- LiveSession model
-- existing session service
-- existing Live Sessions API
-- existing Live Sessions React components
-- existing ChargePoint Stats components
-- existing Socket.IO setup
-- existing mock/simulator code, if any
+Some modules may currently be placeholders.
 
-STEP 2:
-Tell me what the existing application already has.
+Examples:
 
-STEP 3:
-Identify the exact files that need to be created/modified for PHASE 1.
+* Groups
+* Permission Rules
+* Analytics
+* Reports
+* Alerts
 
-STEP 4:
-Propose the canonical JSON contract using the project's REAL existing field names.
+Do not invent complete backend architectures for these modules unless the user explicitly starts work on them.
 
-STEP 5:
-Propose how the mock telemetry state should work.
+Do not add unnecessary APIs simply because a placeholder page exists.
 
-STEP 6:
-Give me a small implementation plan.
+---
 
-DO NOT MODIFY FILES YET.
+# 19. DATABASE CHANGES
 
-Wait for my approval before implementation.
+Do not modify the database schema merely to make the frontend code easier.
+
+Database changes must be justified by:
+
+* the API contract,
+* actual business requirements,
+* or explicit backend implementation work.
+
+If the frontend requires fields that the current temporary schema does not contain, identify them as backend implementation gaps.
+
+Do not remove frontend requirements to fit a temporary schema.
+
+---
+
+# 20. CODE QUALITY
+
+Prefer:
+
+* existing project architecture
+* existing hooks
+* existing services
+* existing components
+* existing utilities
+* existing patterns
+
+Avoid:
+
+* duplicate hooks
+* duplicate API services
+* duplicate components
+* unnecessary abstractions
+* premature generic frameworks
+* large refactors for small requirements
+
+Before creating a new utility/component/hook, search the project for an existing equivalent.
+
+---
+
+# 21. DO NOT DELETE CODE WITHOUT CHECKING REFERENCES
+
+Before deleting:
+
+* hooks
+* services
+* components
+* utilities
+* routes
+* configuration files
+
+search the project for references.
+
+Only delete dead code after confirming it is genuinely unused.
+
+---
+
+# 22. DO NOT CHANGE WORKING CODE WITHOUT A REASON
+
+A task such as:
+
+> "Fix the Charge Point transaction contract"
+
+does NOT authorize:
+
+* redesigning the entire transactions page;
+* changing unrelated styling;
+* changing authentication;
+* rewriting the API client;
+* refactoring all hooks;
+* changing database models;
+* modifying other modules.
+
+Make the smallest targeted change.
+
+---
+
+# 23. TESTING REQUIREMENT
+
+After meaningful code changes:
+
+1. Run the relevant build.
+2. Run relevant tests if available.
+3. Check for compile errors.
+4. Check imports.
+5. Check routes.
+6. Check API calls.
+7. Check affected UI flow.
+8. Check that unrelated modules were not changed.
+
+For integration changes, verify:
+
+```text
+UI
+ ↓
+API request
+ ↓
+Backend endpoint
+ ↓
+Response
+ ↓
+UI rendering
+```
+
+For real-time features verify:
+
+```text
+Event emitted
+ ↓
+Correct room
+ ↓
+Correct listener
+ ↓
+Correct entity
+ ↓
+Correct UI update
+```
+
+Never report a feature as working merely because the frontend compiles.
+
+---
+
+# 24. BUILD ≠ FUNCTIONAL VERIFICATION
+
+A successful build proves compilation.
+
+It does NOT prove:
+
+* API correctness
+* backend correctness
+* database correctness
+* Socket.IO correctness
+* pagination correctness
+* authorization correctness
+* business logic correctness
+
+Always distinguish:
+
+```text
+BUILD PASS
+```
+
+from:
+
+```text
+FUNCTIONAL TEST PASS
+```
+
+and:
+
+```text
+END-TO-END PASS
+```
+
+---
+
+# 25. WHEN SOMETHING IS UNCLEAR
+
+Do not guess.
+
+Classify the uncertainty:
+
+### Confirmed from frontend
+
+Directly verified in source code.
+
+### Defined by frozen contract
+
+Explicitly established by the API contract.
+
+### Backend decision
+
+Not determined by the frontend and therefore belongs to backend design.
+
+### Unknown
+
+Insufficient evidence.
+
+When something is unknown, say so.
+
+Do not convert an assumption into a requirement.
+
+---
+
+# 26. AUDIT WORKFLOW
+
+When asked to audit a feature, use this workflow:
+
+### Step 1 — Discover
+
+Identify:
+
+* routes
+* components
+* hooks
+* services
+* API calls
+* forms
+* tables
+* formatters
+* Socket.IO listeners
+
+### Step 2 — Trace
+
+Follow:
+
+```text
+UI
+ ↓
+Hook/component
+ ↓
+Service
+ ↓
+API
+ ↓
+Response
+ ↓
+State
+ ↓
+UI
+```
+
+### Step 3 — Extract
+
+Record only what the frontend actually requires.
+
+### Step 4 — Identify gaps
+
+Separate:
+
+```text
+Frontend requirement
+Backend capability
+Contract requirement
+Implementation gap
+```
+
+### Step 5 — Fix only requested frontend issues
+
+Do not redesign unrelated code.
+
+### Step 6 — Verify
+
+Run build/tests and inspect affected flows.
+
+### Step 7 — Contract
+
+Produce the API contract only from verified evidence.
+
+### Step 8 — Freeze
+
+Once verified, stop modifying it unless explicitly requested.
+
+---
+
+# 27. FEATURE-BY-FEATURE WORK
+
+Work on one feature at a time.
+
+Recommended order:
+
+1. Authentication & RBAC
+2. Charging Stations
+3. Charge Points
+4. Live Sessions & History
+5. Tariffs
+6. Bills & Invoices
+7. Fleets
+8. Discounts
+9. Team Members
+10. Payment Gateways
+11. Remaining modules
+
+Do not simultaneously redesign multiple modules.
+
+Complete:
+
+```text
+Audit
+→ Fix
+→ Verify
+→ Contract
+→ Freeze
+```
+
+before moving to the next major feature.
+
+---
+
+# 28. CURRENT FROZEN FEATURES
+
+## Charging Stations
+
+The Charging Stations API contract has been audited against the frontend and is considered frozen.
+
+Do not modify its contract without explicit instruction.
+
+The contract includes:
+
+* list
+* filters
+* detail
+* create
+* update
+* delete
+* export
+* charge point relationship
+* transaction relationship
+* station Socket.IO room/events
+
+The frontend uses the station URL ID as authoritative.
+
+The complete station form contains the established editable fields defined by the frozen contract.
+
+---
+
+## Charge Points
+
+The Charge Points API contract has been audited against the frontend and is considered frozen.
+
+Do not modify its contract without explicit instruction.
+
+The contract includes:
+
+* list
+* filters
+* detail
+* create
+* update
+* delete
+* export
+* statistics
+* connectors
+* transactions
+* tariffs
+* configurations
+* remote controls
+* Socket.IO room/events
+
+The Charge Points contract has been source-of-truth verified.
+
+The transaction response has been verified against:
+
+* `useChargePointTransactions.js`
+* `ChargePointTransactionsTab.jsx`
+* `SessionHistoryTable.jsx`
+* `SessionHistoryRow.jsx`
+
+The create/edit representation contains exactly the verified 13 frontend fields.
+
+GET detail returns all fields required for Edit prefill.
+
+Do not re-audit or redesign these contracts unless explicitly requested.
+
+---
+
+# 29. CURRENT DEVELOPMENT PRIORITY
+
+The next feature to audit is:
+
+## Live Sessions & History
+
+Start from the actual frontend source code.
+
+Do NOT assume that the Charge Points contract automatically defines the Live Sessions contract.
+
+Verify Live Sessions independently.
+
+Pay particular attention to:
+
+* list endpoints
+* history endpoints
+* session detail
+* session logs
+* search
+* filters
+* pagination
+* session statuses
+* station relationships
+* charge point relationships
+* connector relationships
+* driver/user fields
+* energy
+* cost
+* bill information
+* stop-session behavior
+* Socket.IO events
+* room subscriptions
+* real-time updates
+* completed-session behavior
+
+Only after source verification should the Live Sessions contract be frozen.
+
+---
+
+# 30. RESPONSE FORMAT FOR AGENT WORK
+
+When completing a task, report:
+
+## Scope
+
+What files/features were changed.
+
+## Changes
+
+What was actually modified.
+
+## Verification
+
+What was tested.
+
+## Contract Impact
+
+Whether an API contract changed.
+
+## Risks / Gaps
+
+Any unresolved backend/frontend mismatch.
+
+## Result
+
+One of:
+
+```text
+PASS
+PARTIAL
+BLOCKED
+```
+
+Do not claim PASS when only compilation was checked.
+
+---
+
+# 31. FINAL PRINCIPLE
+
+The goal is NOT to make the code look clever.
+
+The goal is:
+
+```text
+Correct
+Predictable
+Traceable
+Production-oriented
+Contract-driven
+Testable
+Maintainable
+```
+
+When in doubt:
+
+**STOP → INSPECT → VERIFY → CHANGE ONLY WHAT IS REQUIRED → TEST → REPORT.**
+
+Never guess.
+
+Never invent business data.
+
+Never silently change contracts.
+
+Never modify unrelated features.
+
+Never optimize beyond the current requirement.
+
+The user's explicit instruction always takes precedence over this document.
