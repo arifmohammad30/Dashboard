@@ -187,13 +187,13 @@ export default function ChargingStationsList() {
             <button
               onClick={() => setIsFilterOpen(!isFilterOpen)}
               className={`inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 font-bold rounded-xl shadow-2xs transition-colors duration-150 text-xs cursor-pointer ${
-                activeFilterCount > 0 ? 'border-[#4DA944] text-[#30702a] bg-[#4DA944]/10' : ''
+                activeFilterCount > 0 ? 'border-[#1EB8D4] text-[#148296] bg-[#1EB8D4]/10' : ''
               }`}
             >
               <Filter className="w-4 h-4 text-violet-600 shrink-0" />
               <span className="leading-none">Filter</span>
               {activeFilterCount > 0 && (
-                <span className="w-4 h-4 bg-[#4DA944] text-white rounded-full text-[10px] flex items-center justify-center font-bold">
+                <span className="w-4 h-4 bg-[#1EB8D4] text-slate-950 rounded-full text-[10px] flex items-center justify-center font-bold">
                   {activeFilterCount}
                 </span>
               )}
@@ -209,7 +209,7 @@ export default function ChargingStationsList() {
                         setFilters({ mobilityType: [], stationType: [], stage: [] });
                         setCurrentPage(1);
                       }}
-                      className="text-[11px] font-bold text-[#4DA944] hover:text-[#30702a] cursor-pointer"
+                      className="text-[11px] font-bold text-[#1EB8D4] hover:text-[#148296] cursor-pointer"
                     >
                       Reset All
                     </button>
@@ -310,7 +310,7 @@ export default function ChargingStationsList() {
               {loading ? (
                 <tr>
                   <td colSpan="10" className="px-5 py-24 text-center">
-                    <div className="text-[#4DA944] flex flex-col items-center">
+                    <div className="text-[#1EB8D4] flex flex-col items-center">
                       <Loader2 className="w-10 h-10 animate-spin mb-4" />
                       <p className="text-sm font-bold text-stone-500">Loading charging stations...</p>
                     </div>
@@ -345,7 +345,7 @@ export default function ChargingStationsList() {
                       />
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-stone-900 font-semibold text-[13px] cursor-pointer truncate max-w-[200px] inline-block transition-colors duration-200 group-hover:text-emerald-600">
+                      <span className="text-stone-900 font-semibold text-[13px] cursor-pointer truncate max-w-[200px] inline-block transition-colors duration-200 group-hover:text-cyan-600">
                         {row.name}
                       </span>
                     </td>
@@ -398,12 +398,12 @@ export default function ChargingStationsList() {
           <div className="bg-white rounded-3xl border border-stone-200 shadow-2xl max-w-xl w-full p-6 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-stone-100 pb-4 mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#4DA944]/10 border border-[#4DA944]/20 flex items-center justify-center text-[#30702a]">
+                <div className="w-10 h-10 rounded-2xl bg-[#1EB8D4]/10 border border-[#1EB8D4]/20 flex items-center justify-center text-[#148296]">
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div>
                   <h2 className="text-lg font-black text-stone-800">{stationToView.name}</h2>
-                  <span className="text-xs font-bold text-[#30702a] font-mono">{stationToView.code}</span>
+                  <span className="text-xs font-bold text-[#148296] font-mono">{stationToView.code}</span>
                 </div>
               </div>
               <button
@@ -427,9 +427,9 @@ export default function ChargingStationsList() {
                         navigate(`/charge-points?search=${encodeURIComponent(stationToView.chargePointName)}`);
                       }
                     }}
-                    className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200/80 rounded-xl font-bold text-xs transition-colors duration-200 cursor-pointer group mt-1"
+                    className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-cyan-50 hover:bg-emerald-600 text-cyan-700 hover:text-white border border-cyan-200/80 rounded-xl font-bold text-xs transition-colors duration-200 cursor-pointer group mt-1"
                   >
-                    <Zap className="w-4 h-4 text-emerald-500 group-hover:text-white transition-colors" />
+                    <Zap className="w-4 h-4 text-cyan-500 group-hover:text-white transition-colors" />
                     <span>{stationToView.chargePointName || stationToView.chargePointId}</span>
                   </button>
                 ) : (

@@ -1,24 +1,23 @@
 import React from 'react';
 
-export default function FormCard({ title, subtitle, children, className = '' }) {
+export default function FormCard({ title, subtitle, children, className = '', bodyClassName = '' }) {
   return (
-    <div className={`bg-white rounded-2xl border border-stone-200/90 shadow-2xs relative transition-all duration-200 ${className}`}>
+    <div className={`bg-white rounded-2xl border border-slate-200/80 shadow-2xs relative transition-all duration-200 ${className}`}>
       {/* Card Header */}
       {title && (
-        <div className="px-6 py-3.5 border-b border-stone-200/70 bg-gradient-to-r from-stone-50 via-slate-50/60 to-stone-50/30 flex items-center justify-between rounded-t-2xl">
-          <div className="flex items-center gap-2.5">
-            <span className="w-1 h-4 rounded-full bg-gradient-to-b from-[#4DA944] to-[#30702a] inline-block shrink-0" />
+        <div className="px-5 py-3.5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between rounded-t-2xl">
+          <div className="flex items-center gap-2">
+            <span className="w-1 h-3.5 rounded-full bg-[#1EB8D4] inline-block shrink-0" />
             <div>
-              <h2 className="text-[14px] font-extrabold text-slate-900 tracking-tight">{title}</h2>
-              {subtitle && <p className="text-[11px] font-medium text-stone-400 mt-0.5">{subtitle}</p>}
+              <h2 className="text-sm font-bold text-slate-900 tracking-tight">{title}</h2>
+              {subtitle && <p className="text-xs font-normal text-slate-500 mt-0.5">{subtitle}</p>}
             </div>
           </div>
         </div>
       )}
 
-      
-      {/* Card Body */}
-      <div className="p-6 space-y-6 relative z-10">
+      {/* Card Body with comfortable default space-y-3.5 spacing between form fields */}
+      <div className={`p-5 relative z-10 space-y-3.5 ${bodyClassName}`}>
         {children}
       </div>
     </div>

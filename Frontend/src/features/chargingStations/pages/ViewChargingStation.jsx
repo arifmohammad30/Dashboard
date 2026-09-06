@@ -102,7 +102,7 @@ export default function ViewChargingStation() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-[#4DA944]">
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-[#1EB8D4]">
         <Loader2 className="w-10 h-10 animate-spin mb-4" />
         <p className="text-sm font-bold text-stone-600">Loading charging station details...</p>
       </div>
@@ -122,7 +122,7 @@ export default function ViewChargingStation() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-0.5">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-black text-stone-900 tracking-tight">{stationName}</h1>
-            <span className="px-2.5 py-0.5 rounded-md bg-[#4DA944]/10 text-[#30702a] border border-[#4DA944]/20 font-mono font-bold text-xs">
+            <span className="px-2.5 py-0.5 rounded-md bg-[#1EB8D4]/10 text-[#148296] border border-[#1EB8D4]/20 font-mono font-bold text-xs">
               {stationCode}
             </span>
           </div>
@@ -138,7 +138,7 @@ export default function ViewChargingStation() {
 
             <button
               onClick={() => navigate(`/charging-stations/edit/${station?.id || id}`, { state: { station } })}
-              className="flex items-center gap-2 px-4 py-2 bg-[#4DA944] hover:bg-[#43953b] text-white font-bold rounded-xl text-xs shadow-xs transition-colors cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 bg-[#1EB8D4] hover:bg-[#19A5C0] text-slate-950 font-bold rounded-xl text-xs shadow-xs transition-colors cursor-pointer"
             >
               <Edit className="w-4 h-4" />
               <span>Edit Details</span>
@@ -152,11 +152,11 @@ export default function ViewChargingStation() {
           <button
             onClick={() => setActiveTab('charge-points')}
             className={`flex items-center gap-2.5 px-4.5 py-3 text-xs font-bold tracking-tight transition-all duration-200 border-b-2 rounded-t-xl whitespace-nowrap cursor-pointer select-none relative ${activeTab === 'charge-points'
-              ? 'border-b-2 border-b-[#4DA944] text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-xs font-extrabold'
+              ? 'border-b-2 border-b-[#1EB8D4] text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-xs font-extrabold'
               : 'border-transparent text-stone-500 hover:text-stone-800 hover:bg-stone-100/60 font-medium'
               }`}
           >
-            <BatteryCharging strokeWidth={2.25} className={`w-4 h-4 transition-transform ${activeTab === 'charge-points' ? 'text-[#4DA944] scale-105' : 'text-stone-400'
+            <BatteryCharging strokeWidth={2.25} className={`w-4 h-4 transition-transform ${activeTab === 'charge-points' ? 'text-[#1EB8D4] scale-105' : 'text-stone-400'
               }`} />
             <span className="font-bold text-xs tracking-tight">Charge Points</span>
           </button>
@@ -164,11 +164,11 @@ export default function ViewChargingStation() {
           <button
             onClick={() => setActiveTab('transactions')}
             className={`flex items-center gap-2.5 px-4.5 py-3 text-xs font-bold tracking-tight transition-all duration-200 border-b-2 rounded-t-xl whitespace-nowrap cursor-pointer select-none relative ${activeTab === 'transactions'
-              ? 'border-b-2 border-b-[#4DA944] text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-xs font-extrabold'
+              ? 'border-b-2 border-b-[#1EB8D4] text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-xs font-extrabold'
               : 'border-transparent text-stone-500 hover:text-stone-800 hover:bg-stone-100/60 font-medium'
               }`}
           >
-            <Activity strokeWidth={2.25} className={`w-4 h-4 transition-transform ${activeTab === 'transactions' ? 'text-[#4DA944] scale-105' : 'text-stone-400'
+            <Activity strokeWidth={2.25} className={`w-4 h-4 transition-transform ${activeTab === 'transactions' ? 'text-[#1EB8D4] scale-105' : 'text-stone-400'
               }`} />
             <span className="font-bold text-xs tracking-tight">Charge Transactions</span>
           </button>
@@ -190,12 +190,12 @@ export default function ViewChargingStation() {
           <div className="bg-white rounded-3xl border border-stone-200 shadow-2xl max-w-2xl w-full p-6 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-stone-100 pb-4 mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#4DA944]/10 border border-[#4DA944]/20 flex items-center justify-center text-[#30702a] font-bold">
+                <div className="w-10 h-10 rounded-2xl bg-[#1EB8D4]/10 border border-[#1EB8D4]/20 flex items-center justify-center text-[#148296] font-bold">
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div>
                   <h2 className="text-lg font-black text-stone-900">{stationName}</h2>
-                  <span className="text-xs font-bold text-[#30702a] font-mono">{stationCode}</span>
+                  <span className="text-xs font-bold text-[#148296] font-mono">{stationCode}</span>
                 </div>
               </div>
               <button

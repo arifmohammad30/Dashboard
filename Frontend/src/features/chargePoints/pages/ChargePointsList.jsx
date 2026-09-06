@@ -189,7 +189,7 @@ export default function ChargePointsList({ stationFilter, chargingStationId, hid
               <Filter className="w-4 h-4 text-violet-600 shrink-0" />
               <span className="leading-none">Filter</span>
               {activeFiltersCount > 0 && (
-                <span className="flex items-center justify-center w-4 h-4 bg-[#4DA944] text-white rounded-full text-[10px] ml-1 font-bold">
+                <span className="flex items-center justify-center w-4 h-4 bg-[#1EB8D4] text-slate-950 rounded-full text-[10px] ml-1 font-bold">
                   {activeFiltersCount}
                 </span>
               )}
@@ -319,7 +319,7 @@ export default function ChargePointsList({ stationFilter, chargingStationId, hid
                 <tr>
                   <td colSpan="19" className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <Loader2 className="w-8 h-8 text-[#4DA944] animate-spin" />
+                      <Loader2 className="w-8 h-8 text-[#1EB8D4] animate-spin" />
                       <p className="text-sm font-bold text-stone-500">Loading charge points...</p>
                     </div>
                   </td>
@@ -353,7 +353,7 @@ export default function ChargePointsList({ stationFilter, chargingStationId, hid
                       navigate(`/charge-points/${row.id}`, { state: { chargePoint: row } });
                     }}>
                       <span className={`text-stone-900 font-semibold text-[13px] transition-colors duration-200 ${(row.status === 'Available' || row.status === 'Charging' || (row.status !== 'Faulted' && row.stage === 'Active'))
-                        ? 'group-hover:text-emerald-600'
+                        ? 'group-hover:text-cyan-600'
                         : 'group-hover:text-rose-600'
                         }`}>
                         {row.name}
@@ -394,8 +394,8 @@ export default function ChargePointsList({ stationFilter, chargingStationId, hid
                           Preparing
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium bg-emerald-50/90 text-emerald-800 border border-emerald-200/60 shadow-2xs">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                        <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium bg-cyan-50/90 text-cyan-800 border border-cyan-200/60 shadow-2xs">
+                          <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 shrink-0"></span>
                           Available
                         </span>
                       )}
@@ -406,7 +406,7 @@ export default function ChargePointsList({ stationFilter, chargingStationId, hid
                     </td>
 
                     <td className="px-4 py-3 text-left whitespace-nowrap">
-                      <span className={`inline-flex items-center h-7 px-2.5 rounded-full text-xs font-medium border shadow-2xs ${row.stage === 'Active' ? 'bg-emerald-50/90 text-emerald-800 border-emerald-200/60' :
+                      <span className={`inline-flex items-center h-7 px-2.5 rounded-full text-xs font-medium border shadow-2xs ${row.stage === 'Active' ? 'bg-cyan-50/90 text-cyan-800 border-cyan-200/60' :
                         row.stage === 'Inactive' ? 'bg-stone-100 text-stone-600 border-stone-200/80' :
                           'bg-amber-50/90 text-amber-800 border-amber-200/60'
                         }`}>
@@ -441,7 +441,7 @@ export default function ChargePointsList({ stationFilter, chargingStationId, hid
                     </td>
 
                     <td className="px-4 py-3 text-center whitespace-nowrap">
-                      <span className="text-[#30702a] text-[13px] font-bold font-mono">{row.cpId || row.code}</span>
+                      <span className="text-[#148296] text-[13px] font-bold font-mono">{row.cpId || row.code}</span>
                     </td>
 
                     <td className="px-4 py-3 text-center whitespace-nowrap">

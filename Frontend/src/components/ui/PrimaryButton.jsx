@@ -39,7 +39,7 @@ export default function PrimaryButton({
       type={type}
       onClick={onClick}
       disabled={disabled || isLoading}
-      className={`inline-flex items-center justify-center gap-1.5 h-9 px-4 bg-[#4DA944] hover:bg-[#43953b] border border-[#4DA944]/30 text-white font-semibold rounded-xl text-xs shadow-sm transition-all duration-150 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer ${className}`}
+      className={`inline-flex items-center justify-center gap-1.5 h-9 px-4 bg-[#1EB8D4] hover:bg-[#19A5C0] border border-[#1EB8D4]/30 text-slate-950 font-bold rounded-xl text-xs shadow-sm transition-all duration-150 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer ${className}`}
     >
       {isLoading ? (
         <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />

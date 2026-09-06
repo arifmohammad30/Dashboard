@@ -95,7 +95,11 @@ export default function AccessEntitySearchBox({
       {/* Search Input Field */}
       <div className="relative">
         <input
+          id="access-entity-search-input"
+          name="search"
           type="text"
+          autoComplete="off"
+          aria-label={placeholder || "Search entity"}
           value={query}
           onFocus={() => setIsOpen(true)}
           onChange={(e) => {

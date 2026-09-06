@@ -19,7 +19,7 @@ export default function PermissionRulesList() {
       {/* Blank / Dummy Card */}
       <div className="bg-white border border-stone-200/90 shadow-2xs rounded-2xl p-16 flex flex-col items-center justify-center text-center min-h-[420px]">
         <div className="w-14 h-14 rounded-2xl bg-stone-100/80 border border-stone-200 flex items-center justify-center text-stone-400 mb-3 shadow-2xs">
-          <ShieldCheck className="w-7 h-7 text-[#4DA944]" />
+          <ShieldCheck className="w-7 h-7 text-[#1EB8D4]" />
         </div>
         <h3 className="text-base font-bold text-slate-800">Permission Rules</h3>
         <p className="text-xs text-stone-400 font-medium max-w-sm mt-1">

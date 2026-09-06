@@ -38,7 +38,7 @@ export default function ChargePointTransactionsTab({ cp }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16 text-stone-400 gap-2">
-        <Loader2 className="w-5 h-5 animate-spin text-[#4DA944]" />
+        <Loader2 className="w-5 h-5 animate-spin text-[#1EB8D4]" />
         <span className="text-xs font-semibold">Loading ChargePoint transactions...</span>
       </div>
     );

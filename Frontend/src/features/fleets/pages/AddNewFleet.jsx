@@ -22,7 +22,7 @@ export default function AddNewFleet({ isViewMode = false, isEditMode = false }) 
 
   if (loadingData) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-[#4DA944]">
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-[#1EB8D4]">
         <Loader2 className="w-10 h-10 animate-spin mb-4" />
         <p className="text-sm font-bold text-stone-600">Loading fleet details...</p>
       </div>
@@ -40,11 +40,11 @@ export default function AddNewFleet({ isViewMode = false, isEditMode = false }) 
           </h1>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             type="button"
             onClick={handleCancelClick}
-            className="px-4 py-2 text-xs font-bold bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 rounded-xl shadow-2xs transition-all duration-150 cursor-pointer active:scale-95"
+            className="h-9 px-4 inline-flex items-center justify-center text-xs font-semibold bg-white hover:bg-slate-50 border border-slate-200/80 text-slate-700 rounded-xl shadow-2xs transition-all duration-150 active:scale-95 cursor-pointer shrink-0"
           >
             {isViewMode ? 'Back' : 'Cancel'}
           </button>

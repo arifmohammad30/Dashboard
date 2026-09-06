@@ -28,10 +28,10 @@ const ViewBill = lazy(() => import('./features/bills/pages/ViewBill'));
 const DiscountsList = lazy(() => import('./features/discounts/pages/DiscountsList'));
 const AddNewDiscount = lazy(() => import('./features/discounts/pages/AddNewDiscount'));
 
-const TeamMembersList = lazy(() => import('./features/teams/pages/TeamMembersList'));
-const AddTeamMember = lazy(() => import('./features/teams/pages/AddTeamMember'));
-const GroupsList = lazy(() => import('./features/teams/pages/GroupsList'));
-const PermissionRulesList = lazy(() => import('./features/teams/pages/PermissionRulesList'));
+const TeamMembersList = lazy(() => import('./features/teamMembers/pages/TeamMembersList'));
+const AddTeamMember = lazy(() => import('./features/teamMembers/pages/AddTeamMember'));
+const GroupsList = lazy(() => import('./features/groups/pages/GroupsList'));
+const PermissionRulesList = lazy(() => import('./features/permissionRules/pages/PermissionRulesList'));
 
 const Login = lazy(() => import('./features/auth/pages/Login'));
 

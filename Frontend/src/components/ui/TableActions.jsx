@@ -24,17 +24,17 @@ export default function TableActions({
   }
 
   return (
-    <div className="flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+    <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
       {canEdit && (
         <button
           onClick={(e) => {
             e.stopPropagation();
             onEdit && onEdit(e);
           }}
-          className="p-1.5 text-[#4DA944] bg-[#4DA944]/10 border border-[#4DA944]/30 hover:bg-[#4DA944] hover:text-white hover:border-[#4DA944] rounded-xl shadow-2xs hover:shadow-xs transition active:scale-95 duration-150 cursor-pointer"
+          className="p-1 text-slate-400 hover:text-[#1EB8D4] transition-colors duration-150 cursor-pointer focus:outline-none"
           title={editTitle}
         >
-          <Edit className="w-3.5 h-3.5" />
+          <Edit className="w-4 h-4 stroke-[2.2]" />
         </button>
       )}
 
@@ -44,10 +44,10 @@ export default function TableActions({
             e.stopPropagation();
             onDelete(e);
           }}
-          className="p-1.5 text-rose-500 bg-rose-50/80 border border-rose-200/80 hover:bg-rose-500 hover:text-white hover:border-rose-500 rounded-xl shadow-2xs hover:shadow-xs transition active:scale-95 duration-150 cursor-pointer"
+          className="p-1 text-slate-400 hover:text-rose-600 transition-colors duration-150 cursor-pointer focus:outline-none"
           title={deleteTitle}
         >
-          <Trash2 className="w-3.5 h-3.5" />
+          <Trash2 className="w-4 h-4 stroke-[2.2]" />
         </button>
       )}
 
@@ -57,9 +57,9 @@ export default function TableActions({
             e.stopPropagation();
             onMore && onMore(e);
           }}
-          className="p-1.5 text-stone-500 bg-stone-50/80 border border-stone-200/80 hover:bg-stone-600 hover:text-white rounded-xl shadow-2xs hover:shadow-xs transition active:scale-95 duration-150 cursor-pointer"
+          className="p-1 text-slate-400 hover:text-slate-900 transition-colors duration-150 cursor-pointer focus:outline-none"
         >
-          <MoreVertical className="w-3.5 h-3.5" />
+          <MoreVertical className="w-4 h-4 stroke-[2.2]" />
         </button>
       )}
     </div>

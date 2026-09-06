@@ -99,7 +99,7 @@ export default function ChargePointStatsTab({ cp }) {
     <div className="flex flex-col gap-6 w-full animate-in fade-in duration-200">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-stone-200/90 rounded-2xl p-4 shadow-2xs relative z-30">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-[#4DA944]/10 border border-[#4DA944]/20 flex items-center justify-center text-[#30702a]">
+          <div className="w-8 h-8 rounded-xl bg-[#1EB8D4]/10 border border-[#1EB8D4]/20 flex items-center justify-center text-[#148296]">
             <Activity className="w-4 h-4 stroke-[2]" />
           </div>
           <div>
@@ -110,6 +110,8 @@ export default function ChargePointStatsTab({ cp }) {
 
         <div className="w-44 relative z-40">
           <Select
+            id="stats-time-range-select"
+            name="timeRange"
             options={[
               { value: 'Today', label: 'Today' },
               { value: 'Yesterday', label: 'Yesterday' },
@@ -181,22 +183,22 @@ export default function ChargePointStatsTab({ cp }) {
           </div>
         </div>
 
-        <div className="bg-emerald-50/70 hover:bg-emerald-100/80 border border-emerald-200/80 hover:border-emerald-400/90 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:shadow-emerald-500/10 transition-all duration-200 cursor-pointer flex items-center justify-between group transform hover:-translate-y-1">
+        <div className="bg-cyan-50/70 hover:bg-cyan-100/80 border border-cyan-200/80 hover:border-cyan-400/90 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:shadow-emerald-500/10 transition-all duration-200 cursor-pointer flex items-center justify-between group transform hover:-translate-y-1">
           <div className="space-y-1">
             <div className="flex items-center gap-1.5">
-              <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">Connectivity</span>
-              <span className="px-1.5 py-0.2 text-[9px] font-extrabold bg-emerald-200/60 text-emerald-900 rounded-full">
+              <span className="text-[11px] font-bold text-cyan-800 uppercase tracking-wider block">Connectivity</span>
+              <span className="px-1.5 py-0.2 text-[9px] font-extrabold bg-cyan-200/60 text-cyan-900 rounded-full">
                 99.8% Uptime
               </span>
             </div>
-            <div className="text-base font-black text-emerald-950 flex items-center gap-2">
-              <span className="flex items-center gap-1 text-emerald-700">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> 1 Online
+            <div className="text-base font-black text-cyan-950 flex items-center gap-2">
+              <span className="flex items-center gap-1 text-cyan-700">
+                <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></span> 1 Online
               </span>
               <span className="text-emerald-300 font-medium">•</span>
-              <span className="text-emerald-700 font-bold">0 Offline</span>
+              <span className="text-cyan-700 font-bold">0 Offline</span>
             </div>
-            <span className="text-[10px] text-emerald-700 font-medium block">OCPP 1.6J Connected</span>
+            <span className="text-[10px] text-cyan-700 font-medium block">OCPP 1.6J Connected</span>
           </div>
           <div className="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/20 group-hover:scale-110 transition-transform duration-200">
             <CheckCircle2 className="w-5 h-5 stroke-[2.5]" />

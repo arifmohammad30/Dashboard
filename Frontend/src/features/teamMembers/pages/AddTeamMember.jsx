@@ -86,7 +86,7 @@ export default function AddTeamMember({ isEditMode = false, isViewMode = false }
   if (loadingData) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-stone-500">
-        <Loader2 className="w-8 h-8 animate-spin text-[#4DA944] mb-3" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#1EB8D4] mb-3" />
         <p className="text-xs font-semibold text-stone-500">Loading team member details...</p>
       </div>
     );
@@ -98,9 +98,9 @@ export default function AddTeamMember({ isEditMode = false, isViewMode = false }
       <div className="flex items-center justify-between px-1">
         <div>
           <BackButton to="/team-members" label="Back to Team Members" />
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight mt-2">
+          {/* <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight mt-2">
             {isViewMode ? 'View team member' : isEditMode ? 'Edit team member' : 'Add team member'}
-          </h1>
+          </h1> */}
         </div>
 
         <div className="flex items-center gap-3">
@@ -130,10 +130,11 @@ export default function AddTeamMember({ isEditMode = false, isViewMode = false }
         <FormCard title="Basic Details">
           {/* Team Member's Name */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-700">
+            <label htmlFor="name" className="block text-xs font-bold text-slate-700">
               Team Member's name <span className="text-rose-500">*</span>
             </label>
             <Input
+              id="name"
               disabled={isViewMode}
               placeholder="John B. Goodenough"
               {...register('name')}
@@ -143,11 +144,13 @@ export default function AddTeamMember({ isEditMode = false, isViewMode = false }
 
           {/* Email Address */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-700">
+            <label htmlFor="email" className="block text-xs font-bold text-slate-700">
               Email Address <span className="text-rose-500">*</span>
             </label>
             <Input
+              id="email"
               type="email"
+              autoComplete="email"
               disabled={isViewMode}
               placeholder="john@mycompany.com"
               {...register('email')}
@@ -160,7 +163,7 @@ export default function AddTeamMember({ isEditMode = false, isViewMode = false }
 
           {/* User Type */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-700">
+            <label htmlFor="userType" className="block text-xs font-bold text-slate-700">
               User Type <span className="text-rose-500">*</span>
             </label>
             <Controller
@@ -168,6 +171,7 @@ export default function AddTeamMember({ isEditMode = false, isViewMode = false }
               control={control}
               render={({ field }) => (
                 <Select
+                  id="userType"
                   disabled={isViewMode}
                   options={USER_TYPE_OPTIONS}
                   placeholder="Select a user type"

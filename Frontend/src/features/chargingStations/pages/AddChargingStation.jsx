@@ -284,7 +284,7 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
 
   if (loadingData) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-[#4DA944]">
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-[#1EB8D4]">
         <Loader2 className="w-10 h-10 animate-spin mb-4" />
         <p className="text-sm font-bold text-stone-600">Loading charging station details...</p>
       </div>
@@ -292,17 +292,17 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8 max-w-[1280px] mx-auto pb-12">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 max-w-[1280px] mx-auto pb-12 animate-in fade-in duration-200">
       <div className="flex items-center justify-between px-2">
         <div>
           <BackButton to="/charging-stations" label="Back to Charging Stations" />
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2.5">
           <button
             type="button"
             onClick={handleCancelClick}
-            className="px-4 py-2 text-sm bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 font-medium rounded-xl shadow-xs transition-colors duration-200 cursor-pointer"
+            className="h-9 px-4 inline-flex items-center justify-center text-xs font-semibold bg-white hover:bg-slate-50 border border-slate-200/80 text-slate-700 rounded-xl shadow-2xs transition-all duration-150 active:scale-95 cursor-pointer shrink-0"
           >
             {isViewMode ? 'Back' : 'Cancel'}
           </button>
@@ -319,22 +319,23 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        <div className="flex flex-col gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+        <div className="flex flex-col gap-5">
           <FormCard title="Basic Details">
             <div>
-              <LabelWithInfo label="Name" required info="Public Display Name of the Charging Station" />
-              <Input disabled={isViewMode} placeholder="Lonavala Wax Museum" {...register('name')} error={errors.name} />
+              <LabelWithInfo htmlFor="name" label="Name" required info="Public Display Name of the Charging Station" />
+              <Input id="name" disabled={isViewMode} placeholder="Lonavala Wax Museum" {...register('name')} error={errors.name} />
             </div>
 
             <div>
-              <LabelWithInfo label="Brand" required info="Select or specify manufacturing brand" />
-              <Input disabled={isViewMode} placeholder="Search for Brands" {...register('brand')} error={errors.brand} />
+              <LabelWithInfo htmlFor="brand" label="Brand" required info="Select or specify manufacturing brand" />
+              <Input id="brand" disabled={isViewMode} placeholder="Search for Brands" {...register('brand')} error={errors.brand} />
             </div>
 
             <div>
-              <LabelWithInfo label="Mobility Type" required info="Operational mobility classification" />
+              <LabelWithInfo htmlFor="mobilityType" label="Mobility Type" required info="Operational mobility classification" />
               <Select
+                id="mobilityType"
                 disabled={isViewMode}
                 placeholder="Select Mobility Type"
                 options={['Stationary', 'Mobile', 'Portable']}
@@ -344,13 +345,14 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
             </div>
 
             <div>
-              <LabelWithInfo label="Code" info="Unique internal site identifier code" />
-              <Input disabled={isViewMode} placeholder="ABC12345" {...register('code')} error={errors.code} />
+              <LabelWithInfo htmlFor="code" label="Code" info="Unique internal site identifier code" />
+              <Input id="code" disabled={isViewMode} placeholder="ABC12345" {...register('code')} error={errors.code} />
             </div>
 
             <div>
-              <LabelWithInfo label="Charging Station Category" info="Functional environment classification" />
+              <LabelWithInfo htmlFor="category" label="Charging Station Category" info="Functional environment classification" />
               <Select
+                id="category"
                 disabled={isViewMode}
                 placeholder="Select Category"
                 options={['Public Hub', 'Commercial', 'Residential', 'Highway Hub', 'Fleet Hub', 'Other']}
@@ -361,30 +363,31 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <LabelWithInfo label="Latitude" required info="GPS Latitude coordinate (-90 to 90)" />
-                <Input type="number" step="any" disabled={isViewMode} placeholder="18.0986544" {...register('latitude')} error={errors.latitude} />
+                <LabelWithInfo htmlFor="latitude" label="Latitude" required info="GPS Latitude coordinate (-90 to 90)" />
+                <Input id="latitude" type="number" step="any" disabled={isViewMode} placeholder="18.0986544" {...register('latitude')} error={errors.latitude} />
               </div>
               <div>
-                <LabelWithInfo label="Longitude" required info="GPS Longitude coordinate (-180 to 180)" />
-                <Input type="number" step="any" disabled={isViewMode} placeholder="72.9162627" {...register('longitude')} error={errors.longitude} />
+                <LabelWithInfo htmlFor="longitude" label="Longitude" required info="GPS Longitude coordinate (-180 to 180)" />
+                <Input id="longitude" type="number" step="any" disabled={isViewMode} placeholder="72.9162627" {...register('longitude')} error={errors.longitude} />
               </div>
             </div>
           </FormCard>
 
           <FormCard title="Power supply details">
             <div>
-              <LabelWithInfo label="Grid Connection Power Capacity (kW)" info="Maximum allowed power intake in kilowatts" />
-              <Input type="number" step="any" min="0" disabled={isViewMode} placeholder="kW (e.g. 100)" {...register('gridPowerCapacity')} error={errors.gridPowerCapacity} />
+              <LabelWithInfo htmlFor="gridPowerCapacity" label="Grid Connection Power Capacity (kW)" info="Maximum allowed power intake in kilowatts" />
+              <Input id="gridPowerCapacity" type="number" step="any" min="0" disabled={isViewMode} placeholder="kW (e.g. 100)" {...register('gridPowerCapacity')} error={errors.gridPowerCapacity} />
             </div>
 
             <div>
-              <LabelWithInfo label="Grid Connection Current Capacity (A)" info="Maximum rated current capacity in amperes" />
-              <Input type="number" step="any" min="0" disabled={isViewMode} placeholder="A (e.g. 150)" {...register('gridCurrentCapacity')} error={errors.gridCurrentCapacity} />
+              <LabelWithInfo htmlFor="gridCurrentCapacity" label="Grid Connection Current Capacity (A)" info="Maximum rated current capacity in amperes" />
+              <Input id="gridCurrentCapacity" type="number" step="any" min="0" disabled={isViewMode} placeholder="A (e.g. 150)" {...register('gridCurrentCapacity')} error={errors.gridCurrentCapacity} />
             </div>
 
             <div>
-              <LabelWithInfo label="Grid Connection Phases (1 or 3)" info="AC power phase configuration" />
+              <LabelWithInfo htmlFor="gridPhases" label="Grid Connection Phases (1 or 3)" info="AC power phase configuration" />
               <Select
+                id="gridPhases"
                 disabled={isViewMode}
                 placeholder="Select Phases"
                 options={['3-Phase', '1-Phase']}
@@ -394,19 +397,21 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
             </div>
 
             <div>
-              <LabelWithInfo label="Energy Meters" info="Linked utility grid energy meter identifiers" />
-              <Input disabled={isViewMode} placeholder="Search for energy meters" {...register('energyMeters')} error={errors.energyMeters} />
+              <LabelWithInfo htmlFor="energyMeters" label="Energy Meters" info="Linked utility grid energy meter identifiers" />
+              <Input id="energyMeters" disabled={isViewMode} placeholder="Search for energy meters" {...register('energyMeters')} error={errors.energyMeters} />
             </div>
           </FormCard>
 
           <FormCard title="Other">
             <div>
-              <LabelWithInfo label="Contact Numbers" info="On-site support or operator contact numbers" />
+              <LabelWithInfo htmlFor="contactNumber-0" label="Contact Numbers" info="On-site support or operator contact numbers" />
               <div className="flex flex-col gap-3 mt-2">
                 {fields.map((field, index) => (
                   <div key={field.id} className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
                       <Input
+                        id={`contactNumber-${index}`}
+                        autoComplete="tel"
                         disabled={isViewMode}
                         placeholder="+91 9876543210"
                         {...register(`contactNumbers.${index}.number`)}
@@ -434,9 +439,9 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
                   <button
                     type="button"
                     onClick={() => append({ number: '' })}
-                    className="self-start mt-1 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:text-[#4DA944] bg-white hover:bg-stone-50 border border-stone-200 shadow-2xs rounded-xl transition-all duration-150 cursor-pointer flex items-center gap-2 group active:scale-98"
+                    className="self-start mt-1 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:text-[#1EB8D4] bg-white hover:bg-stone-50 border border-stone-200 shadow-2xs rounded-xl transition-all duration-150 cursor-pointer flex items-center gap-2 group active:scale-98"
                   >
-                    <Plus className="w-3.5 h-3.5 text-[#4DA944] group-hover:scale-110 transition-transform" />
+                    <Plus className="w-3.5 h-3.5 text-[#1EB8D4] group-hover:scale-110 transition-transform" />
                     <span>Add New Contact Number</span>
                   </button>
                 )}
@@ -444,22 +449,23 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
             </div>
 
             <div>
-              <LabelWithInfo label="Amenities" info="Available facilities for drivers" />
-              <Input disabled={isViewMode} placeholder="Cafe, Dining, Restroom, Wi-Fi" {...register('amenities')} error={errors.amenities} />
+              <LabelWithInfo htmlFor="amenities" label="Amenities" info="Available facilities for drivers" />
+              <Input id="amenities" disabled={isViewMode} placeholder="Cafe, Dining, Restroom, Wi-Fi" {...register('amenities')} error={errors.amenities} />
             </div>
           </FormCard>
         </div>
 
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-5">
           <FormCard title="Location Info">
             <div>
-              <LabelWithInfo label="Address" required info="Complete street address of the site" />
-              <Input disabled={isViewMode} placeholder="Tamil Nadu, Chennai" {...register('address')} error={errors.address} />
+              <LabelWithInfo htmlFor="address" label="Address" required info="Complete street address of the site" />
+              <Input id="address" autoComplete="street-address" disabled={isViewMode} placeholder="Tamil Nadu, Chennai" {...register('address')} error={errors.address} />
             </div>
 
             <div>
-              <LabelWithInfo label="Country" info="Host country location" />
+              <LabelWithInfo htmlFor="country" label="Country" info="Host country location" />
               <Select
+                id="country"
                 disabled={isViewMode}
                 placeholder="Select Country"
                 options={['India', 'United States', 'Germany', 'United Kingdom', 'Other']}
@@ -469,8 +475,9 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
             </div>
 
             <div>
-              <LabelWithInfo label="State" info="Host state / province" />
+              <LabelWithInfo htmlFor="state" label="State" info="Host state / province" />
               <Select
+                id="state"
                 disabled={isViewMode}
                 placeholder="Select State"
                 options={['Tamil Nadu', 'Maharashtra', 'Karnataka', 'Telangana', 'Delhi', 'Gujarat', 'Other']}
@@ -480,13 +487,14 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
             </div>
 
             <div>
-              <LabelWithInfo label="City" info="Host municipality or city" />
-              <Input disabled={isViewMode} placeholder="Search for City" {...register('city')} error={errors.city} />
+              <LabelWithInfo htmlFor="city" label="City" info="Host municipality or city" />
+              <Input id="city" autoComplete="address-level2" disabled={isViewMode} placeholder="Search for City" {...register('city')} error={errors.city} />
             </div>
 
             <div>
-              <LabelWithInfo label="Time Zone" info="Local timezone for billing and operating hours" />
+              <LabelWithInfo htmlFor="timeZone" label="Time Zone" info="Local timezone for billing and operating hours" />
               <Select
+                id="timeZone"
                 disabled={isViewMode}
                 placeholder="Select Time Zone"
                 options={['Asia/Kolkata', 'UTC', 'America/New_York', 'Europe/London']}
@@ -496,15 +504,16 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
             </div>
 
             <div>
-              <LabelWithInfo label="Elevation" info="Site elevation above sea level in meters" />
-              <Input type="number" min="0" disabled={isViewMode} placeholder="0" {...register('elevation')} error={errors.elevation} />
+              <LabelWithInfo htmlFor="elevation" label="Elevation" info="Site elevation above sea level in meters" />
+              <Input id="elevation" type="number" min="0" disabled={isViewMode} placeholder="0" {...register('elevation')} error={errors.elevation} />
             </div>
           </FormCard>
 
           <FormCard title="Availability">
             <div>
-              <LabelWithInfo label="Stage" info="Current deployment lifecycle stage" />
+              <LabelWithInfo htmlFor="stage" label="Stage" info="Current deployment lifecycle stage" />
               <Select
+                id="stage"
                 disabled={isViewMode}
                 placeholder="Select Stage"
                 options={['Active', 'Inactive', 'Under Maintenance']}
@@ -514,14 +523,16 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
             </div>
 
             <div className="flex items-center gap-3 pt-1">
-              <label className="relative flex items-center gap-3 cursor-pointer select-none">
+              <label htmlFor="open247" className="relative flex items-center gap-3 cursor-pointer select-none">
                 <input
+                  id="open247"
+                  name="open247"
                   type="checkbox"
                   disabled={isViewMode}
                   {...register('open247')}
                   className="peer sr-only"
                 />
-                <div className="w-5 h-5 rounded-md border border-stone-300 peer-checked:bg-[#4DA944] peer-checked:border-[#4DA944] flex items-center justify-center text-white transition-all shadow-2xs">
+                <div className="w-5 h-5 rounded-md border border-stone-300 peer-checked:bg-[#1EB8D4] peer-checked:border-[#1EB8D4] flex items-center justify-center text-white transition-all shadow-2xs">
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
@@ -532,8 +543,9 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <LabelWithInfo label="Opens at" required={!open247} info="Daily station opening time" />
+                <LabelWithInfo htmlFor="opensAt" label="Opens at" required={!open247} info="Daily station opening time" />
                 <Input
+                  id="opensAt"
                   type="time"
                   disabled={isViewMode || open247}
                   {...register('opensAt')}
@@ -542,8 +554,9 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
               </div>
 
               <div>
-                <LabelWithInfo label="Closes at" required={!open247} info="Daily station closing time" />
+                <LabelWithInfo htmlFor="closesAt" label="Closes at" required={!open247} info="Daily station closing time" />
                 <Input
+                  id="closesAt"
                   type="time"
                   disabled={isViewMode || open247}
                   {...register('closesAt')}

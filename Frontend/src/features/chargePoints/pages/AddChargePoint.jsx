@@ -194,7 +194,7 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
 
   if (loadingData) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-[#4DA944]">
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-[#1EB8D4]">
         <Loader2 className="w-10 h-10 animate-spin mb-4" />
         <p className="text-sm font-bold text-stone-600">Loading charge point details...</p>
       </div>
@@ -202,7 +202,7 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8 max-w-[1200px] mx-auto pb-10">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 max-w-[1200px] mx-auto pb-10 animate-in fade-in duration-200">
       <div className="flex items-center justify-between px-2">
         <div>
           <BackButton to="/charge-points" label="Back to Charge Points" />
@@ -247,16 +247,17 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
         <FormCard title="Basic Details">
           <div>
-            <LabelWithInfo label="Name" required />
-            <Input disabled={isViewMode} placeholder="" {...register('name')} error={errors.name} />
+            <LabelWithInfo htmlFor="name" label="Name" required />
+            <Input id="name" disabled={isViewMode} placeholder="" {...register('name')} error={errors.name} />
           </div>
 
           <div>
-            <LabelWithInfo label="Charging Station" required />
+            <LabelWithInfo htmlFor="chargingStation" label="Charging Station" required />
             <Select
+              id="chargingStation"
               disabled={isViewMode}
               options={stationOptions.length > 0 ? stationOptions : ['EVRE Tech Park', 'Nexus Mall Station', 'Hebbal Hub']}
               {...register('chargingStation')}
@@ -266,40 +267,40 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
 
 
           <div>
-            <LabelWithInfo label="Manufacturer / OEM" required />
-            <Input disabled={isViewMode} placeholder="Search for OEMs" {...register('manufacturer')} error={errors.manufacturer} />
+            <LabelWithInfo htmlFor="manufacturer" label="Manufacturer / OEM" required />
+            <Input id="manufacturer" disabled={isViewMode} placeholder="Search for OEMs" {...register('manufacturer')} error={errors.manufacturer} />
           </div>
 
           <div>
-            <LabelWithInfo label="Mode" required info="Mode of operation" />
-            <Select disabled={isViewMode} options={['Public', 'Private']} {...register('mode')} error={errors.mode} />
+            <LabelWithInfo htmlFor="mode" label="Mode" required info="Mode of operation" />
+            <Select id="mode" disabled={isViewMode} options={['Public', 'Private']} {...register('mode')} error={errors.mode} />
           </div>
 
           <div>
-            <LabelWithInfo label="Code" />
-            <Input disabled={isViewMode} placeholder="ABC12345" {...register('code')} error={errors.code} />
+            <LabelWithInfo htmlFor="code" label="Code" />
+            <Input id="code" disabled={isViewMode} placeholder="ABC12345" {...register('code')} error={errors.code} />
           </div>
 
           <div>
-            <LabelWithInfo label="Accessibility" required />
-            <Select disabled={isViewMode} options={['Public', 'Restricted']} {...register('accessibility')} error={errors.accessibility} />
+            <LabelWithInfo htmlFor="accessibility" label="Accessibility" required />
+            <Select id="accessibility" disabled={isViewMode} options={['Public', 'Restricted']} {...register('accessibility')} error={errors.accessibility} />
           </div>
 
           <div>
-            <LabelWithInfo label="Stage" />
-            <Select disabled={isViewMode} options={['Active', 'Inactive']} {...register('stage')} error={errors.stage} />
+            <LabelWithInfo htmlFor="stage" label="Stage" />
+            <Select id="stage" disabled={isViewMode} options={['Active', 'Inactive']} {...register('stage')} error={errors.stage} />
           </div>
 
           <div>
-            <LabelWithInfo label="Type" required info="Select Charger Type" />
-            <Select disabled={isViewMode} options={['AC', 'DC', 'NA']} {...register('type')} error={errors.type} />
+            <LabelWithInfo htmlFor="type" label="Type" required info="Select Charger Type" />
+            <Select id="type" disabled={isViewMode} options={['AC', 'DC', 'NA']} {...register('type')} error={errors.type} />
           </div>
         </FormCard>
 
         <FormCard title="Other Details">
           <div>
-            <LabelWithInfo label="Is this charger exclusive?" required info="Mark if only for exclusive use." />
-            <Select disabled={isViewMode} options={['Exclusive', 'Shared']} {...register('exclusive')} error={errors.exclusive} />
+            <LabelWithInfo htmlFor="exclusive" label="Is this charger exclusive?" required info="Mark if only for exclusive use." />
+            <Select id="exclusive" disabled={isViewMode} options={['Exclusive', 'Shared']} {...register('exclusive')} error={errors.exclusive} />
           </div>
 
           <div>
@@ -317,14 +318,15 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
                 {chargingMethods.map((method, index) => (
                   <div key={method.id} className={`grid grid-cols-[60px_1fr_1.5fr_80px] gap-4 items-center px-2 py-2 rounded-xl transition-all duration-200 ${method.selected ? 'bg-stone-50/80 border border-stone-200/60' : 'hover:bg-stone-50/40 border border-transparent'}`}>
                     <div className="flex justify-center">
-                      <label className="relative flex items-center justify-center w-6 h-6 cursor-pointer">
+                      <label htmlFor={`method-selected-${index}`} className="relative flex items-center justify-center w-6 h-6 cursor-pointer">
                         <input
+                          id={`method-selected-${index}`}
                           type="checkbox"
                           disabled={isViewMode}
                           {...register(`chargingMethods.${index}.selected`)}
                           className="peer sr-only"
                         />
-                        <div className={`w-5 h-5 rounded-md transition-all flex items-center justify-center text-transparent peer-checked:text-[#4DA944] peer-checked:border-[#4DA944] bg-white border border-stone-300 shadow-2xs ${isViewMode ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                        <div className={`w-5 h-5 rounded-md transition-all flex items-center justify-center text-transparent peer-checked:text-[#1EB8D4] peer-checked:border-[#1EB8D4] bg-white border border-stone-300 shadow-2xs ${isViewMode ? 'opacity-50 cursor-not-allowed' : ''}`}>
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
@@ -334,9 +336,11 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
                     <div className="text-xs font-bold text-stone-800">{method.label}</div>
                     <div className="relative">
                       <input
+                        id={`method-value-${index}`}
                         type="number"
                         min="0"
                         placeholder={method.placeholder}
+                        aria-label={`${method.label} amount`}
                         {...register(`chargingMethods.${index}.value`)}
                         disabled={isViewMode || !method.selected}
                         className={`block w-full rounded-xl py-2 pr-10 pl-3 text-xs neo-form-input text-stone-800 outline-none transition-all duration-200 disabled:opacity-50 ${errors?.chargingMethods?.[index]?.value ? 'neo-form-error' : ''}`}
@@ -351,8 +355,10 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
                       )}
                     </div>
                     <div className="flex justify-center">
-                      <label className="relative flex items-center justify-center w-6 h-6 cursor-pointer">
+                      <label htmlFor={`method-default-${index}`} className="relative flex items-center justify-center w-6 h-6 cursor-pointer">
                         <input
+                          id={`method-default-${index}`}
+                          name="default_charging_method"
                           type="radio"
                           checked={method.isFirst}
                           onChange={() => handleFirstOptionChange(index)}
@@ -360,7 +366,7 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
                           className="peer sr-only"
                         />
                         <div className={`w-5 h-5 rounded-full transition-all flex items-center justify-center bg-white border border-stone-300 shadow-2xs ${(!method.selected || isViewMode) ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                          <div className={`w-2 h-2 rounded-full bg-[#4DA944] transition-all ${method.isFirst && method.selected ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}></div>
+                          <div className={`w-2 h-2 rounded-full bg-[#1EB8D4] transition-all ${method.isFirst && method.selected ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}></div>
                         </div>
                       </label>
                     </div>
@@ -372,9 +378,10 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
 
 
           <div>
-            <LabelWithInfo label="Grace Period" info="Time allowed before action" />
+            <LabelWithInfo htmlFor="gracePeriod" label="Grace Period" info="Time allowed before action" />
             <div className="relative mt-2">
               <input
+                id="gracePeriod"
                 type="number"
                 min="0"
                 placeholder="Eg: 5"
@@ -394,8 +401,9 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
           </div>
 
           <div>
-            <LabelWithInfo label="Tariff Profiles" required />
+            <LabelWithInfo htmlFor="tariffProfiles" label="Tariff Profiles" required />
             <Select
+              id="tariffProfiles"
               disabled={isViewMode}
               options={tariffOptions.length > 0 ? tariffOptions : ['Standard Rate (TAR-001)', 'Public Charging Tariff (TAR-002)', 'Green Energy Special (TAR-006)']}
               {...register('tariffProfiles')}
@@ -404,8 +412,8 @@ export default function AddNewChargePoint({ isViewMode = false, isEditMode = fal
           </div>
 
           <div>
-            <LabelWithInfo label="Settlement Profile" />
-            <Select disabled={isViewMode} options={['Profile A', 'Profile B']} {...register('settlementProfile')} error={errors.settlementProfile} />
+            <LabelWithInfo htmlFor="settlementProfile" label="Settlement Profile" />
+            <Select id="settlementProfile" disabled={isViewMode} options={['Profile A', 'Profile B']} {...register('settlementProfile')} error={errors.settlementProfile} />
           </div>
         </FormCard>
       </div>

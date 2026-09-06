@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, RefreshCw } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { useToast } from '../../../context/ToastContext';
 import { usePaymentProviders } from '../hooks/usePaymentProviders';
 import ProviderSelectionCard from '../components/ProviderSelectionCard';
@@ -7,6 +7,7 @@ import ProviderInfoCard from '../components/ProviderInfoCard';
 import GatewayConfigForm from '../components/GatewayConfigForm';
 import TestConnectionCard from '../components/TestConnectionCard';
 import ConfigurationGuideCard from '../components/ConfigurationGuideCard';
+import PrimaryButton from '../../../components/ui/PrimaryButton';
 import { PAYMENT_PROVIDERS, PAYMENT_CURRENCIES } from '../utils/paymentConstants';
 
 // Main view component for configuring tenant payment gateways
@@ -49,42 +50,34 @@ export default function PaymentProvidersView() {
   };
 
   return (
-    <div className="flex flex-col gap-4 max-w-[1500px] w-full mx-auto pb-8">
+    <div className="flex flex-col gap-3 max-w-[1500px] w-full mx-auto pb-4">
       {/* 1. Top Header Row with Title and Save Button */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-0.5">
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             Payment Integration
           </h1>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
+          <p className="text-xs text-slate-500 font-normal mt-0.5">
             Configure payment gateway settings and credentials for this tenant
           </p>
         </div>
 
-        {/* Save button */}
-        <button
+        {/* Save button using global PrimaryButton */}
+        <PrimaryButton
           onClick={handleSave}
           disabled={isSaving}
-          className="px-4 py-2 bg-[#4DA944] hover:bg-[#43953b] text-white font-bold rounded-xl text-xs shadow-2xs hover:shadow-sm transition-all cursor-pointer flex items-center gap-1.5 shrink-0 active:scale-95 disabled:opacity-60"
-        >
-          {isSaving ? (
-            <>
-              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-              <span>Saving...</span>
-            </>
-          ) : (
-            <>
-              <Check className="w-4 h-4" />
-              <span>Save Changes</span>
-            </>
-          )}
-        </button>
+          isSubmitting={isSaving}
+          loadingText="Saving..."
+          isEditMode={true}
+          editLabel="Save Changes"
+          icon={Check}
+        />
       </div>
 
-      {/* 2. Main 3-Column Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        {/* Column 1: Left (Provider Selection & Branding) */}
-        <div className="lg:col-span-3 space-y-4">
+      {/* 2. Main Swapped & Compact Single-Frame 2-Column Grid Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start">
+        {/* Left Column: Provider Selector, Info & Configuration Guide (lg:col-span-4) */}
+        <div className="lg:col-span-4 space-y-3">
           <ProviderSelectionCard
             providers={PAYMENT_PROVIDERS}
             selectedProvider={selectedProvider}
@@ -94,10 +87,24 @@ export default function PaymentProvidersView() {
           />
 
           <ProviderInfoCard provider={currentProviderObj} />
+
+          <ConfigurationGuideCard
+            environment={environment}
+            docsUrl={currentProviderObj.docsUrl}
+          />
         </div>
 
-        {/* Column 2: Center (Configuration Form) */}
-        <div className="lg:col-span-6 space-y-4">
+        {/* Right Column: Test Connection Diagnostic (ON TOP) & Gateway Config Form (BELOW) (lg:col-span-8) */}
+        <div className="lg:col-span-8 space-y-3">
+          <TestConnectionCard
+            environment={environment}
+            configured={formData.configured}
+            testingConnection={testingConnection}
+            onTestConnection={handleTestConnection}
+            connectionStatus={formData.connectionStatus}
+            lastTestedAt={formData.lastTestedAt}
+          />
+
           <GatewayConfigForm
             environment={environment}
             onEnvironmentSwitch={handleEnvironmentSwitch}
@@ -114,23 +121,6 @@ export default function PaymentProvidersView() {
             currencyOptions={PAYMENT_CURRENCIES}
             onCopyWebhookUrl={handleCopyWebhookUrl}
             copiedUrl={copiedUrl}
-          />
-        </div>
-
-        {/* Column 3: Right (Test Connection & Checklist Guide) */}
-        <div className="lg:col-span-3 space-y-4">
-          <TestConnectionCard
-            environment={environment}
-            configured={formData.configured}
-            testingConnection={testingConnection}
-            onTestConnection={handleTestConnection}
-            connectionStatus={formData.connectionStatus}
-            lastTestedAt={formData.lastTestedAt}
-          />
-
-          <ConfigurationGuideCard
-            environment={environment}
-            docsUrl={currentProviderObj.docsUrl}
           />
         </div>
       </div>

@@ -9,7 +9,9 @@ const Select = forwardRef(({
   onChange,
   onBlur,
   disabled = false,
+  id,
   name,
+  autoComplete,
   className = "",
   buttonClassName = "",
   ...rest
@@ -17,6 +19,9 @@ const Select = forwardRef(({
   const [isOpen, setIsOpen] = useState(false);
   const hiddenSelectRef = useRef(null);
   const containerRef = useRef(null);
+
+  const derivedName = name || rest.name || id;
+  const derivedId = id || rest.id || derivedName;
 
   const getRefValue = () => {
     if (controlledValue !== undefined) return controlledValue;
@@ -56,7 +61,7 @@ const Select = forwardRef(({
     }
 
     if (onChange) {
-      onChange({ target: { name, value: val } });
+      onChange({ target: { name: derivedName, value: val } });
     }
   };
 
@@ -74,12 +79,14 @@ const Select = forwardRef(({
   return (
     <div className="relative w-full" ref={containerRef}>
       <select
+        id={derivedId}
+        name={derivedName}
+        autoComplete={autoComplete || rest.autoComplete}
         ref={(e) => {
           hiddenSelectRef.current = e;
           if (typeof ref === 'function') ref(e);
           else if (ref) ref.current = e;
         }}
-        name={name}
         value={activeValue}
         onChange={(e) => {
           setSelectedValue(e.target.value);
@@ -100,8 +107,11 @@ const Select = forwardRef(({
       </select>
 
       <button
+        id={derivedId ? `${derivedId}-button` : undefined}
         type="button"
         disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
         onClick={() => !disabled && setIsOpen(!isOpen)}
         className={`w-full flex items-center justify-between ${
           buttonClassName || 'py-2.5 px-4 text-xs bg-white'
@@ -137,7 +147,7 @@ const Select = forwardRef(({
                 }`}
               >
                 <span>{lbl}</span>
-                {isSelected && <Check className="w-3.5 h-3.5 text-[#4DA944]" />}
+                {isSelected && <Check className="w-3.5 h-3.5 text-[#1EB8D4]" />}
               </div>
             );
           })}

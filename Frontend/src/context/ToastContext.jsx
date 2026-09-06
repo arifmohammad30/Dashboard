@@ -29,8 +29,8 @@ function ToastItem({ toast, onRemove }) {
   const theme = {
     success: {
       border: 'border-l-emerald-500',
-      iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-200/80',
-      progressBg: 'bg-emerald-500',
+      iconBg: 'bg-cyan-50 text-cyan-600 border-cyan-200/80',
+      progressBg: 'bg-cyan-500',
       icon: CheckCircle2
     },
     error: {

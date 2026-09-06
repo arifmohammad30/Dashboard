@@ -48,7 +48,7 @@ export default function SessionHistoryToolbar({
                 ? tab === 'All'
                   ? 'bg-white text-sky-700 border-stone-200 shadow-2xs'
                   : tab === 'Completed'
-                    ? 'bg-white text-emerald-700 border-stone-200 shadow-2xs'
+                    ? 'bg-white text-cyan-700 border-stone-200 shadow-2xs'
                     : 'bg-white text-rose-700 border-stone-200 shadow-2xs'
                 : 'bg-transparent text-stone-600 border-transparent hover:bg-stone-200/50'
             }`}
@@ -76,7 +76,7 @@ export default function SessionHistoryToolbar({
             <Filter className="w-4 h-4 text-violet-600 shrink-0" />
             <span className="leading-none">Filter</span>
             {activeFiltersCount > 0 && (
-              <span className="flex items-center justify-center w-4 h-4 bg-[#4DA944] text-white rounded-full text-[10px] ml-1 font-bold">
+              <span className="flex items-center justify-center w-4 h-4 bg-[#1EB8D4] text-slate-950 rounded-full text-[10px] ml-1 font-bold">
                 {activeFiltersCount}
               </span>
             )}

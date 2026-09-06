@@ -4,16 +4,18 @@ import { useSocketEvents } from '../../../hooks/useSocketEvents';
 import { useTableData } from '../../../hooks/useTableData';
 import { getSessionHistory } from '../api/sessionService';
 
+// Custom hook managing Session History audit log state, filters, pagination, and real-time socket events
 export function useSessionHistory() {
   const [searchParams] = useSearchParams();
   const urlSearch = searchParams.get('search') || '';
 
+  // Active status tab: 'All', 'Completed', 'Failed'
   const [activeTab, setActiveTab] = useState('All');
   const [filters, setFilters] = useState({ station: [], chargePoint: [], timeRange: [] });
 
+  // Server-side paginated table state managed by useTableData
   const {
     data: paginatedSessions,
-    setData: setPaginatedSessions,
     loading,
     searchTerm,
     setSearchTerm,
@@ -28,38 +30,30 @@ export function useSessionHistory() {
     urlSearch
   );
 
+  // Sync URL search query param if provided
   useEffect(() => {
     if (urlSearch && urlSearch !== searchTerm) {
       setSearchTerm(urlSearch);
     }
   }, [urlSearch]);
 
-  const matchSession = (s, target) => {
-    const targetId = target?.sessionId || target?.id;
-    return (s.sessionId && s.sessionId === targetId) || (s.id && s.id === targetId);
-  };
-
+  // Real-time socket events: Trigger server re-fetch so pagination, total counts, and filters stay consistent
   useSocketEvents({
+    // When a live session stops and moves into history
     "session:stopped": (stoppedSession) => {
       if (stoppedSession) {
-        if (activeTab === 'All' || stoppedSession.status === activeTab || (activeTab === 'Completed' && stoppedSession.status === 'Stopped')) {
-          setPaginatedSessions(prev => [stoppedSession, ...prev.filter(s => !matchSession(s, stoppedSession))]);
-        } else {
-          setPaginatedSessions(prev => prev.filter(s => !matchSession(s, stoppedSession)));
-        }
+        reloadData();
       }
     },
+    // When a historical session is updated (e.g. billing generated, status finalized)
     "session:updated": (updatedSession) => {
-      if (updatedSession && updatedSession.status && updatedSession.status !== 'Ongoing') {
-        if (activeTab === 'All' || updatedSession.status === activeTab || (activeTab === 'Completed' && updatedSession.status === 'Stopped')) {
-          setPaginatedSessions(prev => [updatedSession, ...prev.filter(s => !matchSession(s, updatedSession))]);
-        } else {
-          setPaginatedSessions(prev => prev.filter(s => !matchSession(s, updatedSession)));
-        }
+      if (updatedSession?.status && updatedSession.status !== 'Ongoing') {
+        reloadData();
       }
     }
   });
 
+  // Handle category filter toggling (multi-select)
   const handleFilterChange = (category, value) => {
     setFilters(prev => {
       const currentList = prev[category] || [];
@@ -71,11 +65,13 @@ export function useSessionHistory() {
     setCurrentPage(1);
   };
 
+  // Clear all multi-select filters
   const clearFilters = () => {
     setFilters({ station: [], chargePoint: [], timeRange: [] });
     setCurrentPage(1);
   };
 
+  // Count active filter selections
   const activeFiltersCount = Object.values(filters).reduce((acc, arr) => acc + (arr ? arr.length : 0), 0);
 
   return {
@@ -86,7 +82,6 @@ export function useSessionHistory() {
     loading,
     totalItems,
     totalPages,
-    filteredSessions: paginatedSessions,
     paginatedSessions,
     filters,
     setFilters,

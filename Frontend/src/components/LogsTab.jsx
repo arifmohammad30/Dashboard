@@ -42,7 +42,7 @@ const JsonSyntaxHighlighter = ({ json }) => {
       let renderedValue = valuePart;
       if (valuePart) {
         if (/^"[^"]*",?$/.test(valuePart)) {
-          renderedValue = <span className="text-emerald-400 font-medium">{valuePart}</span>;
+          renderedValue = <span className="text-cyan-400 font-medium">{valuePart}</span>;
         } else if (/^-?\d+(\.\d+)?,?$/.test(valuePart)) {
           renderedValue = <span className="text-amber-300 font-mono font-semibold">{valuePart}</span>;
         } else if (/^(true|false),?$/.test(valuePart)) {
@@ -155,14 +155,14 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
     const isIp = direction === 'INBOUND' || !direction;
     let colorStyle = 'bg-stone-100 text-stone-700 border-stone-200';
     if (command.includes('MeterValues')) colorStyle = 'bg-purple-50 text-purple-700 border-purple-200/80';
-    if (command.includes('StatusNotification')) colorStyle = 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
+    if (command.includes('StatusNotification')) colorStyle = 'bg-cyan-50 text-cyan-700 border-cyan-200/80';
     if (command.includes('BootNotification')) colorStyle = 'bg-amber-50 text-amber-700 border-amber-200/80';
     if (command.includes('StartTransaction') || command.includes('StopTransaction')) colorStyle = 'bg-sky-50 text-sky-700 border-sky-200/80';
 
     return (
       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-extrabold border ${colorStyle}`}>
         {isIp ? (
-          <ArrowDownRight className="w-3.5 h-3.5 text-emerald-600 shrink-0" title="Inbound from CP" />
+          <ArrowDownRight className="w-3.5 h-3.5 text-cyan-600 shrink-0" title="Inbound from CP" />
         ) : (
           <ArrowUpRight className="w-3.5 h-3.5 text-sky-600 shrink-0" title="Outbound from CSMS" />
         )}
@@ -175,7 +175,7 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
     <div className="bg-white border border-stone-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col w-full min-h-[220px] animate-in fade-in duration-200 relative">
       <div className="px-5 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white border-b border-stone-200/80">
         <div className="flex items-center gap-2 text-xs">
-          <div className={`w-2 h-2 rounded-full ${isOngoing ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></div>
+          <div className={`w-2 h-2 rounded-full ${isOngoing ? 'bg-cyan-500 animate-pulse' : 'bg-slate-400'}`}></div>
           <span className="font-bold text-stone-900 tracking-tight">Telemetry Logs</span>
           <span className="bg-stone-100 text-stone-700 border border-stone-200 px-2 py-0.5 rounded-md font-mono text-[11px] font-bold ml-1">
             {total} {total === 1 ? 'message' : 'messages'}
@@ -186,7 +186,11 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
           <div className="relative flex-1 sm:flex-initial">
             <Search className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
+              id="logs-search-input"
+              name="search"
               type="text"
+              autoComplete="off"
+              aria-label="Search command, message ID, ID tag"
               placeholder="Search command, message ID, ID tag..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -203,10 +207,10 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
           </div>
 
           {isOngoing && (
-            <div className="px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-2xs">
+            <div className="px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-2 bg-cyan-50 text-cyan-700 border border-cyan-300 shadow-2xs">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
               </span>
               <span>Live Socket Stream</span>
             </div>
@@ -220,7 +224,7 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
               <Filter className="w-3.5 h-3.5 text-violet-500" />
               <span>Filter</span>
               {activeFiltersCount > 0 && (
-                <span className="flex items-center justify-center w-4 h-4 bg-[#4DA944] text-white rounded-full text-[10px] font-bold">
+                <span className="flex items-center justify-center w-4 h-4 bg-[#1EB8D4] text-slate-950 rounded-full text-[10px] font-bold">
                   {activeFiltersCount}
                 </span>
               )}
@@ -456,8 +460,8 @@ export default function LogsTab({ sessionData, cp, chargePointCode, refreshKey }
                 >
                   {copiedId === 'inspector_copy' ? (
                     <>
-                      <Check className="w-3.5 h-3.5 text-emerald-600" />
-                      <span className="text-emerald-700">Copied</span>
+                      <Check className="w-3.5 h-3.5 text-cyan-600" />
+                      <span className="text-cyan-700">Copied</span>
                     </>
                   ) : (
                     <>

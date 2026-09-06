@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Clock, Info } from 'lucide-react';
 import { generateTimelineSegments } from '../utils/timeUtils';
+import TariffSectionCard from './TariffSectionCard';
 
 export default function DailyPreviewTimeline({ peakPeriods = [], offPeakPeriods = [] }) {
   const timelineData = useMemo(() => {
@@ -8,20 +9,13 @@ export default function DailyPreviewTimeline({ peakPeriods = [], offPeakPeriods 
   }, [peakPeriods, offPeakPeriods]);
 
   return (
-    <div className="bg-white border border-indigo-200/90 rounded-2xl overflow-hidden shadow-2xs">
-      <div className="bg-indigo-50/70 border-b border-indigo-200/80 px-6 py-4 flex items-center justify-between">
-        <div>
-          <h2 className="text-base font-extrabold text-indigo-950 tracking-tight flex items-center gap-2">
-            <Clock className="w-4 h-4 text-indigo-600 stroke-[2.5]" /> Daily Pricing Preview
-          </h2>
-          <p className="text-xs text-indigo-700/90 font-medium mt-0.5">Normal pricing fills the gaps between Peak and Off-Peak periods.</p>
-        </div>
-        <span className="px-3 py-1 rounded-full text-[11px] font-extrabold bg-indigo-100 text-indigo-800 border border-indigo-300/80">
-          24-HOUR TIMELINE
-        </span>
-      </div>
-
-      <div className="p-6 space-y-6">
+    <TariffSectionCard
+      title="Daily Pricing Preview"
+      subtitle="Normal pricing fills the gaps between Peak and Off-Peak periods."
+      icon={Clock}
+      badgeText="24-HOUR TIMELINE"
+      colorTheme="indigo"
+    >
         <div className="p-5 border border-stone-200/90 rounded-2xl bg-stone-50/60 space-y-4">
           <div className="flex items-center justify-between text-xs font-bold text-stone-800">
             <span className="font-extrabold text-stone-900">Monday – Friday</span>
@@ -45,7 +39,7 @@ export default function DailyPreviewTimeline({ peakPeriods = [], offPeakPeriods 
             {/* Segmented Timeline Bar */}
             <div className="h-11 border border-stone-300/80 rounded-xl overflow-hidden flex shadow-2xs">
               {timelineData.segments.map((seg, idx) => {
-                let bgClass = "bg-emerald-200/90 text-emerald-950 border-emerald-300/80";
+                let bgClass = "bg-cyan-200/90 text-cyan-950 border-cyan-300/80";
                 if (seg.type === 'Peak') bgClass = "bg-rose-200/90 text-rose-950 border-rose-300/80";
                 if (seg.type === 'Off-Peak') bgClass = "bg-sky-200/90 text-sky-950 border-sky-300/80";
 
@@ -64,7 +58,7 @@ export default function DailyPreviewTimeline({ peakPeriods = [], offPeakPeriods 
 
           <div className="flex items-center gap-6 text-xs font-bold text-stone-700 pt-1">
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-md bg-emerald-200 border border-emerald-400"></span> Normal
+              <span className="w-3 h-3 rounded-md bg-cyan-200 border border-cyan-400"></span> Normal
             </div>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-md bg-rose-200 border border-rose-400"></span> Peak
@@ -79,7 +73,6 @@ export default function DailyPreviewTimeline({ peakPeriods = [], offPeakPeriods 
           <Info className="w-4 h-4 text-indigo-600 shrink-0" />
           <span><strong>Pricing priority:</strong> Peak / Off-Peak period &rarr; Normal pricing fallback. If the current time matches a Peak or Off-Peak period, that period's rate applies; otherwise Normal pricing applies.</span>
         </div>
-      </div>
-    </div>
+    </TariffSectionCard>
   );
 }

@@ -4,7 +4,7 @@ import { to12Hour, to24Hour } from '../utils/timeUtils';
 const HOURS = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
 const MINUTES = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
 
-export default function TimePicker12h({ value, onChange, disabled }) {
+export default function TimePicker12h({ value, onChange, disabled, id, name }) {
   const val12 = to12Hour(value || '00:00');
   const match = val12.match(/^(\d{2}):(\d{2})\s*(AM|PM)$/);
   const hh = match ? match[1] : '12';
@@ -17,9 +17,16 @@ export default function TimePicker12h({ value, onChange, disabled }) {
     onChange(time24Str);
   };
 
+  const hourId = id ? `${id}-hour` : (name ? `${name}-hour` : 'time-hour');
+  const minuteId = id ? `${id}-minute` : (name ? `${name}-minute` : 'time-minute');
+
   return (
     <div className="flex items-center gap-1.5 bg-stone-50 border border-stone-200 rounded-xl px-2 py-1.5 shadow-2xs focus-within:border-slate-800 transition-colors">
       <select
+        id={hourId}
+        name={name ? `${name}_hour` : 'hour'}
+        autoComplete="off"
+        aria-label="Hour"
         disabled={disabled}
         value={hh}
         onChange={(e) => updateTime(e.target.value, mm, period)}
@@ -29,6 +36,10 @@ export default function TimePicker12h({ value, onChange, disabled }) {
       </select>
       <span className="text-stone-400 font-bold text-xs">:</span>
       <select
+        id={minuteId}
+        name={name ? `${name}_minute` : 'minute'}
+        autoComplete="off"
+        aria-label="Minute"
         disabled={disabled}
         value={mm}
         onChange={(e) => updateTime(hh, e.target.value, period)}

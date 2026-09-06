@@ -33,8 +33,8 @@ export const CONNECTOR_TYPE_OPTIONS = ['Type2', 'CCS2', 'GB/T', 'CHAdeMO', '15A 
 export const POWER_TYPE_OPTIONS = ['AC_1_PHASE', 'AC_2_PHASE', 'AC_2_PHASE_SPLIT', 'AC_3_PHASE', 'DC', 'AC', 'DC_1_PHASE'];
 export const CONNECTOR_FORMAT_OPTIONS = ['SOCKET', 'CABLE'];
 
-const LabelWithInfo = ({ label, required }) => (
-  <label className="text-xs font-bold text-stone-700 mb-1.5 block">
+const LabelWithInfo = ({ label, required, htmlFor }) => (
+  <label htmlFor={htmlFor} className="text-xs font-bold text-stone-700 mb-1.5 block cursor-pointer">
     {label} {required && <span className="text-rose-500">*</span>}
   </label>
 );
@@ -136,8 +136,9 @@ export default function ConnectorForm({
         {/* Card 1: Basic Details */}
         <FormCard title="Basic Details">
           <div>
-            <LabelWithInfo label="Charge Point" required />
+            <LabelWithInfo htmlFor="chargePointCode" label="Charge Point" required />
             <Input
+              id="chargePointCode"
               disabled
               placeholder="Charge Point Code"
               {...register('chargePointCode')}
@@ -146,9 +147,10 @@ export default function ConnectorForm({
           </div>
 
           <div>
-            <LabelWithInfo label="Connector Type" required />
+            <LabelWithInfo htmlFor="type" label="Connector Type" required />
             {isEditMode ? (
               <Input
+                id="type"
                 disabled
                 placeholder="Connector Type"
                 {...register('type')}
@@ -156,6 +158,7 @@ export default function ConnectorForm({
               />
             ) : (
               <Select
+                id="type"
                 options={CONNECTOR_TYPE_OPTIONS}
                 value={selectedType}
                 onChange={(e) => setValue('type', e.target.value)}
@@ -166,8 +169,9 @@ export default function ConnectorForm({
           </div>
 
           <div>
-            <LabelWithInfo label="Connector Id" required />
+            <LabelWithInfo htmlFor="connectorId" label="Connector Id" required />
             <Input
+              id="connectorId"
               type="text"
               placeholder="1"
               onInput={sanitizeIntegerOnly}
@@ -177,8 +181,9 @@ export default function ConnectorForm({
           </div>
 
           <div>
-            <LabelWithInfo label="Power Rating" />
+            <LabelWithInfo htmlFor="powerRating" label="Power Rating" />
             <Input
+              id="powerRating"
               type="text"
               placeholder="20"
               suffix="kW"
@@ -192,8 +197,9 @@ export default function ConnectorForm({
         {/* Card 2: OCPI Required Details */}
         <FormCard title="OCPI Required Details">
           <div>
-            <LabelWithInfo label="Maximum Output Current" />
+            <LabelWithInfo htmlFor="maxCurrent" label="Maximum Output Current" />
             <Input
+              id="maxCurrent"
               type="text"
               placeholder="20"
               suffix="A"
@@ -204,8 +210,9 @@ export default function ConnectorForm({
           </div>
 
           <div>
-            <LabelWithInfo label="Maximum Output Voltage" />
+            <LabelWithInfo htmlFor="maxVoltage" label="Maximum Output Voltage" />
             <Input
+              id="maxVoltage"
               type="text"
               placeholder="20"
               suffix="V"
@@ -216,8 +223,9 @@ export default function ConnectorForm({
           </div>
 
           <div>
-            <LabelWithInfo label="Output Power Type" />
+            <LabelWithInfo htmlFor="powerType" label="Output Power Type" />
             <Select
+              id="powerType"
               options={POWER_TYPE_OPTIONS}
               value={selectedPowerType}
               onChange={(e) => setValue('powerType', e.target.value)}
@@ -227,8 +235,9 @@ export default function ConnectorForm({
           </div>
 
           <div>
-            <LabelWithInfo label="Connector Format" />
+            <LabelWithInfo htmlFor="connectorFormat" label="Connector Format" />
             <Select
+              id="connectorFormat"
               options={CONNECTOR_FORMAT_OPTIONS}
               value={selectedFormat}
               onChange={(e) => setValue('connectorFormat', e.target.value)}

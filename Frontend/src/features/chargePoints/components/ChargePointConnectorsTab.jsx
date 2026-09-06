@@ -127,7 +127,7 @@ export default function ChargePointConnectorsTab({
               <td colSpan="8" className="px-4 py-12 text-center">
                 <div className="flex flex-col items-center justify-center gap-3">
                   <div className="w-12 h-12 rounded-2xl bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-400 mb-1">
-                    <PlugZap className="w-6 h-6 text-[#4DA944]" />
+                    <PlugZap className="w-6 h-6 text-[#1EB8D4]" />
                   </div>
                   <div>
                     <p className="text-sm font-bold text-stone-700">No connectors found for this charge point.</p>
@@ -178,7 +178,7 @@ export default function ChargePointConnectorsTab({
                               state: { conn, cpData: cp }
                             });
                           }}
-                          className="p-1.5 text-stone-600 hover:text-[#4DA944] rounded-lg hover:bg-white/80 transition cursor-pointer"
+                          className="p-1.5 text-stone-600 hover:text-[#1EB8D4] rounded-lg hover:bg-white/80 transition cursor-pointer"
                           title="Edit Connector"
                         >
                           <Edit strokeWidth={2.5} className="w-3.5 h-3.5" />
@@ -209,21 +209,21 @@ export default function ChargePointConnectorsTab({
                     <td className="px-4 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium border shadow-2xs ${conn.availability === 'Inoperative'
                         ? 'bg-red-50/90 text-red-700 border-red-200/60'
-                        : 'bg-emerald-50/90 text-emerald-800 border-emerald-200/60'
+                        : 'bg-cyan-50/90 text-cyan-800 border-cyan-200/60'
                         }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${conn.availability === 'Inoperative' ? 'bg-red-500' : 'bg-emerald-500'
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${conn.availability === 'Inoperative' ? 'bg-red-500' : 'bg-cyan-500'
                           }`} />
                         {conn.availability}
                       </span>
                     </td>
 
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium border shadow-2xs ${conn.status === 'Available' ? 'bg-emerald-50/90 text-emerald-800 border-emerald-200/60' :
+                      <span className={`inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium border shadow-2xs ${conn.status === 'Available' ? 'bg-cyan-50/90 text-cyan-800 border-cyan-200/60' :
                         conn.status === 'Charging' ? 'bg-blue-50/90 text-blue-700 border-blue-200/60' :
                           conn.status === 'Preparing' ? 'bg-amber-50/90 text-amber-800 border-amber-200/60' :
                             'bg-red-50/90 text-red-700 border-red-200/60'
                         }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${conn.status === 'Available' ? 'bg-emerald-500' :
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${conn.status === 'Available' ? 'bg-cyan-500' :
                           conn.status === 'Charging' ? 'bg-blue-500 animate-pulse' :
                             conn.status === 'Preparing' ? 'bg-amber-500' :
                               'bg-red-500'
@@ -278,10 +278,10 @@ export default function ChargePointConnectorsTab({
                                 }}
                                 className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 active:scale-95 border ${conn.availability === 'Inoperative'
                                   ? 'bg-stone-50 text-stone-400 border-stone-200 cursor-not-allowed'
-                                  : 'bg-emerald-50/90 hover:bg-emerald-100/90 text-emerald-800 border-emerald-200/80 hover:border-emerald-300 shadow-2xs hover:shadow-xs'
+                                  : 'bg-cyan-50/90 hover:bg-cyan-100/90 text-cyan-800 border-cyan-200/80 hover:border-cyan-300 shadow-2xs hover:shadow-xs'
                                   }`}
                               >
-                                <Play fill="currentColor" className="w-3.5 h-3.5 text-emerald-600" />
+                                <Play fill="currentColor" className="w-3.5 h-3.5 text-cyan-600" />
                                 <span>{startingId === conn.id ? 'Starting...' : 'Start Charging'}</span>
                               </button>
                             )}
@@ -301,7 +301,7 @@ export default function ChargePointConnectorsTab({
                                 }
                               }}
                               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 active:scale-95 border ${(conn.availability === 'Inoperative' || conn.status === 'Faulted')
-                                ? 'bg-emerald-50/90 text-emerald-800 border-emerald-200/80 hover:bg-emerald-100/90'
+                                ? 'bg-cyan-50/90 text-cyan-800 border-cyan-200/80 hover:bg-cyan-100/90'
                                 : 'bg-rose-50/90 text-rose-800 border-rose-200/80 hover:bg-rose-100/90'
                                 }`}
                             >
@@ -348,7 +348,7 @@ export default function ChargePointConnectorsTab({
           <div className="bg-white border border-stone-200 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100 bg-stone-50/60">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-[#4DA944]/10 border border-[#4DA944]/20 flex items-center justify-center text-[#30702a]">
+                <div className="w-8 h-8 rounded-xl bg-[#1EB8D4]/10 border border-[#1EB8D4]/20 flex items-center justify-center text-[#148296]">
                   <Plus className="w-4 h-4 stroke-[2.5]" />
                 </div>
                 <div>

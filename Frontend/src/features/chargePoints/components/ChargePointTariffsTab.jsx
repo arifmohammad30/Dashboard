@@ -68,7 +68,7 @@ export default function ChargePointTariffsTab({ cp, onUpdate }) {
 
         <div className="flex items-center justify-between pt-1">
           <span className="text-[11px] font-medium text-stone-500 flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+            <ShieldCheck className="w-3.5 h-3.5 text-cyan-500 shrink-0" />
             Active billing tariff profile bound to this charge point.
           </span>
 

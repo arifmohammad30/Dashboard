@@ -104,8 +104,8 @@ export default function ViewBill() {
               
               {/* Bill Status Badge */}
               {isPaid ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Paid
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-200/80">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-500"></span> Paid
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50/90 text-amber-700 border border-amber-200/90 shadow-2xs">
@@ -138,7 +138,7 @@ export default function ViewBill() {
               <span>Customer / Driver</span>
             </div>
             <div className="flex items-center gap-3 bg-white/80 p-2 border border-indigo-200/50 rounded-xl shadow-2xs w-fit">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#4DA944]/20 to-[#4DA944]/10 border border-[#4DA944]/30 text-[#30702a] font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#1EB8D4]/20 to-[#1EB8D4]/10 border border-[#1EB8D4]/30 text-[#148296] font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                 {driverInitial}
               </div>
               <div>
@@ -177,9 +177,9 @@ export default function ViewBill() {
           </div>
 
           {/* Card 3: Charge Point -> Emerald theme */}
-          <div className="group bg-gradient-to-b from-emerald-50/40 to-slate-50/40 hover:from-white hover:to-white border border-emerald-100/80 hover:border-emerald-300 shadow-2xs hover:shadow-md transition-all duration-200 p-4.5 rounded-2xl flex flex-col gap-3">
-            <div className="flex items-center gap-2 border-b border-emerald-100/70 pb-2.5 text-emerald-950 text-[11px] font-bold uppercase tracking-wider">
-              <div className="w-6 h-6 rounded-lg bg-emerald-100 group-hover:bg-emerald-600 text-emerald-600 group-hover:text-white flex items-center justify-center shrink-0 transition-all duration-200">
+          <div className="group bg-gradient-to-b from-emerald-50/40 to-slate-50/40 hover:from-white hover:to-white border border-emerald-100/80 hover:border-cyan-300 shadow-2xs hover:shadow-md transition-all duration-200 p-4.5 rounded-2xl flex flex-col gap-3">
+            <div className="flex items-center gap-2 border-b border-emerald-100/70 pb-2.5 text-cyan-950 text-[11px] font-bold uppercase tracking-wider">
+              <div className="w-6 h-6 rounded-lg bg-cyan-100 group-hover:bg-emerald-600 text-cyan-600 group-hover:text-white flex items-center justify-center shrink-0 transition-all duration-200">
                 <Plug className="w-3.5 h-3.5" />
               </div>
               <span>Charge Point</span>
@@ -187,7 +187,7 @@ export default function ViewBill() {
             <button
               type="button"
               onClick={() => navigate(`/charge-points/${encodeURIComponent(cpId)}`)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50/80 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 rounded-xl font-bold text-xs shadow-2xs hover:scale-[1.02] transition-all cursor-pointer w-fit"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-50/80 hover:bg-cyan-100 text-cyan-700 border border-cyan-200/80 rounded-xl font-bold text-xs shadow-2xs hover:scale-[1.02] transition-all cursor-pointer w-fit"
             >
               <span>{cpName}</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -224,8 +224,8 @@ export default function ViewBill() {
 
               {/* Status Badge placed on the right side of the card heading */}
               {isCompleted ? (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> {b.chargeTransactionStatus}
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-200/80">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-500"></span> {b.chargeTransactionStatus}
                 </span>
               ) : isOngoing ? (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200/80">
@@ -296,7 +296,7 @@ export default function ViewBill() {
         {/* Action Buttons Row */}
         <div className="pt-4 border-t border-stone-100 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-xs text-stone-500 font-medium">
-            <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+            <ShieldCheck className="w-4 h-4 text-cyan-500 shrink-0" />
             <span>Billing records and documents are finalized and verified.</span>
           </div>
 

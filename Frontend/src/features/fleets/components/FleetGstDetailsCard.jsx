@@ -11,8 +11,9 @@ export default function FleetGstDetailsCard({
   return (
     <FormCard title="GST Details">
       <div>
-        <LabelWithInfo label="GSTIN" info="Goods and Services Tax Identification Number" />
+        <LabelWithInfo htmlFor="gstin" label="GSTIN" info="Goods and Services Tax Identification Number" />
         <Input
+          id="gstin"
           disabled={isViewMode}
           placeholder="e.g. 27AAAAA0000A1Z5"
           {...register('gstin')}
@@ -21,8 +22,10 @@ export default function FleetGstDetailsCard({
       </div>
 
       <div>
-        <LabelWithInfo label="Company Name" info="Registered legal entity name" />
+        <LabelWithInfo htmlFor="companyName" label="Company Name" info="Registered legal entity name" />
         <Input
+          id="companyName"
+          autoComplete="organization"
           disabled={isViewMode}
           placeholder="e.g. EVRE Private Limited"
           {...register('companyName')}
@@ -31,9 +34,11 @@ export default function FleetGstDetailsCard({
       </div>
 
       <div>
-        <LabelWithInfo label="Company Email" info="Billing or finance team contact email" />
+        <LabelWithInfo htmlFor="companyEmail" label="Company Email" info="Billing or finance team contact email" />
         <Input
+          id="companyEmail"
           type="email"
+          autoComplete="email"
           disabled={isViewMode}
           placeholder="e.g. accounts@evre.in"
           {...register('companyEmail')}
@@ -42,8 +47,10 @@ export default function FleetGstDetailsCard({
       </div>
 
       <div>
-        <LabelWithInfo label="Company Phone Number" info="Official contact telephone or mobile" />
+        <LabelWithInfo htmlFor="companyPhone" label="Company Phone Number" info="Official contact telephone or mobile" />
         <Input
+          id="companyPhone"
+          autoComplete="tel"
           prefix="+91"
           disabled={isViewMode}
           placeholder="9876543210"

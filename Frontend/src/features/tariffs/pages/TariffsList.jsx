@@ -221,7 +221,7 @@ export default function TariffsList() {
               <Filter className="w-4 h-4 text-violet-600 shrink-0" />
               <span className="leading-none">Filter</span>
               {activeFiltersCount > 0 && (
-                <span className="flex items-center justify-center w-4 h-4 bg-[#4DA944] text-white rounded-full text-[10px] ml-1 font-bold">
+                <span className="flex items-center justify-center w-4 h-4 bg-[#1EB8D4] text-slate-950 rounded-full text-[10px] ml-1 font-bold">
                   {activeFiltersCount}
                 </span>
               )}
@@ -321,7 +321,7 @@ export default function TariffsList() {
                 <tr>
                   <td colSpan="8" className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <Loader2 className="w-8 h-8 text-[#4DA944] animate-spin" />
+                      <Loader2 className="w-8 h-8 text-[#1EB8D4] animate-spin" />
                       <p className="text-sm font-bold text-stone-500">Loading tariffs...</p>
                     </div>
                   </td>
@@ -330,7 +330,7 @@ export default function TariffsList() {
                 <tr>
                   <td colSpan="8" className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <div className="w-12 h-12 rounded-2xl bg-white/40 border border-stone-200/60 flex items-center justify-center text-[#4DA944] mb-1">
+                      <div className="w-12 h-12 rounded-2xl bg-white/40 border border-stone-200/60 flex items-center justify-center text-[#1EB8D4] mb-1">
                         <Search className="w-6 h-6" />
                       </div>
                       <p className="text-sm font-bold text-stone-500">No tariffs found.</p>
@@ -392,7 +392,7 @@ export default function TariffsList() {
                         setViewModalOpen(true);
                       }}>
                         <div className="flex flex-col">
-                          <span className="text-slate-900 font-semibold text-[13px] hover:text-[#30702a] transition-colors duration-150 cursor-pointer">
+                          <span className="text-slate-900 font-semibold text-[13px] hover:text-[#148296] transition-colors duration-150 cursor-pointer">
                             {t.name}
                           </span>
                           <span className="text-[10px] font-mono font-medium text-stone-400">
@@ -412,10 +412,10 @@ export default function TariffsList() {
                       <td className="px-4 py-3 text-left whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
                           isActive
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
+                            ? 'bg-cyan-50 text-cyan-700 border-cyan-200/80'
                             : 'bg-stone-100 text-stone-600 border-stone-200/80'
                         }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${isActive ? 'bg-emerald-500' : 'bg-stone-400'}`} />
+                          <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${isActive ? 'bg-cyan-500' : 'bg-stone-400'}`} />
                           {status}
                         </span>
                       </td>
@@ -480,10 +480,13 @@ export default function TariffsList() {
 
             <form onSubmit={handleCreateTariff} className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-stone-700 block mb-1">Tariff Name *</label>
+                <label htmlFor="tariff-modal-name" className="text-xs font-bold text-stone-700 block mb-1">Tariff Name *</label>
                 <input
+                  id="tariff-modal-name"
+                  name="name"
                   type="text"
                   required
+                  autoComplete="off"
                   placeholder="e.g. DLF Park Place DC"
                   value={newTariff.name}
                   onChange={(e) => setNewTariff({ ...newTariff, name: e.target.value })}
@@ -493,8 +496,11 @@ export default function TariffsList() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-bold text-stone-700 block mb-1">Type</label>
+                  <label htmlFor="tariff-modal-type" className="text-xs font-bold text-stone-700 block mb-1">Type</label>
                   <select
+                    id="tariff-modal-type"
+                    name="type"
+                    autoComplete="off"
                     value={newTariff.type}
                     onChange={(e) => setNewTariff({ ...newTariff, type: e.target.value })}
                     className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:border-sky-500"
@@ -505,11 +511,14 @@ export default function TariffsList() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-stone-700 block mb-1">Charging Fee (₹ / kWh)</label>
+                  <label htmlFor="tariff-modal-chargingFee" className="text-xs font-bold text-stone-700 block mb-1">Charging Fee (₹ / kWh)</label>
                   <input
+                    id="tariff-modal-chargingFee"
+                    name="chargingFee"
                     type="number"
                     step="0.01"
                     required
+                    autoComplete="off"
                     value={newTariff.chargingFee}
                     onChange={(e) => setNewTariff({ ...newTariff, chargingFee: e.target.value })}
                     className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:border-sky-500"
@@ -519,8 +528,11 @@ export default function TariffsList() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-bold text-stone-700 block mb-1">GST Percentage</label>
+                  <label htmlFor="tariff-modal-gstPercentage" className="text-xs font-bold text-stone-700 block mb-1">GST Percentage</label>
                   <select
+                    id="tariff-modal-gstPercentage"
+                    name="gstPercentage"
+                    autoComplete="off"
                     value={newTariff.gstPercentage}
                     onChange={(e) => setNewTariff({ ...newTariff, gstPercentage: e.target.value })}
                     className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:border-sky-500"
@@ -533,9 +545,12 @@ export default function TariffsList() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-stone-700 block mb-1">Weight</label>
+                  <label htmlFor="tariff-modal-weight" className="text-xs font-bold text-stone-700 block mb-1">Weight</label>
                   <input
+                    id="tariff-modal-weight"
+                    name="weight"
                     type="number"
+                    autoComplete="off"
                     value={newTariff.weight}
                     onChange={(e) => setNewTariff({ ...newTariff, weight: e.target.value })}
                     className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:border-sky-500"
@@ -596,7 +611,7 @@ export default function TariffsList() {
 
               <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
                 <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Status</span>
-                <span className="text-xs font-black text-emerald-600">{tariffToView.status || 'Active'}</span>
+                <span className="text-xs font-black text-cyan-600">{tariffToView.status || 'Active'}</span>
               </div>
 
               <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">

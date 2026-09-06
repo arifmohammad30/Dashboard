@@ -1,7 +1,31 @@
 import React, { forwardRef, useState, useRef, useEffect } from 'react';
 
-const Input = forwardRef(({ placeholder, icon, suffix, type = "text", error, className = "", onChange, onInput, onKeyUp, value, defaultValue, ...rest }, ref) => {
+const Input = forwardRef(({ placeholder, icon, suffix, type = "text", error, className = "", onChange, onInput, onKeyUp, value, defaultValue, id, name, autoComplete, ...rest }, ref) => {
   const inputRef = useRef(null);
+
+  const derivedName = name || rest.name || id;
+  const derivedId = id || rest.id || derivedName;
+
+  const getAutoComplete = () => {
+    if (autoComplete !== undefined) return autoComplete;
+    if (rest.autoComplete !== undefined) return rest.autoComplete;
+    if (type === 'email') return 'email';
+    if (type === 'tel') return 'tel';
+    if (type === 'password') return 'current-password';
+    if (derivedName && typeof derivedName === 'string') {
+      const lower = derivedName.toLowerCase();
+      if (lower.includes('email')) return 'email';
+      if (lower.includes('phone') || lower.includes('mobile')) return 'tel';
+      if (lower.includes('name') && !lower.includes('station') && !lower.includes('point') && !lower.includes('fleet') && !lower.includes('tariff') && !lower.includes('group') && !lower.includes('discount')) return 'name';
+      if (lower.includes('address') || lower.includes('street')) return 'street-address';
+      if (lower.includes('zip') || lower.includes('postal')) return 'postal-code';
+      if (lower.includes('city')) return 'address-level2';
+      if (lower.includes('country')) return 'country';
+    }
+    return undefined;
+  };
+
+  const derivedAutoComplete = getAutoComplete();
 
   const getIsFilled = (e) => {
     const el = e ? e.target : inputRef.current;
@@ -54,6 +78,9 @@ const Input = forwardRef(({ placeholder, icon, suffix, type = "text", error, cla
         </div>
       )}
       <input
+        id={derivedId}
+        name={derivedName}
+        autoComplete={derivedAutoComplete}
         type={type}
         ref={(el) => {
           inputRef.current = el;

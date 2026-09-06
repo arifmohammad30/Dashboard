@@ -9,19 +9,19 @@ export default function SocPricingTable({
   onUpdate,
   onRemove,
   isViewMode = false,
-  themeColor = "emerald"
+  themeColor = "cyan"
 }) {
   const badgeColorClass = themeColor === 'rose'
     ? 'group-focus-within/field:text-rose-600'
     : themeColor === 'sky'
     ? 'group-focus-within/field:text-sky-600'
-    : 'group-focus-within/field:text-emerald-600';
+    : 'group-focus-within/field:text-cyan-600';
 
   const priceBadgeBg = themeColor === 'rose'
     ? 'group-focus-within/field:bg-rose-600'
     : themeColor === 'sky'
     ? 'group-focus-within/field:bg-sky-600'
-    : 'group-focus-within/field:bg-emerald-600';
+    : 'group-focus-within/field:bg-cyan-600';
 
   const handleSocBoundChange = (socId, field, rawValue) => {
     if (rawValue === '') {
@@ -43,9 +43,9 @@ export default function SocPricingTable({
           <button
             type="button"
             onClick={onAdd}
-            className="px-3 py-1.5 bg-[#4DA944]/10 hover:bg-[#4DA944]/20 text-[#30702a] border border-[#4DA944]/30 font-bold rounded-lg text-xs transition-all cursor-pointer flex items-center gap-1 active:scale-95"
+            className="px-3 py-1.5 bg-[#1EB8D4]/10 hover:bg-[#1EB8D4]/20 text-[#148296] border border-[#1EB8D4]/30 font-bold rounded-lg text-xs transition-all cursor-pointer flex items-center gap-1 active:scale-95"
           >
-            <Plus className="w-3.5 h-3.5 text-[#4DA944]" /> Add SOC Range
+            <Plus className="w-3.5 h-3.5 text-[#1EB8D4]" /> Add SOC Range
           </button>
         )}
       </div>
@@ -76,6 +76,9 @@ export default function SocPricingTable({
                       <td className="py-2 px-4">
                         <div className="group/field flex items-center gap-1.5 w-28">
                           <input
+                            id={`soc-from-${r.id}`}
+                            name={`soc_from_${r.id}`}
+                            aria-label="SOC From %"
                             type="number"
                             min="0"
                             max="100"
@@ -90,6 +93,9 @@ export default function SocPricingTable({
                       <td className="py-2 px-4">
                         <div className="group/field flex items-center gap-1.5 w-28">
                           <input
+                            id={`soc-to-${r.id}`}
+                            name={`soc_to_${r.id}`}
+                            aria-label="SOC To %"
                             type="number"
                             min="0"
                             max="100"
@@ -104,6 +110,9 @@ export default function SocPricingTable({
                       <td className="py-2 px-4">
                         <div className="group/field flex items-center w-32 border border-stone-200 rounded-lg overflow-hidden bg-stone-50 focus-within:border-slate-800 focus-within:bg-white transition-colors">
                           <input
+                            id={`soc-price-${r.id}`}
+                            name={`soc_price_${r.id}`}
+                            aria-label="SOC Price ₹"
                             type="number"
                             min="0"
                             disabled={isViewMode}

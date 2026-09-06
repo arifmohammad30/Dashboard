@@ -9,6 +9,7 @@ import FormCard from '../../../components/ui/FormCard';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import PrimaryButton from '../../../components/ui/PrimaryButton';
+import SegmentedToggle from '../../../components/ui/SegmentedToggle';
 import AccessEntitySearchBox from '../components/AccessEntitySearchBox';
 import { useToast } from '../../../context/ToastContext';
 import { getDiscountById, createDiscount, updateDiscount } from '../api/discountService';
@@ -29,33 +30,23 @@ const DISCOUNT_TYPES = ['Percentage Discounts', 'Fixed Amount', 'Discounted Tari
 const DISCOUNT_STATUSES = ['Active', 'Inactive'];
 const CONDITION_TYPES = ['OR', 'AND'];
 
-const LabelWithInfo = ({ label, required }) => (
-  <label className="text-xs font-bold text-stone-700 mb-1.5 block">
-    {label} {required && <span className="text-rose-500">*</span>}
-  </label>
-);
+const LabelWithInfo = ({ label, required, htmlFor }) => {
+  const Tag = htmlFor ? 'label' : 'span';
+  return (
+    <Tag htmlFor={htmlFor} className="text-xs font-bold text-stone-700 mb-1.5 block">
+      {label} {required && <span className="text-rose-500">*</span>}
+    </Tag>
+  );
+};
 
 const FleetStyleSelectGroup = ({ options, currentValue, onChange }) => {
   return (
-    <div className="inline-flex p-1 bg-slate-50/90 rounded-2xl border border-stone-200/80 gap-1.5 mt-1">
-      {options.map((opt) => {
-        const isSelected = currentValue === opt.value;
-        return (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => onChange(opt.value)}
-            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer active:scale-95 flex items-center gap-2 ${
-              isSelected
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
-            }`}
-          >
-            <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-emerald-400' : 'bg-stone-300'}`} />
-            <span>{opt.label}</span>
-          </button>
-        );
-      })}
+    <div className="mt-1">
+      <SegmentedToggle
+        options={options}
+        value={currentValue}
+        onChange={onChange}
+      />
     </div>
   );
 };
@@ -175,11 +166,11 @@ export default function AddNewDiscount({ isEditMode = false }) {
           </h1>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             type="button"
             onClick={() => navigate('/discounts')}
-            className="px-4 py-2 text-xs font-bold bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 rounded-xl shadow-2xs transition-colors cursor-pointer"
+            className="h-9 px-4 inline-flex items-center justify-center text-xs font-semibold bg-white hover:bg-slate-50 border border-slate-200/80 text-slate-700 rounded-xl shadow-2xs transition-all duration-150 active:scale-95 cursor-pointer shrink-0"
           >
             Cancel
           </button>
@@ -200,8 +191,9 @@ export default function AddNewDiscount({ isEditMode = false }) {
         {/* Card 1: Discount Details */}
         <FormCard title="Discount Details">
           <div>
-            <LabelWithInfo label="Name" required />
+            <LabelWithInfo htmlFor="discount-name" label="Name" required />
             <Input
+              id="discount-name"
               type="text"
               placeholder="This is the unique name for the offer"
               {...register('name')}
@@ -211,8 +203,10 @@ export default function AddNewDiscount({ isEditMode = false }) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <LabelWithInfo label="Type" required />
+              <LabelWithInfo htmlFor="discount-type" label="Type" required />
               <Select
+                id="discount-type"
+                name="type"
                 options={DISCOUNT_TYPES}
                 value={selectedType}
                 onChange={(e) => setValue('type', e.target.value)}
@@ -221,8 +215,10 @@ export default function AddNewDiscount({ isEditMode = false }) {
             </div>
 
             <div>
-              <LabelWithInfo label="Discount Status" required />
+              <LabelWithInfo htmlFor="discount-status" label="Discount Status" required />
               <Select
+                id="discount-status"
+                name="status"
                 options={DISCOUNT_STATUSES}
                 value={selectedStatus}
                 onChange={(e) => setValue('status', e.target.value)}
@@ -235,8 +231,10 @@ export default function AddNewDiscount({ isEditMode = false }) {
         {/* Card 2: Discount Access Controls */}
         <FormCard title="Discount Access Controls">
           <div>
-            <LabelWithInfo label="Condition Type" />
+            <LabelWithInfo htmlFor="discount-conditionType" label="Condition Type" />
             <Select
+              id="discount-conditionType"
+              name="conditionType"
               options={CONDITION_TYPES}
               value={selectedConditionType}
               onChange={(e) => setValue('conditionType', e.target.value)}

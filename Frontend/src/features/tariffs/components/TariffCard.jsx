@@ -23,7 +23,7 @@ export default function TariffCard({ tariff, fallbackProfile = 'Standard Rate', 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#4DA944]/20 text-[#6bd65f] border border-[#4DA944]/30 uppercase tracking-wider">
+              <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#1EB8D4]/20 text-[#52D1E8] border border-[#1EB8D4]/30 uppercase tracking-wider">
                 {tariffType} Tariff
               </span>
               <span className="px-2.5 py-0.5 rounded-md text-[11px] font-mono font-semibold bg-white/10 text-stone-300 border border-white/10">
@@ -33,7 +33,7 @@ export default function TariffCard({ tariff, fallbackProfile = 'Standard Rate', 
             <h2 className="text-2xl font-black tracking-tight text-white">{tariffName}</h2>
             {associatedUnitName && (
               <p className="text-xs text-stone-400 mt-1 flex items-center gap-1.5 font-medium">
-                <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0" />
                 <span>Assigned & active for <strong>{associatedUnitName}</strong></span>
               </p>
             )}
@@ -52,7 +52,7 @@ export default function TariffCard({ tariff, fallbackProfile = 'Standard Rate', 
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-2xl border border-stone-200/90 shadow-2xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-[#4DA944]/10 border border-[#4DA944]/20 flex items-center justify-center text-[#30702a] shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-[#1EB8D4]/10 border border-[#1EB8D4]/20 flex items-center justify-center text-[#148296] shrink-0">
             <IndianRupee className="w-5 h-5" />
           </div>
           <div>
@@ -72,7 +72,7 @@ export default function TariffCard({ tariff, fallbackProfile = 'Standard Rate', 
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-stone-200/90 shadow-2xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-600 shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-cyan-50 border border-cyan-200/80 flex items-center justify-center text-cyan-600 shrink-0">
             <Zap className="w-5 h-5" />
           </div>
           <div>

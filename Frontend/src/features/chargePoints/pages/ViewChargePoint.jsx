@@ -134,7 +134,7 @@ export default function ViewChargePoint({ defaultTab }) {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[500px] text-[#4DA944]">
+      <div className="flex flex-col items-center justify-center min-h-[500px] text-[#1EB8D4]">
         <Loader2 className="w-12 h-12 animate-spin mb-4" />
         <p className="text-sm font-bold text-stone-600">Loading station details...</p>
       </div>
@@ -222,12 +222,12 @@ export default function ViewChargePoint({ defaultTab }) {
               {cp.name}
             </h1>
 
-            <span className={`inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-medium border shadow-2xs ${cp.status === 'Available' ? 'bg-emerald-50/90 text-emerald-800 border-emerald-200/60' :
+            <span className={`inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-medium border shadow-2xs ${cp.status === 'Available' ? 'bg-cyan-50/90 text-cyan-800 border-cyan-200/60' :
               cp.status === 'Charging' ? 'bg-blue-50/90 text-blue-700 border-blue-200/60' :
                 cp.status === 'Preparing' ? 'bg-amber-50/90 text-amber-800 border-amber-200/60' :
                   'bg-red-50/90 text-red-700 border-red-200/60'
               }`}>
-              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cp.status === 'Available' ? 'bg-emerald-500' :
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cp.status === 'Available' ? 'bg-cyan-500' :
                 cp.status === 'Charging' ? 'bg-blue-500 animate-pulse' :
                   cp.status === 'Preparing' ? 'bg-amber-500' :
                     'bg-red-500'
@@ -249,7 +249,7 @@ export default function ViewChargePoint({ defaultTab }) {
 
             <button
               onClick={() => navigate(`/charge-points/edit/${cp.id || id}`, { state: { chargePoint: cp } })}
-              className="flex items-center gap-2 px-4 py-2 bg-[#4DA944] hover:bg-[#43953b] text-white font-bold rounded-xl text-xs shadow-xs transition-colors cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 bg-[#1EB8D4] hover:bg-[#19A5C0] text-slate-950 font-bold rounded-xl text-xs shadow-xs transition-colors cursor-pointer"
             >
               <Edit className="w-4 h-4" />
               <span>Edit Details</span>
@@ -268,15 +268,15 @@ export default function ViewChargePoint({ defaultTab }) {
                 key={t.id}
                 onClick={() => handleTabChange(t.id)}
                 className={`flex items-center gap-2 px-4.5 py-3 text-xs font-bold tracking-tight transition-all duration-150 border-b-2 rounded-t-xl whitespace-nowrap cursor-pointer select-none relative ${isActive
-                  ? 'border-b-2 border-b-[#4DA944] text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-2xs font-extrabold'
+                  ? 'border-b-2 border-b-[#1EB8D4] text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-2xs font-extrabold'
                   : 'border-transparent text-stone-500 hover:text-stone-900 hover:bg-stone-100/60 font-medium'
                   }`}
               >
-                <Icon strokeWidth={2.25} className={`w-4 h-4 transition-transform ${isActive ? 'text-[#4DA944] scale-105' : 'text-stone-400'
+                <Icon strokeWidth={2.25} className={`w-4 h-4 transition-transform ${isActive ? 'text-[#1EB8D4] scale-105' : 'text-stone-400'
                   }`} />
                 <span>{t.label}</span>
                 {t.count !== undefined && (
-                  <span className={`px-2 py-0.5 text-[11px] font-mono font-bold rounded transition-colors ${isActive ? 'bg-[#4DA944]/10 text-[#30702a] border border-[#4DA944]/20' : 'bg-stone-100 text-stone-600 border border-stone-200/60'
+                  <span className={`px-2 py-0.5 text-[11px] font-mono font-bold rounded transition-colors ${isActive ? 'bg-[#1EB8D4]/10 text-[#148296] border border-[#1EB8D4]/20' : 'bg-stone-100 text-stone-600 border border-stone-200/60'
                     }`}>
                     {t.count}
                   </span>

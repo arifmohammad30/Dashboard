@@ -183,7 +183,7 @@ export default function ChargePointControlTab({
       <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-2xs flex flex-col justify-between hover:border-stone-300 transition-all">
         <div>
           <h3 className="text-sm font-extrabold text-slate-900 pb-3 mb-4 border-b border-stone-200/80 flex items-center gap-2">
-            <RotateCcw className="w-4 h-4 text-[#4DA944] stroke-[2.5]" /> Reset Charge Point
+            <RotateCcw className="w-4 h-4 text-[#1EB8D4] stroke-[2.5]" /> Reset Charge Point
           </h3>
           <p className="text-xs text-stone-500 mb-5 font-medium">Issue a soft or hard reset to restart the charge point controller hardware.</p>
           <div className="flex flex-wrap items-center gap-3">
@@ -210,8 +210,10 @@ export default function ChargePointControlTab({
             <Cpu className="w-4 h-4 text-sky-500 stroke-[2.5]" /> Update Charge Point Firmware
           </h3>
           <div>
-            <label className="text-xs font-bold text-stone-600 mb-1.5 block">Firmware URL <span className="text-rose-500">*</span></label>
+            <label htmlFor="firmwareUrl" className="text-xs font-bold text-stone-600 mb-1.5 block">Firmware URL <span className="text-rose-500">*</span></label>
             <input
+              id="firmwareUrl"
+              name="firmwareUrl"
               type="text"
               placeholder="Paste firmware download URL"
               value={firmwareUrl}
@@ -220,8 +222,10 @@ export default function ChargePointControlTab({
             />
           </div>
           <div>
-            <label className="text-xs font-bold text-stone-600 mb-1.5 block">Scheduled date of firmware update</label>
+            <label htmlFor="firmwareDate" className="text-xs font-bold text-stone-600 mb-1.5 block">Scheduled date of firmware update</label>
             <input
+              id="firmwareDate"
+              name="firmwareDate"
               type="date"
               value={firmwareDate}
               onChange={(e) => setFirmwareDate(e.target.value)}
@@ -246,8 +250,9 @@ export default function ChargePointControlTab({
             <KeyRound className="w-4 h-4 text-purple-500 stroke-[2.5]" /> Local ID Tag List Management
           </h3>
           <div>
-            <label className="text-xs font-bold text-stone-600 mb-1.5 block">Update type <span className="text-rose-500">*</span></label>
+            <label htmlFor="localTagUpdateType" className="text-xs font-bold text-stone-600 mb-1.5 block">Update type <span className="text-rose-500">*</span></label>
             <Select
+              id="localTagUpdateType"
               options={[
                 { value: 'Differential', label: 'Differential' },
                 { value: 'Full', label: 'Full' }
@@ -259,8 +264,9 @@ export default function ChargePointControlTab({
             />
           </div>
           <div>
-            <label className="text-xs font-bold text-stone-600 mb-1.5 block">ID Tags</label>
+            <label htmlFor="localTagIdTags" className="text-xs font-bold text-stone-600 mb-1.5 block">ID Tags</label>
             <Select
+              id="localTagIdTags"
               options={[
                 { value: 'TAG-001', label: 'TAG-001 (VIP Access)' },
                 { value: 'TAG-002', label: 'TAG-002 (Fleet Access)' },
@@ -290,8 +296,9 @@ export default function ChargePointControlTab({
             <Zap className="w-4 h-4 text-amber-500 stroke-[2.5]" /> Send Trigger Message
           </h3>
           <div>
-            <label className="text-xs font-bold text-stone-600 mb-1.5 block">Trigger message <span className="text-rose-500">*</span></label>
+            <label htmlFor="triggerMessage" className="text-xs font-bold text-stone-600 mb-1.5 block">Trigger message <span className="text-rose-500">*</span></label>
             <Select
+              id="triggerMessage"
               options={[
                 { value: 'BootNotification', label: 'BootNotification' },
                 { value: 'DiagnosticsStatusNotification', label: 'DiagnosticsStatusNotification' },
@@ -307,8 +314,9 @@ export default function ChargePointControlTab({
             />
           </div>
           <div>
-            <label className="text-xs font-bold text-stone-600 mb-1.5 block">Connector Id <span className="text-rose-500">*</span></label>
+            <label htmlFor="triggerConnectorId" className="text-xs font-bold text-stone-600 mb-1.5 block">Connector Id <span className="text-rose-500">*</span></label>
             <Select
+              id="triggerConnectorId"
               options={connectorIdOptions}
               value={triggerConnectorId}
               onChange={(e) => setTriggerConnectorId(e.target.value)}
@@ -334,8 +342,10 @@ export default function ChargePointControlTab({
             <FileText className="w-4 h-4 text-sky-500 stroke-[2.5]" /> Get Diagnostics
           </h3>
           <div>
-            <label className="text-xs font-bold text-stone-600 mb-1.5 block">Location URL <span className="text-rose-500">*</span></label>
+            <label htmlFor="diagLocationUrl" className="text-xs font-bold text-stone-600 mb-1.5 block">Location URL <span className="text-rose-500">*</span></label>
             <input
+              id="diagLocationUrl"
+              name="diagLocationUrl"
               type="text"
               placeholder="Enter destination upload URL"
               value={diagLocationUrl}
@@ -345,8 +355,10 @@ export default function ChargePointControlTab({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-bold text-stone-600 mb-1.5 block">Retries</label>
+              <label htmlFor="diagRetries" className="text-xs font-bold text-stone-600 mb-1.5 block">Retries</label>
               <input
+                id="diagRetries"
+                name="diagRetries"
                 type="number"
                 placeholder="3"
                 value={diagRetries}
@@ -355,8 +367,10 @@ export default function ChargePointControlTab({
               />
             </div>
             <div>
-              <label className="text-xs font-bold text-stone-600 mb-1.5 block">Retry Interval (s)</label>
+              <label htmlFor="diagRetryInterval" className="text-xs font-bold text-stone-600 mb-1.5 block">Retry Interval (s)</label>
               <input
+                id="diagRetryInterval"
+                name="diagRetryInterval"
                 type="number"
                 placeholder="60"
                 value={diagRetryInterval}
@@ -367,8 +381,10 @@ export default function ChargePointControlTab({
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="text-[11px] font-bold text-stone-600 mb-1.5 block">Scheduled Date</label>
+              <label htmlFor="diagDate" className="text-[11px] font-bold text-stone-600 mb-1.5 block">Scheduled Date</label>
               <input
+                id="diagDate"
+                name="diagDate"
                 type="date"
                 value={diagDate}
                 onChange={(e) => setDiagDate(e.target.value)}
@@ -376,8 +392,10 @@ export default function ChargePointControlTab({
               />
             </div>
             <div>
-              <label className="text-[11px] font-bold text-stone-600 mb-1.5 block">Start Time</label>
+              <label htmlFor="diagStartTime" className="text-[11px] font-bold text-stone-600 mb-1.5 block">Start Time</label>
               <input
+                id="diagStartTime"
+                name="diagStartTime"
                 type="time"
                 value={diagStartTime}
                 onChange={(e) => setDiagStartTime(e.target.value)}
@@ -385,8 +403,10 @@ export default function ChargePointControlTab({
               />
             </div>
             <div>
-              <label className="text-[11px] font-bold text-stone-600 mb-1.5 block">Stop Time</label>
+              <label htmlFor="diagStopTime" className="text-[11px] font-bold text-stone-600 mb-1.5 block">Stop Time</label>
               <input
+                id="diagStopTime"
+                name="diagStopTime"
                 type="time"
                 value={diagStopTime}
                 onChange={(e) => setDiagStopTime(e.target.value)}
@@ -412,8 +432,10 @@ export default function ChargePointControlTab({
             <Database className="w-4 h-4 text-indigo-500 stroke-[2.5]" /> Send Data Transfer Message
           </h3>
           <div>
-            <label className="text-xs font-bold text-stone-600 mb-1.5 block">Vendor ID <span className="text-rose-500">*</span></label>
+            <label htmlFor="dataVendorId" className="text-xs font-bold text-stone-600 mb-1.5 block">Vendor ID <span className="text-rose-500">*</span></label>
             <input
+              id="dataVendorId"
+              name="dataVendorId"
               type="text"
               placeholder="Enter Vendor ID (e.g. Com.EVRE)"
               value={dataVendorId}
@@ -422,8 +444,10 @@ export default function ChargePointControlTab({
             />
           </div>
           <div>
-            <label className="text-xs font-bold text-stone-600 mb-1.5 block">Message ID</label>
+            <label htmlFor="dataMessageId" className="text-xs font-bold text-stone-600 mb-1.5 block">Message ID</label>
             <input
+              id="dataMessageId"
+              name="dataMessageId"
               type="text"
               placeholder="Enter Message ID"
               value={dataMessageId}
@@ -432,8 +456,10 @@ export default function ChargePointControlTab({
             />
           </div>
           <div>
-            <label className="text-xs font-bold text-stone-600 mb-1.5 block">Data Payload</label>
+            <label htmlFor="dataPayload" className="text-xs font-bold text-stone-600 mb-1.5 block">Data Payload</label>
             <textarea
+              id="dataPayload"
+              name="dataPayload"
               rows={2}
               placeholder="Enter custom JSON / string payload"
               value={dataPayload}

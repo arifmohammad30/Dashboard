@@ -7,11 +7,11 @@ export default function ProviderInfoCard({ provider }) {
   if (!provider) return null;
 
   return (
-    <FormCard title="Provider Information">
-      <div className="space-y-3">
+    <FormCard title="Provider Information" bodyClassName="p-3.5">
+      <div className="space-y-2.5">
         {/* Provider logo and name */}
-        <div className="flex items-center gap-2.5 border-b border-slate-100 pb-2.5">
-          <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-base">
+        <div className="flex items-center gap-2.5 border-b border-slate-100 pb-2">
+          <div className="w-6 h-6 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-xs">
             {provider.logo}
           </div>
           <div>
@@ -20,7 +20,7 @@ export default function ProviderInfoCard({ provider }) {
         </div>
 
         {/* Short provider description */}
-        <p className="text-xs text-slate-500 leading-relaxed font-medium">
+        <p className="text-[11px] text-slate-500 leading-normal font-normal">
           {provider.desc}
         </p>
 
@@ -31,7 +31,7 @@ export default function ProviderInfoCard({ provider }) {
               href={provider.website}
               target="_blank"
               rel="noreferrer"
-              className="text-xs font-bold text-[#4DA944] hover:text-[#3f8b37] flex items-center gap-1 transition-colors"
+              className="text-[11px] font-semibold text-[#1EB8D4] hover:underline inline-flex items-center gap-1 transition-colors"
             >
               <span>Website: {provider.website}</span>
               <ExternalLink className="w-3 h-3" />
@@ -42,13 +42,13 @@ export default function ProviderInfoCard({ provider }) {
         {/* List of supported payment features */}
         {provider.features && provider.features.length > 0 && (
           <div className="space-y-1.5 pt-2 border-t border-slate-100">
-            <h5 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+            <h5 className="text-[11px] font-semibold text-slate-700">
               Supported Features
             </h5>
-            <ul className="space-y-1.5 text-xs font-semibold text-slate-600">
+            <ul className="space-y-1 text-[11px] text-slate-600 font-normal">
               {provider.features.map((feat, idx) => (
-                <li key={idx} className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#4DA944] shrink-0" />
+                <li key={idx} className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3 h-3 text-[#1EB8D4] shrink-0" />
                   <span>{feat}</span>
                 </li>
               ))}

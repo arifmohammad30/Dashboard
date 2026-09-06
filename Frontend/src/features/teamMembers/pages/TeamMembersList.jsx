@@ -181,7 +181,7 @@ export default function TeamMembersList() {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Active':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        return 'bg-cyan-50 text-cyan-700 border-cyan-200';
       case 'Pending Invite':
         return 'bg-amber-50 text-amber-700 border-amber-200';
       case 'Inactive':
@@ -237,7 +237,7 @@ export default function TeamMembersList() {
               <Filter className="w-4 h-4 text-violet-600 shrink-0" />
               <span className="leading-none">Filter</span>
               {activeFiltersCount > 0 && (
-                <span className="flex items-center justify-center w-4 h-4 bg-[#4DA944] text-white rounded-full text-[10px] ml-1 font-bold">
+                <span className="flex items-center justify-center w-4 h-4 bg-[#1EB8D4] text-slate-950 rounded-full text-[10px] ml-1 font-bold">
                   {activeFiltersCount}
                 </span>
               )}
@@ -320,7 +320,7 @@ export default function TeamMembersList() {
                 <tr>
                   <td colSpan="5" className="py-24 text-center">
                     <div className="flex flex-col items-center justify-center gap-2 text-stone-400">
-                      <Loader2 className="w-8 h-8 animate-spin text-[#4DA944]" />
+                      <Loader2 className="w-8 h-8 animate-spin text-[#1EB8D4]" />
                       <p className="text-xs font-bold text-stone-500">Loading team members...</p>
                     </div>
                   </td>
@@ -330,7 +330,7 @@ export default function TeamMembersList() {
                   <td colSpan="5" className="py-20 text-center">
                     <div className="flex flex-col items-center justify-center gap-3">
                       <div className="w-12 h-12 rounded-2xl bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-400 mb-1">
-                        <Users className="w-6 h-6 text-[#4DA944]" />
+                        <Users className="w-6 h-6 text-[#1EB8D4]" />
                       </div>
                       <p className="text-sm font-bold text-stone-700">No team members found</p>
                       <p className="text-xs text-stone-400 font-medium">
@@ -369,11 +369,11 @@ export default function TeamMembersList() {
                       {/* 2. Member Name + Avatar */}
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4DA944]/20 to-[#4DA944]/10 border border-[#4DA944]/30 text-[#30702a] font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1EB8D4]/20 to-[#1EB8D4]/10 border border-[#1EB8D4]/30 text-[#148296] font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                             {getInitials(member.name)}
                           </div>
                           <div>
-                            <span className="font-bold text-slate-900 block group-hover:text-[#4DA944] transition-colors">
+                            <span className="font-bold text-slate-900 block group-hover:text-[#1EB8D4] transition-colors">
                               {member.name}
                             </span>
                             <span className="text-[11px] text-stone-400 font-mono block">

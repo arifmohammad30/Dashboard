@@ -11,8 +11,8 @@ export default function PaymentStatusBadge({ status }) {
     case 'CAPTURED':
     case 'PAID':
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <CheckCircle2 className="w-3.5 h-3.5 text-[#4DA944]" />
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-50 text-cyan-700 border border-cyan-200">
+          <CheckCircle2 className="w-3.5 h-3.5 text-[#1EB8D4]" />
           <span>Success</span>
         </span>
       );

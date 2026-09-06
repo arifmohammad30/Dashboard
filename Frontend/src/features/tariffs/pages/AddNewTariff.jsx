@@ -23,7 +23,7 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-[1180px] mx-auto pb-28 animate-in fade-in duration-200">
+    <div className="flex flex-col gap-4.5 max-w-[1180px] mx-auto pb-24 animate-in fade-in duration-200">
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
         <div>
@@ -34,11 +34,11 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
           <p className="text-xs text-stone-500 font-medium">Configure normal, peak, and off-peak charging prices.</p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             type="button"
             onClick={() => form.navigate('/tariffs')}
-            className="px-4 py-2 text-xs bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 font-bold rounded-xl shadow-2xs transition-all cursor-pointer active:scale-95"
+            className="h-9 px-4 inline-flex items-center justify-center text-xs font-semibold bg-white hover:bg-slate-50 border border-slate-200/80 text-slate-700 rounded-xl shadow-2xs transition-all duration-150 active:scale-95 cursor-pointer shrink-0"
           >
             {isViewMode ? 'Back' : 'Cancel'}
           </button>

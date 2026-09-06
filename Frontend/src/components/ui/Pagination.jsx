@@ -81,7 +81,7 @@ const Pagination = memo(({
               <button
                 onClick={() => onPageChange && onPageChange(currentPage - 1)}
                 disabled={currentPage <= 1}
-                className="p-1.5 text-stone-500 hover:text-[#30702a] bg-white hover:bg-[#4DA944]/10 hover:border-[#4DA944]/30 border border-stone-200/90 shadow-2xs rounded-lg disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-stone-500 disabled:hover:border-stone-200/90 cursor-pointer disabled:cursor-not-allowed transition-colors duration-150"
+                className="p-1.5 text-stone-500 hover:text-[#148296] bg-white hover:bg-[#1EB8D4]/10 hover:border-[#1EB8D4]/30 border border-stone-200/90 shadow-2xs rounded-lg disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-stone-500 disabled:hover:border-stone-200/90 cursor-pointer disabled:cursor-not-allowed transition-colors duration-150"
               >
                 <span className="sr-only">Previous</span>
                 <ChevronLeft className="h-4 w-4" aria-hidden="true" />
@@ -104,8 +104,8 @@ const Pagination = memo(({
                       aria-current={currentPage === page ? 'page' : undefined}
                       className={`relative inline-flex items-center justify-center w-7 h-7 text-xs font-bold transition-all duration-150 outline-none rounded-lg cursor-pointer active:scale-95 ${
                         currentPage === page
-                          ? 'bg-[#4DA944] text-white border border-[#4DA944] shadow-xs'
-                          : 'text-stone-700 bg-white hover:bg-[#4DA944]/10 hover:text-[#30702a] hover:border-[#4DA944]/30 border border-stone-200/90 shadow-2xs'
+                          ? 'bg-[#1EB8D4] text-slate-950 border border-[#1EB8D4] shadow-xs'
+                          : 'text-stone-700 bg-white hover:bg-[#1EB8D4]/10 hover:text-[#148296] hover:border-[#1EB8D4]/30 border border-stone-200/90 shadow-2xs'
                       }`}
                     >
                       {page}
@@ -117,7 +117,7 @@ const Pagination = memo(({
               <button
                 onClick={() => onPageChange && onPageChange(currentPage + 1)}
                 disabled={currentPage >= totalPages}
-                className="p-1.5 text-stone-500 hover:text-[#30702a] bg-white hover:bg-[#4DA944]/10 hover:border-[#4DA944]/30 border border-stone-200/90 shadow-2xs rounded-lg disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-stone-500 disabled:hover:border-stone-200/90 cursor-pointer disabled:cursor-not-allowed transition-colors duration-150"
+                className="p-1.5 text-stone-500 hover:text-[#148296] bg-white hover:bg-[#1EB8D4]/10 hover:border-[#1EB8D4]/30 border border-stone-200/90 shadow-2xs rounded-lg disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-stone-500 disabled:hover:border-stone-200/90 cursor-pointer disabled:cursor-not-allowed transition-colors duration-150"
               >
                 <span className="sr-only">Next</span>
                 <ChevronRight className="h-4 w-4" aria-hidden="true" />

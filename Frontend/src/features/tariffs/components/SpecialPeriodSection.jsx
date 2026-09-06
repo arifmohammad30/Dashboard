@@ -2,6 +2,7 @@ import React from 'react';
 import { Plus, Sliders, AlertCircle } from 'lucide-react';
 import TimePicker12h from './TimePicker12h';
 import SocPricingTable from './SocPricingTable';
+import TariffSectionCard from './TariffSectionCard';
 
 const DEFAULT_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -21,37 +22,29 @@ export default function SpecialPeriodSection({
 }) {
   const isPeak = type === 'Peak';
 
-  const iconColor = isPeak ? 'text-rose-600' : 'text-sky-600';
-  const headerBg = isPeak ? 'bg-rose-50/70 border-rose-200/80' : 'bg-sky-50/70 border-sky-200/80';
-  const borderCard = isPeak ? 'border-rose-200/90' : 'border-sky-200/90';
   const badgeBg = isPeak ? 'bg-rose-100 text-rose-800 border-rose-300/80' : 'bg-sky-100 text-sky-800 border-sky-300/80';
   const addBtnBg = isPeak ? 'bg-rose-600 hover:bg-rose-700' : 'bg-sky-600 hover:bg-sky-700';
   const focusBorder = isPeak ? 'focus-within:border-rose-600' : 'focus-within:border-sky-600';
   const fieldAddonBg = isPeak ? 'group-focus-within/field:bg-rose-600' : 'group-focus-within/field:bg-sky-600';
 
-  return (
-    <div className={`bg-white border ${borderCard} rounded-2xl overflow-hidden shadow-2xs`}>
-      <div className={`${headerBg} border-b px-6 py-4 flex items-center justify-between`}>
-        <div>
-          <h2 className={`text-base font-extrabold ${isPeak ? 'text-rose-950' : 'text-sky-950'} tracking-tight flex items-center gap-2`}>
-            <Sliders className={`w-4 h-4 ${iconColor} stroke-[2.5]`} /> {type} Pricing
-          </h2>
-          <p className={`text-xs ${isPeak ? 'text-rose-700/90' : 'text-sky-700/90'} font-medium mt-0.5`}>
-            {isPeak ? 'Higher rates applied during high-demand peak hours.' : 'Discounted rates applied during off-peak hours.'}
-          </p>
-        </div>
-        {!isViewMode && (
-          <button
-            type="button"
-            onClick={onAddPeriod}
-            className={`px-3.5 py-1.5 ${addBtnBg} text-white font-bold rounded-xl text-xs shadow-2xs transition-all cursor-pointer flex items-center gap-1.5 active:scale-95`}
-          >
-            <Plus className="w-3.5 h-3.5" /> Add {type} Period
-          </button>
-        )}
-      </div>
+  const addAction = !isViewMode ? (
+    <button
+      type="button"
+      onClick={onAddPeriod}
+      className={`px-3.5 py-1.5 ${addBtnBg} text-white font-bold rounded-xl text-xs shadow-2xs transition-all cursor-pointer flex items-center gap-1.5 active:scale-95`}
+    >
+      <Plus className="w-3.5 h-3.5" /> Add {type} Period
+    </button>
+  ) : null;
 
-      <div className="p-6 space-y-5">
+  return (
+    <TariffSectionCard
+      title={`${type} Pricing`}
+      subtitle={isPeak ? 'Higher rates applied during high-demand peak hours.' : 'Discounted rates applied during off-peak hours.'}
+      icon={Sliders}
+      action={addAction}
+      colorTheme={isPeak ? 'rose' : 'sky'}
+    >
         {periods.length === 0 ? (
           <div className="p-3.5 text-center text-xs font-medium text-stone-400 bg-stone-50/80 border border-dashed border-stone-200 rounded-xl">
             No {type} periods configured. Normal pricing applies 24/7.
@@ -104,16 +97,20 @@ export default function SpecialPeriodSection({
                 {/* Time Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-bold text-stone-700 mb-1 block">Start Time</label>
+                    <label htmlFor={`start-time-${period.id}`} className="text-xs font-bold text-stone-700 mb-1 block">Start Time</label>
                     <TimePicker12h
+                      id={`start-time-${period.id}`}
+                      name={`start_time_${period.id}`}
                       disabled={isViewMode}
                       value={period.startTime}
                       onChange={(val) => onUpdatePeriodField(period.id, 'startTime', val)}
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-stone-700 mb-1 block">End Time</label>
+                    <label htmlFor={`end-time-${period.id}`} className="text-xs font-bold text-stone-700 mb-1 block">End Time</label>
                     <TimePicker12h
+                      id={`end-time-${period.id}`}
+                      name={`end_time_${period.id}`}
                       disabled={isViewMode}
                       value={period.endTime}
                       onChange={(val) => onUpdatePeriodField(period.id, 'endTime', val)}
@@ -163,9 +160,11 @@ export default function SpecialPeriodSection({
                   <h3 className="text-xs font-extrabold text-stone-900 tracking-tight uppercase">Energy & Time Pricing</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="p-4 bg-stone-50 border border-stone-200 rounded-xl space-y-2">
-                      <label className="text-xs font-bold text-stone-700 block">Energy Price</label>
+                      <label htmlFor={`energy-price-${period.id}`} className="text-xs font-bold text-stone-700 block">Energy Price</label>
                       <div className={`group/field flex items-center border border-stone-200 rounded-xl overflow-hidden bg-white shadow-2xs ${focusBorder} transition-colors`}>
                         <input
+                          id={`energy-price-${period.id}`}
+                          name={`energy_price_${period.id}`}
                           type="number"
                           min="0"
                           disabled={isViewMode}
@@ -182,9 +181,11 @@ export default function SpecialPeriodSection({
                     </div>
 
                     <div className="p-4 bg-stone-50 border border-stone-200 rounded-xl space-y-2">
-                      <label className="text-xs font-bold text-stone-700 block">Time Price</label>
+                      <label htmlFor={`time-price-${period.id}`} className="text-xs font-bold text-stone-700 block">Time Price</label>
                       <div className={`group/field flex items-center border border-stone-200 rounded-xl overflow-hidden bg-white shadow-2xs ${focusBorder} transition-colors`}>
                         <input
+                          id={`time-price-${period.id}`}
+                          name={`time_price_${period.id}`}
                           type="number"
                           min="0"
                           disabled={isViewMode}
@@ -207,7 +208,6 @@ export default function SpecialPeriodSection({
             );
           })
         )}
-      </div>
-    </div>
+    </TariffSectionCard>
   );
 }

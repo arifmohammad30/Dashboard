@@ -40,7 +40,7 @@ export const ChargePointsCell = ({ station, navigate }) => {
               navigate(`/charge-points?search=${encodeURIComponent(primaryCp.name)}`);
             }
           }}
-          className="text-stone-900 font-semibold text-[12px] hover:text-emerald-600 transition-colors cursor-pointer truncate max-w-[170px]"
+          className="text-stone-900 font-semibold text-[12px] hover:text-cyan-600 transition-colors cursor-pointer truncate max-w-[170px]"
           title={primaryCp?.name ? `Go to ${primaryCp.name}` : ''}
         >
           {primaryCp?.name}
@@ -52,10 +52,10 @@ export const ChargePointsCell = ({ station, navigate }) => {
               e.stopPropagation();
               setIsOpen(!isOpen);
             }}
-            className="text-[11px] font-normal text-stone-500 hover:text-emerald-600 transition-colors flex items-center gap-0.5 cursor-pointer w-fit mt-0.5"
+            className="text-[11px] font-normal text-stone-500 hover:text-cyan-600 transition-colors flex items-center gap-0.5 cursor-pointer w-fit mt-0.5"
           >
             <span>{totalCount} linked charge points</span>
-            <ChevronRight className={`w-3 h-3 transition-transform duration-150 ${isOpen ? 'rotate-90 text-emerald-600' : 'text-stone-400'}`} />
+            <ChevronRight className={`w-3 h-3 transition-transform duration-150 ${isOpen ? 'rotate-90 text-cyan-600' : 'text-stone-400'}`} />
           </button>
         ) : (
           <button
@@ -67,7 +67,7 @@ export const ChargePointsCell = ({ station, navigate }) => {
                 navigate(`/charge-points?search=${encodeURIComponent(primaryCp.name)}`);
               }
             }}
-            className="text-[11px] font-normal text-stone-400 hover:text-emerald-600 transition-colors flex items-center gap-0.5 cursor-pointer w-fit mt-0.5"
+            className="text-[11px] font-normal text-stone-400 hover:text-cyan-600 transition-colors flex items-center gap-0.5 cursor-pointer w-fit mt-0.5"
           >
             <span>1 linked charge point</span>
             <ChevronRight className="w-3 h-3 text-stone-400" />
@@ -102,15 +102,15 @@ export const ChargePointsCell = ({ station, navigate }) => {
                     navigate(`/charge-points?search=${encodeURIComponent(cp.name)}`);
                   }
                 }}
-                className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-stone-50/80 hover:bg-emerald-50/80 border border-stone-100/80 hover:border-emerald-200 transition-colors cursor-pointer group/item text-xs"
+                className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-stone-50/80 hover:bg-cyan-50/80 border border-stone-100/80 hover:border-cyan-200 transition-colors cursor-pointer group/item text-xs"
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                  <span className="font-semibold text-stone-800 group-hover/item:text-emerald-700 truncate text-[11px]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 shrink-0"></span>
+                  <span className="font-semibold text-stone-800 group-hover/item:text-cyan-700 truncate text-[11px]">
                     {cp.name}
                   </span>
                 </div>
-                <span className="text-[9.5px] font-mono font-medium text-stone-400 group-hover/item:text-emerald-600 shrink-0 ml-1.5">
+                <span className="text-[9.5px] font-mono font-medium text-stone-400 group-hover/item:text-cyan-600 shrink-0 ml-1.5">
                   {cp.code || '-'}
                 </span>
               </div>
