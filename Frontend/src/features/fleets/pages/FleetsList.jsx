@@ -98,7 +98,7 @@ export default function FleetsList() {
               <Filter className="w-4 h-4 text-violet-600 shrink-0" />
               <span className="leading-none">Filter</span>
               {activeFiltersCount > 0 && (
-                <span className="flex items-center justify-center w-4 h-4 bg-[#1EB8D4] text-slate-950 rounded-full text-[10px] ml-1 font-bold">
+                <span className="flex items-center justify-center w-4 h-4 bg-[#4DA944] text-white rounded-full text-[10px] ml-1 font-bold">
                   {activeFiltersCount}
                 </span>
               )}
@@ -185,7 +185,7 @@ export default function FleetsList() {
                 <tr>
                   <td colSpan="6" className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <Loader2 className="w-8 h-8 text-[#1EB8D4] animate-spin" />
+                      <Loader2 className="w-8 h-8 text-[#4DA944] animate-spin" />
                       <p className="text-sm font-bold text-stone-500">Loading fleets...</p>
                     </div>
                   </td>
@@ -194,7 +194,7 @@ export default function FleetsList() {
                 <tr>
                   <td colSpan="6" className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <div className="w-12 h-12 rounded-2xl bg-white/40 border border-stone-200/60 flex items-center justify-center text-[#1EB8D4] mb-1">
+                      <div className="w-12 h-12 rounded-2xl bg-white/40 border border-stone-200/60 flex items-center justify-center text-[#4DA944] mb-1">
                         <Search className="w-6 h-6" />
                       </div>
                       <p className="text-sm font-bold text-stone-500">No fleet records found.</p>
@@ -234,7 +234,7 @@ export default function FleetsList() {
                             e.stopPropagation();
                             navigate(`/fleets/view/${row.id}`, { state: { fleet: row } });
                           }}
-                          className="text-slate-900 font-semibold text-[13px] hover:text-[#148296] transition-colors duration-150 cursor-pointer"
+                          className="text-slate-900 font-semibold text-[13px] hover:text-[#30702a] transition-colors duration-150 cursor-pointer"
                         >
                           {row.name}
                         </span>

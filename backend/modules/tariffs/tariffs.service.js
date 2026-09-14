@@ -1,6 +1,50 @@
 import prisma from '../../prisma.js';
 import { formatCsvRow } from '../../utils/csvSanitizer.js';
 import { validatePricingConfig } from './tariffs.validator.js';
+import { randomUUID } from 'crypto';
+
+function ensureBackendIds(config) {
+  if (!config) return config;
+  const clone = typeof config === 'string' ? JSON.parse(config) : JSON.parse(JSON.stringify(config));
+
+  // 1. Normal pricing SOC ranges
+  if (clone.normalPricing && Array.isArray(clone.normalPricing.socRanges)) {
+    clone.normalPricing.socRanges = clone.normalPricing.socRanges.map(s => ({
+      ...s,
+      id: s.id || randomUUID()
+    }));
+  }
+
+  // 2. Peak periods & nested SOC ranges
+  if (Array.isArray(clone.peakPeriods)) {
+    clone.peakPeriods = clone.peakPeriods.map(p => ({
+      ...p,
+      id: p.id || randomUUID(),
+      socRanges: Array.isArray(p.socRanges)
+        ? p.socRanges.map(s => ({
+            ...s,
+            id: s.id || randomUUID()
+          }))
+        : []
+    }));
+  }
+
+  // 3. Off-peak periods & nested SOC ranges
+  if (Array.isArray(clone.offPeakPeriods)) {
+    clone.offPeakPeriods = clone.offPeakPeriods.map(p => ({
+      ...p,
+      id: p.id || randomUUID(),
+      socRanges: Array.isArray(p.socRanges)
+        ? p.socRanges.map(s => ({
+            ...s,
+            id: s.id || randomUUID()
+          }))
+        : []
+    }));
+  }
+
+  return clone;
+}
 
 export async function getFilterOptions() {
   const types = await prisma.tariff.findMany({
@@ -22,6 +66,17 @@ export async function getFilterOptions() {
 export async function getTariffs({ page = 1, limit = 10, searchTerm = '', filters = {} } = {}) {
   const whereClause = { AND: [] };
 
+  const targetId = filters.id || filters.tariffId;
+  if (targetId) {
+    whereClause.AND.push({
+      OR: [
+        { id: targetId },
+        { code: targetId },
+        { name: targetId }
+      ]
+    });
+  }
+
   if (filters.type && filters.type.length > 0) {
     whereClause.AND.push({ type: { in: filters.type } });
   }
@@ -38,6 +93,7 @@ export async function getTariffs({ page = 1, limit = 10, searchTerm = '', filter
     searchTokens.forEach(token => {
       whereClause.AND.push({
         OR: [
+          { id: { contains: token } },
           { name: { contains: token } },
           { code: { contains: token } },
           { type: { contains: token } },
@@ -163,6 +219,8 @@ export async function createTariff(payload) {
       err.statusCode = 400;
       throw err;
     }
+    // Server-side authoritative ID assignment for all sub-items (periods and SOC ranges)
+    configObj = ensureBackendIds(configObj);
   }
 
   const rawGst = typeof payload.gstPercentage === 'string'
@@ -204,6 +262,8 @@ export async function updateTariff(id, payload) {
       err.statusCode = 400;
       throw err;
     }
+    // Server-side authoritative ID assignment for all sub-items (periods and SOC ranges)
+    configObj = ensureBackendIds(configObj);
   }
 
   const rawGst = typeof payload.gstPercentage === 'string'

@@ -10,13 +10,13 @@ const THEME_MAP = {
     icon: 'text-slate-700',
     badge: 'bg-stone-100 text-stone-700 border-stone-200'
   },
-  cyan: {
-    cardBorder: 'border-cyan-200/90',
-    headerBg: 'bg-cyan-50/70 border-cyan-200/80',
-    title: 'text-cyan-950',
-    subtitle: 'text-cyan-700/90',
-    icon: 'text-cyan-600',
-    badge: 'bg-cyan-100 text-cyan-800 border-cyan-300/80'
+  emerald: {
+    cardBorder: 'border-emerald-200/90',
+    headerBg: 'bg-emerald-50/70 border-emerald-200/80',
+    title: 'text-emerald-950',
+    subtitle: 'text-emerald-700/90',
+    icon: 'text-emerald-600',
+    badge: 'bg-emerald-100 text-emerald-800 border-emerald-300/80'
   },
   rose: {
     cardBorder: 'border-rose-200/90',

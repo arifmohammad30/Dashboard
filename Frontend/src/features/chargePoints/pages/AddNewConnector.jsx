@@ -4,15 +4,18 @@ import ConnectorForm from '../components/ConnectorForm';
 import { useToast } from '../../../context/ToastContext';
 import { getChargePointById, addChargePointConnector } from '../api/chargePointService';
 
+
 export default function AddNewConnector() {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
   const toast = useToast();
+
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cpCode, setCpCode] = useState(location.state?.cpData?.code || location.state?.cpData?.name || id || '');
 
+  // Fetch charge point details to display the code in the disabled input
   useEffect(() => {
     let isMounted = true;
     const fetchCP = async () => {
@@ -35,6 +38,7 @@ export default function AddNewConnector() {
     return () => { isMounted = false; };
   }, [id]);
 
+  // Handle form submission and connector creation
   const handleSubmit = async (data) => {
     setIsSubmitting(true);
     try {
@@ -44,7 +48,7 @@ export default function AddNewConnector() {
       }
 
       const res = await addChargePointConnector(id, {
-        connectorId: parseInt(data.connectorId) || 1,
+        connectorId: parseInt(data.connectorId, 10) || 1,
         type: data.type,
         maxPower: parseFloat(data.powerRating) || 22.0,
         maxCurrent: data.maxCurrent ? parseFloat(data.maxCurrent) : undefined,
@@ -64,6 +68,7 @@ export default function AddNewConnector() {
     }
   };
 
+  // URL to navigate back to the charge point connectors tab
   const backUrl = id ? `/charge-points/${id}?tab=connectors` : '/charge-points';
 
   return (

@@ -4,11 +4,16 @@ import ConnectorForm from '../components/ConnectorForm';
 import { useToast } from '../../../context/ToastContext';
 import { getChargePointById, updateChargePointConnector } from '../api/chargePointService';
 
+/**
+ * UpdateConnector Page
+ * Allows operators to update configuration and power parameters of an existing connector.
+ */
 export default function UpdateConnector() {
   const navigate = useNavigate();
   const { id, connectorId } = useParams();
   const location = useLocation();
   const toast = useToast();
+
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cpData, setCpData] = useState(location.state?.cpData || null);
@@ -29,6 +34,7 @@ export default function UpdateConnector() {
     connectorFormat: location.state?.conn?.connectorFormat || 'CABLE'
   });
 
+  // Fetch charge point details and populate connector form defaults
   useEffect(() => {
     let isMounted = true;
     const fetchCP = async () => {
@@ -39,11 +45,22 @@ export default function UpdateConnector() {
           if (res && isMounted) {
             setCpData(res);
             const cpNameCode = res.name || res.code || id;
+
+            // Look up the specific connector if available in the charge point
+            const matchedConn = Array.isArray(res.connectors)
+              ? res.connectors.find(c => String(c.connectorId || c.id) === String(connectorId))
+              : null;
+
             setFormDefaults(prev => ({
               ...prev,
               chargePointCode: cpNameCode,
-              type: prev.type || res.type || 'CCS2',
-              powerRating: prev.powerRating || (res.totalCapacity ? String(res.totalCapacity) : '')
+              type: matchedConn?.type || prev.type || res.type || 'CCS2',
+              connectorId: connectorId || prev.connectorId,
+              powerRating: matchedConn?.maxPower ? String(matchedConn.maxPower) : (prev.powerRating || (res.totalCapacity ? String(res.totalCapacity) : '')),
+              maxCurrent: matchedConn?.maxCurrent ? String(matchedConn.maxCurrent) : prev.maxCurrent,
+              maxVoltage: matchedConn?.maxVoltage ? String(matchedConn.maxVoltage) : prev.maxVoltage,
+              powerType: matchedConn?.powerType || prev.powerType,
+              connectorFormat: matchedConn?.connectorFormat || prev.connectorFormat
             }));
           }
         }
@@ -56,8 +73,9 @@ export default function UpdateConnector() {
 
     fetchCP();
     return () => { isMounted = false; };
-  }, [id]);
+  }, [id, connectorId]);
 
+  // Handle form submission and update connector
   const handleSubmit = async (data) => {
     setIsSubmitting(true);
     try {
@@ -84,6 +102,7 @@ export default function UpdateConnector() {
     }
   };
 
+  // URL to navigate back to the charge point connectors tab
   const backUrl = id ? `/charge-points/${id}?tab=connectors` : '/charge-points';
 
   return (

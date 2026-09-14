@@ -22,7 +22,7 @@ export default function AddNewFleet({ isViewMode = false, isEditMode = false }) 
 
   if (loadingData) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-[#1EB8D4]">
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-[#4DA944]">
         <Loader2 className="w-10 h-10 animate-spin mb-4" />
         <p className="text-sm font-bold text-stone-600">Loading fleet details...</p>
       </div>

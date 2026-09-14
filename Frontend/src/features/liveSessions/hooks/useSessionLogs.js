@@ -2,6 +2,16 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSocketEvents } from '../../../hooks/useSocketEvents';
 import { getSessionLogs } from '../api/sessionService';
 
+function safeJsonParse(body) {
+  if (!body) return {};
+  if (typeof body === 'object') return body;
+  try {
+    return JSON.parse(body) || {};
+  } catch {
+    return { raw: String(body) };
+  }
+}
+
 // Custom hook managing telemetry / OCPP logs for a specific session
 export function useSessionLogs({
   sessionId,
@@ -39,7 +49,7 @@ export function useSessionLogs({
       const logsArray = Array.isArray(res) ? res : (res?.data || []);
       const formatted = logsArray.map(log => ({
         ...log,
-        body: typeof log.body === 'string' ? (JSON.parse(log.body) || {}) : (log.body || {}),
+        body: safeJsonParse(log.body),
         recordedOn: log.createdAt ? new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-',
         fullTimestamp: log.createdAt ? new Date(log.createdAt).toLocaleString() : '-'
       }));
@@ -73,7 +83,7 @@ export function useSessionLogs({
       if (incomingSessionId === currentSessionId) {
         const formattedLog = {
           ...incomingLog,
-          body: typeof incomingLog.body === 'string' ? (JSON.parse(incomingLog.body) || {}) : (incomingLog.body || {}),
+          body: safeJsonParse(incomingLog.body),
           recordedOn: incomingLog.createdAt ? new Date(incomingLog.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-',
           fullTimestamp: incomingLog.createdAt ? new Date(incomingLog.createdAt).toLocaleString() : '-'
         };

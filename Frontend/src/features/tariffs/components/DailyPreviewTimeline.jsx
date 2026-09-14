@@ -3,6 +3,11 @@ import { Clock, Info } from 'lucide-react';
 import { generateTimelineSegments } from '../utils/timeUtils';
 import TariffSectionCard from './TariffSectionCard';
 
+/**
+ * 24-Hour Visual Schedule Timeline Component
+ * Computes and renders an interactive, color-coded horizontal timeline bar (Emerald: Normal, Rose: Peak, Sky: Off-Peak)
+ * showing operators how their configured time blocks map across a 24-hour day.
+ */
 export default function DailyPreviewTimeline({ peakPeriods = [], offPeakPeriods = [] }) {
   const timelineData = useMemo(() => {
     return generateTimelineSegments(peakPeriods, offPeakPeriods, 'Mon');
@@ -39,7 +44,7 @@ export default function DailyPreviewTimeline({ peakPeriods = [], offPeakPeriods 
             {/* Segmented Timeline Bar */}
             <div className="h-11 border border-stone-300/80 rounded-xl overflow-hidden flex shadow-2xs">
               {timelineData.segments.map((seg, idx) => {
-                let bgClass = "bg-cyan-200/90 text-cyan-950 border-cyan-300/80";
+                let bgClass = "bg-emerald-200/90 text-emerald-950 border-emerald-300/80";
                 if (seg.type === 'Peak') bgClass = "bg-rose-200/90 text-rose-950 border-rose-300/80";
                 if (seg.type === 'Off-Peak') bgClass = "bg-sky-200/90 text-sky-950 border-sky-300/80";
 
@@ -58,7 +63,7 @@ export default function DailyPreviewTimeline({ peakPeriods = [], offPeakPeriods 
 
           <div className="flex items-center gap-6 text-xs font-bold text-stone-700 pt-1">
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-md bg-cyan-200 border border-cyan-400"></span> Normal
+              <span className="w-3 h-3 rounded-md bg-emerald-200 border border-emerald-400"></span> Normal
             </div>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-md bg-rose-200 border border-rose-400"></span> Peak

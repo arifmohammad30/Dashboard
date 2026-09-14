@@ -33,7 +33,7 @@ export const ConnectorBadgesCell = ({ connectors }) => {
         <div className="absolute left-0 top-full mt-1.5 z-30 bg-white border border-stone-200 shadow-md rounded-xl p-2 flex flex-col gap-1.5 min-w-[140px] animate-in fade-in zoom-in-95 duration-150">
           {connectors.map((c, index) => (
             <span
-              key={index}
+              key={c?.id || index}
               className="px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-stone-50 text-stone-700 border border-stone-200/80 whitespace-nowrap text-left"
             >
               {getConnectorText(c)}

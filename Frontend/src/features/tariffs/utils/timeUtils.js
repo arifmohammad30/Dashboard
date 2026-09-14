@@ -1,7 +1,11 @@
 /**
- * Time Helpers & Dynamic 24-Hour Timeline Calculation
+ * Time Utilities & 24-Hour Schedule Timeline Generation
+ * Provides conversions between 12-hour/24-hour formats and generates visual timeline segments.
  */
 
+/**
+ * Converts a 24-hour time string ("14:30") to a formatted 12-hour string ("02:30 PM").
+ */
 export function to12Hour(time24) {
   if (!time24 || typeof time24 !== 'string') return '12:00 AM';
   const parts = time24.trim().split(':');
@@ -16,6 +20,9 @@ export function to12Hour(time24) {
   return `${hDisplay}:${m} ${period}`;
 }
 
+/**
+ * Converts a 12-hour time string ("02:30 PM") to a standard 24-hour string ("14:30").
+ */
 export function to24Hour(time12) {
   if (!time12 || typeof time12 !== 'string') return '00:00';
   const match = time12.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
@@ -30,6 +37,10 @@ export function to24Hour(time12) {
   return `${String(h).padStart(2, '0')}:${m}`;
 }
 
+/**
+ * Generates continuous visual segments and tick markers for a 24-hour timeline bar (00:00 to 24:00).
+ * Handles overnight time ranges (e.g. 22:00 to 06:00), multi-day spans, and fallback to Normal rate.
+ */
 export function generateTimelineSegments(peakPeriods = [], offPeakPeriods = [], day = 'Mon') {
   const MINUTES_IN_DAY = 1440;
   const dayMinutes = new Array(MINUTES_IN_DAY).fill('Normal');

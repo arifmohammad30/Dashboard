@@ -4,72 +4,21 @@ import { formatCsvRow } from '../../utils/csvSanitizer.js';
 import { calculateSessionTelemetry } from '../livesessions/session.service.js';
 import { handleRemoteStartOcppMock, handleRemoteStopOcppMock } from '../../mocks/remoteOcppHandler.js';
 
-export function formatChargePointData(cp, idx = 0) {
-  let methods = [];
-  try {
-    methods = cp.chargingMethods ? JSON.parse(cp.chargingMethods) : [];
-  } catch (e) {
-    methods = [];
-  }
-
+export function formatChargePointListItem(cp, idx = 0) {
   let parsedConnectors = [];
   if (cp.connectors && Array.isArray(cp.connectors)) {
     parsedConnectors = cp.connectors.map(c => typeof c === 'object' ? {
       id: c.id,
       connectorId: c.connectorId,
-      type: c.type,
-      maxPower: c.maxPower || 22.0,
-      status: c.status || 'Available'
+      type: c.type
     } : c);
   }
 
-
-  const cpIdPresets = [
-    'CP25R63RV8',
-    'CPNYW8F06U',
-    'CPR0E3TRQK',
-    'CP832NCYSF',
-    'CPNMU35QY0',
-    'CPBWYOCTOJ',
-    'CPC066JB03',
-    'CP5JJ82NIQ',
-    'CPQFPRMK3K',
-    'CPJ6WSAR6L'
-  ];
-
-  const qrCodePresets = [
-    'CQUHBOICZV',
-    'CQ3MT0099C',
-    'CQN0SKKCJ',
-    'CQ0J6XPPS6',
-    'CQLIUF8AQ4',
-    'CQQH8H8D0B',
-    'CQ65RSXDKC',
-    'CQ5NTZQ5R',
-    'CQ19MZXMCT',
-    'CQ0450IJAB'
-  ];
-
-  const connectorOpts = [
-    ['15A (2)', '15A (1)', '15A (3)'],
-    ['CCS2 (1)', 'CCS2 (2)'],
-    ['Type2 (1)'],
-    ['Type2 (1)'],
-    ['Type2 (1)'],
-    ['Type2 (1)'],
-    ['Type2 (1)'],
-    ['Type2 (1)'],
-    ['CCS2 (1)', 'CCS2 (2)'],
-    ['15A (1)']
-  ];
-  const defaultConnectors = connectorOpts[idx % connectorOpts.length];
+  const cpIdPresets = ['CP25R63RV8', 'CPNYW8F06U', 'CPR0E3TRQK', 'CP832NCYSF', 'CPNMU35QY0', 'CPBWYOCTOJ', 'CPC066JB03', 'CP5JJ82NIQ', 'CPQFPRMK3K', 'CPJ6WSAR6L'];
+  const qrCodePresets = ['CQUHBOICZV', 'CQ3MT0099C', 'CQN0SKKCJ', 'CQ0J6XPPS6', 'CQLIUF8AQ4', 'CQQH8H8D0B', 'CQ65RSXDKC', 'CQ5NTZQ5R', 'CQ19MZXMCT', 'CQ0450IJAB'];
   const defaultFirmwares = ['2.0.2 & 1.2.6', '2.2.0-2.2.4', '2.0.2', '2.0.2', '2.0.2', '2.0.2', '2.0.2', '2.0.2', '2.2.0-2.2.4', '1.8.8 & 1.2.5'];
   const defaultCapacities = ['9.899999999999999 kW', '-', '-', '-', '-', '-', '-', '-', '-', '3 kW'];
   const defaultLastActive = ['10 mins ago', 'Just now', '1 hour ago', '2 hours ago', 'Yesterday'];
-
-  const resolvedCpId = (cp.cpId && cp.cpId !== cp.code) ? cp.cpId : cpIdPresets[idx % cpIdPresets.length];
-  const resolvedQrCode = cp.qrCodeId || qrCodePresets[idx % qrCodePresets.length];
-
   const defaultOems = ['EVRE', 'Siemens', 'Delta', 'ABB', 'Schneider'];
   const defaultTariffs = ['EVRE TEST', 'DLF Park Place DC', 'DLF Park Place AC', 'Sobha DC', 'Brigade Kovai AC'];
   const defaultStages = ['Active', 'Inactive', 'Maintenance'];
@@ -80,40 +29,102 @@ export function formatChargePointData(cp, idx = 0) {
     ? 'Faulted'
     : (cp.status && cp.status !== 'Faulted' ? cp.status : 'Available');
 
-  return {
-    ...cp,
-    stage: resolvedStage,
-    status: resolvedStatus,
-    cpId: resolvedCpId,
-    thirdPartyCpId: cp.thirdPartyCpId || 'NA',
-    oem: cp.oem || cp.manufacturer || defaultOems[idx % defaultOems.length],
-    zone: cp.zone || '-',
-    tariffProfiles: cp.tariffProfiles || defaultTariffs[idx % defaultTariffs.length],
-    qrCodeId: resolvedQrCode,
-    chargingMethods: methods,
-    connectors: parsedConnectors,
-    lastActive: cp.lastActive || defaultLastActive[idx % defaultLastActive.length],
+  const resolvedTariffName = cp.tariff?.name || cp.tariffProfiles || defaultTariffs[idx % defaultTariffs.length];
+  const resolvedTariff = cp.tariff ? {
+    id: cp.tariff.id,
+    name: cp.tariff.name
+  } : (resolvedTariffName ? {
+    id: cp.tariffId || `tar_${idx + 1}`,
+    name: resolvedTariffName
+  } : null);
 
-    totalSessions: cp.totalSessions ?? (idx % 3 === 0 ? (idx * 2) % 15 + 1 : 0),
-    energyDelivered: cp.energyDelivered ?? (idx % 3 === 0 ? parseFloat(((idx * 14.23) % 120 + 5).toFixed(2)) : 0),
-    revenueGenerated: cp.revenueGenerated ?? (idx % 3 === 0 ? parseFloat(((idx * 245.80) % 2500 + 100).toFixed(2)) : 0),
-    mobilityType: cp.mobilityType || 'Stationary',
+  return {
+    id: cp.id,
+    name: cp.name,
+    code: cp.code,
+    chargingStation: cp.chargingStation ? {
+      id: cp.chargingStation.id,
+      name: cp.chargingStation.name,
+      code: cp.chargingStation.code
+    } : null,
+    status: resolvedStatus,
+    stage: resolvedStage,
+    type: cp.type || 'AC',
+    mode: cp.mode || 'Public',
+    manufacturer: cp.manufacturer || cp.oem || defaultOems[idx % defaultOems.length],
+    oem: cp.oem || cp.manufacturer || defaultOems[idx % defaultOems.length],
     firmwareVersion: cp.firmwareVersion || defaultFirmwares[idx % defaultFirmwares.length],
     totalCapacity: cp.totalCapacity || defaultCapacities[idx % defaultCapacities.length],
-    mode: cp.mode || 'Public'
+    cpId: (cp.cpId && cp.cpId !== cp.code) ? cp.cpId : cpIdPresets[idx % cpIdPresets.length],
+    thirdPartyCpId: cp.thirdPartyCpId || 'NA',
+    qrCodeId: cp.qrCodeId || qrCodePresets[idx % qrCodePresets.length],
+    tariff: resolvedTariff,
+    connectors: parsedConnectors,
+    lastActive: cp.lastActive || defaultLastActive[idx % defaultLastActive.length],
+    mobilityType: cp.mobilityType || 'Stationary',
+    createdAt: cp.createdAt
+  };
+}
+
+export function formatChargePointData(cp, idx = 0) {
+  let methods = [];
+  try {
+    methods = cp.chargingMethods ? JSON.parse(cp.chargingMethods) : [];
+  } catch (e) {
+    methods = [];
+  }
+
+  const defaultStages = ['Active', 'Inactive', 'Maintenance'];
+  const resolvedStage = cp.stage || defaultStages[idx % defaultStages.length];
+
+  const resolvedTariff = cp.tariff ? {
+    id: cp.tariff.id,
+    name: cp.tariff.name,
+    code: cp.tariff.code,
+    baseRate: cp.tariff.baseRate || 15.0,
+    gstPercentage: cp.tariff.gstPercentage || 18.0
+  } : null;
+
+  const resolvedChargingStation = cp.chargingStation ? {
+    id: cp.chargingStation.id,
+    name: cp.chargingStation.name,
+    code: cp.chargingStation.code
+  } : null;
+
+  return {
+    id: cp.id,
+    name: cp.name,
+    code: cp.code,
+    chargingStation: resolvedChargingStation,
+    manufacturer: cp.manufacturer,
+    mode: cp.mode || 'Public',
+    accessibility: cp.accessibility || 'Public',
+    stage: resolvedStage,
+    type: cp.type || 'AC',
+    exclusive: cp.exclusive || 'Exclusive',
+    gracePeriod: cp.gracePeriod !== null && cp.gracePeriod !== undefined ? cp.gracePeriod : 0,
+    tariff: resolvedTariff,
+    settlementProfile: cp.settlementProfile || 'Standard Rate',
+    chargingMethods: methods,
+    createdAt: cp.createdAt,
+    updatedAt: cp.updatedAt
   };
 }
 
 export async function getFilterOptions() {
-  const stations = await prisma.chargingStation.findMany({ select: { name: true } });
+  const stations = await prisma.chargingStation.findMany({ select: { id: true, name: true, code: true } });
+  const tariffs = await prisma.tariff.findMany({ select: { id: true, name: true, code: true } });
   const manufacturers = await prisma.chargePoint.findMany({ select: { manufacturer: true }, distinct: ['manufacturer'] });
   const types = await prisma.chargePoint.findMany({ select: { type: true }, distinct: ['type'] });
 
   return {
-    locations: stations.map(s => s.name).sort(),
-    manufacturers: manufacturers.map(m => m.manufacturer).sort(),
+    locations: stations.map(s => s.name).filter(Boolean).sort(),
+    stations: stations,
+    tariffs: tariffs,
+    tariffNames: tariffs.map(t => t.name).filter(Boolean).sort(),
+    manufacturers: manufacturers.map(m => m.manufacturer).filter(Boolean).sort(),
     statuses: ['Available', 'Charging', 'Faulted', 'Preparing'],
-    types: types.map(t => t.type).sort(),
+    types: types.map(t => t.type).filter(Boolean).sort(),
   };
 }
 
@@ -187,7 +198,7 @@ export async function getChargePoints({ page = 1, limit = 10, searchTerm = '', f
     take: limitNum
   });
 
-  const formattedData = paginatedData.map((cp, idx) => formatChargePointData(cp, idx));
+  const formattedData = paginatedData.map((cp, idx) => formatChargePointListItem(cp, idx));
 
   return {
     data: formattedData,
@@ -349,15 +360,23 @@ export async function addConnectorToDb(id, payload = {}) {
   if (!cp) throw new Error("Charge point not found");
 
   const existingConnectorIds = (cp.connectors || []).map(c => c.connectorId);
-  let nextConnId = 1;
-  while (existingConnectorIds.includes(nextConnId)) {
-    nextConnId++;
+  const requestedId = parseInt(payload.connectorId);
+
+  let finalConnId;
+  if (requestedId && requestedId > 0 && !existingConnectorIds.includes(requestedId)) {
+    finalConnId = requestedId;
+  } else {
+    let nextConnId = 1;
+    while (existingConnectorIds.includes(nextConnId)) {
+      nextConnId++;
+    }
+    finalConnId = nextConnId;
   }
 
   const newConn = await prisma.connector.create({
     data: {
       chargePointId: cp.id,
-      connectorId: nextConnId,
+      connectorId: finalConnId,
       type: payload.type || 'Type2',
       maxPower: payload.maxPower ? parseFloat(payload.maxPower) : 22.0,
       status: payload.status || 'Available'
@@ -483,14 +502,15 @@ export async function createChargePoint(payload) {
     payload.code = `CP-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
   }
 
-  let stationId = payload.chargingStationId;
-  if (!stationId && payload.chargingStation) {
+  const targetStation = payload.chargingStation || payload.chargingStationId;
+  let stationId = null;
+  if (targetStation) {
     const station = await prisma.chargingStation.findFirst({
       where: {
         OR: [
-          { id: payload.chargingStation },
-          { name: payload.chargingStation },
-          { code: payload.chargingStation }
+          { id: typeof targetStation === 'object' ? targetStation.id : targetStation },
+          { name: typeof targetStation === 'object' ? targetStation.name : targetStation },
+          { code: typeof targetStation === 'object' ? targetStation.code : targetStation }
         ]
       }
     });
@@ -514,55 +534,149 @@ export async function createChargePoint(payload) {
     }
   }
 
+  const targetTariff = payload.tariff || payload.tariffProfiles || payload.tariffId;
+  let resolvedTariffId = null;
+  let resolvedTariffName = '';
+  if (targetTariff) {
+    const matchedTariff = await prisma.tariff.findFirst({
+      where: {
+        OR: [
+          { id: typeof targetTariff === 'object' ? targetTariff.id : targetTariff },
+          { name: typeof targetTariff === 'object' ? targetTariff.name : targetTariff },
+          { code: typeof targetTariff === 'object' ? targetTariff.code : targetTariff }
+        ]
+      }
+    });
+    if (matchedTariff) {
+      resolvedTariffId = matchedTariff.id;
+      resolvedTariffName = matchedTariff.name;
+    }
+  }
+
+  const chargingMethodsData = payload.chargingMethods !== undefined
+    ? (typeof payload.chargingMethods === 'string' ? payload.chargingMethods : JSON.stringify(payload.chargingMethods))
+    : (payload.supportedChargingMethods !== undefined ? JSON.stringify(payload.supportedChargingMethods) : '[]');
+
   const newCp = await prisma.chargePoint.create({
     data: {
       name: payload.name,
       chargingStationId: stationId,
+      tariffId: resolvedTariffId || null,
       manufacturer: payload.manufacturer || 'Siemens',
       mode: payload.mode || 'Public',
       code: payload.code,
       accessibility: payload.accessibility || 'Public',
       stage: payload.stage || 'Active',
       exclusive: payload.exclusive || 'Shared',
-      gracePeriod: payload.gracePeriod !== null && payload.gracePeriod !== undefined ? parseInt(payload.gracePeriod) : null,
-      tariffProfiles: payload.tariffProfiles || '',
+      gracePeriod: payload.gracePeriod !== null && payload.gracePeriod !== undefined ? parseInt(payload.gracePeriod) : 0,
+      tariffProfiles: resolvedTariffName,
       settlementProfile: payload.settlementProfile || '',
       type: payload.type || 'AC',
-      chargingMethods: JSON.stringify(payload.supportedChargingMethods || [])
+      chargingMethods: chargingMethodsData
+    },
+    include: {
+      chargingStation: true,
+      tariff: true,
+      connectors: true
     }
   });
 
-  return { ...newCp, chargingMethods: JSON.parse(newCp.chargingMethods) };
+  return {
+    success: true,
+    message: "Charge point created successfully",
+    id: newCp.id,
+    name: newCp.name,
+    code: newCp.code
+  };
 }
 
 
 export async function updateChargePoint(id, payload) {
   const dataToUpdate = {};
   if (payload.name !== undefined) dataToUpdate.name = payload.name;
-  if (payload.chargingStation !== undefined) dataToUpdate.chargingStation = payload.chargingStation;
+  
+  if (payload.chargingStation !== undefined || payload.chargingStationId !== undefined) {
+    const targetStation = payload.chargingStation || payload.chargingStationId;
+    if (targetStation) {
+      const station = await prisma.chargingStation.findFirst({
+        where: {
+          OR: [
+            { id: typeof targetStation === 'object' ? targetStation.id : targetStation },
+            { name: typeof targetStation === 'object' ? targetStation.name : targetStation },
+            { code: typeof targetStation === 'object' ? targetStation.code : targetStation }
+          ]
+        }
+      });
+      if (station) {
+        dataToUpdate.chargingStationId = station.id;
+      }
+    } else {
+      dataToUpdate.chargingStationId = null;
+    }
+  }
+
   if (payload.manufacturer !== undefined) dataToUpdate.manufacturer = payload.manufacturer;
   if (payload.mode !== undefined) dataToUpdate.mode = payload.mode;
   if (payload.code !== undefined) dataToUpdate.code = payload.code;
   if (payload.accessibility !== undefined) dataToUpdate.accessibility = payload.accessibility;
   if (payload.stage !== undefined) dataToUpdate.stage = payload.stage;
   if (payload.status !== undefined) dataToUpdate.status = payload.status;
-  if (payload.connectors !== undefined) dataToUpdate.connectors = typeof payload.connectors === 'string' ? payload.connectors : JSON.stringify(payload.connectors);
   if (payload.exclusive !== undefined) dataToUpdate.exclusive = payload.exclusive;
-  if (payload.gracePeriod !== undefined) dataToUpdate.gracePeriod = payload.gracePeriod !== null ? parseInt(payload.gracePeriod) : null;
-  if (payload.tariffProfiles !== undefined) dataToUpdate.tariffProfiles = payload.tariffProfiles;
+  if (payload.gracePeriod !== undefined) dataToUpdate.gracePeriod = payload.gracePeriod !== null ? parseInt(payload.gracePeriod) : 0;
+  
+  if (payload.tariff !== undefined || payload.tariffProfiles !== undefined || payload.tariffId !== undefined) {
+    const targetTariff = payload.tariff || payload.tariffProfiles || payload.tariffId;
+    if (targetTariff) {
+      const matchedTariff = await prisma.tariff.findFirst({
+        where: {
+          OR: [
+            { id: typeof targetTariff === 'object' ? targetTariff.id : targetTariff },
+            { name: typeof targetTariff === 'object' ? targetTariff.name : targetTariff },
+            { code: typeof targetTariff === 'object' ? targetTariff.code : targetTariff }
+          ]
+        }
+      });
+      if (matchedTariff) {
+        dataToUpdate.tariffId = matchedTariff.id;
+        dataToUpdate.tariffProfiles = matchedTariff.name;
+      } else {
+        dataToUpdate.tariffId = null;
+        dataToUpdate.tariffProfiles = '';
+      }
+    } else {
+      dataToUpdate.tariffId = null;
+      dataToUpdate.tariffProfiles = '';
+    }
+  }
+
   if (payload.settlementProfile !== undefined) dataToUpdate.settlementProfile = payload.settlementProfile;
   if (payload.type !== undefined) dataToUpdate.type = payload.type;
-  if (payload.supportedChargingMethods !== undefined) dataToUpdate.chargingMethods = JSON.stringify(payload.supportedChargingMethods);
+  
+  if (payload.chargingMethods !== undefined) {
+    dataToUpdate.chargingMethods = typeof payload.chargingMethods === 'string'
+      ? payload.chargingMethods
+      : JSON.stringify(payload.chargingMethods);
+  } else if (payload.supportedChargingMethods !== undefined) {
+    dataToUpdate.chargingMethods = JSON.stringify(payload.supportedChargingMethods);
+  }
 
   const updatedCp = await prisma.chargePoint.update({
     where: { id },
-    data: dataToUpdate
+    data: dataToUpdate,
+    include: {
+      chargingStation: true,
+      tariff: true,
+      connectors: true
+    }
   });
 
-  let methods = [];
-  try { methods = JSON.parse(updatedCp.chargingMethods); } catch (e) {}
-
-  return { ...updatedCp, chargingMethods: methods };
+  return {
+    success: true,
+    message: "Charge point updated successfully",
+    id: updatedCp.id,
+    name: updatedCp.name,
+    code: updatedCp.code
+  };
 }
 
 export async function deleteChargePoint(id) {

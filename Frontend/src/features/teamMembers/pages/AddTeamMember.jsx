@@ -86,7 +86,7 @@ export default function AddTeamMember({ isEditMode = false, isViewMode = false }
   if (loadingData) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-stone-500">
-        <Loader2 className="w-8 h-8 animate-spin text-[#1EB8D4] mb-3" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#4DA944] mb-3" />
         <p className="text-xs font-semibold text-stone-500">Loading team member details...</p>
       </div>
     );

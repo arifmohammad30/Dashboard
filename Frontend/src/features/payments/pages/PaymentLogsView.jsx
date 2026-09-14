@@ -77,7 +77,7 @@ export default function PaymentLogsView() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-black text-stone-900 tracking-tight flex items-center gap-2.5">
-              <CreditCard className="w-6 h-6 text-cyan-600" />
+              <CreditCard className="w-6 h-6 text-emerald-600" />
               Payment Gateway Logs
             </h1>
             <p className="text-xs text-stone-500 font-medium mt-0.5">
@@ -175,8 +175,8 @@ export default function PaymentLogsView() {
                           <td className="px-4 py-3 whitespace-nowrap font-mono text-sky-700 font-bold">{log.event}</td>
                           <td className="px-4 py-3 whitespace-nowrap">
                             {log.status === 'Success' ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-cyan-50 text-cyan-700 border border-cyan-200">
-                                <span className="w-1.5 h-1.5 rounded-full bg-cyan-500"></span>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                 Success
                               </span>
                             ) : (
@@ -188,7 +188,7 @@ export default function PaymentLogsView() {
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap font-mono text-stone-800 font-bold">{log.transactionId}</td>
                           <td className="px-4 py-3 whitespace-nowrap font-mono text-sky-600 font-bold">{log.sessionId}</td>
-                          <td className="px-4 py-3 whitespace-nowrap font-mono font-extrabold text-cyan-700">{log.amount}</td>
+                          <td className="px-4 py-3 whitespace-nowrap font-mono font-extrabold text-emerald-700">{log.amount}</td>
                           <td className="px-4 py-3 whitespace-nowrap text-right">
                             <button
                               type="button"
@@ -249,7 +249,7 @@ export default function PaymentLogsView() {
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-stone-200">
                 <div className="flex items-center gap-2">
-                  <Terminal className="w-4 h-4 text-cyan-600" />
+                  <Terminal className="w-4 h-4 text-emerald-600" />
                   <h3 className="text-sm font-black text-stone-900 tracking-tight">
                     Webhook Payload Inspector
                   </h3>
@@ -274,7 +274,7 @@ export default function PaymentLogsView() {
                   onClick={handleCopyJson}
                   className="px-3 py-1 bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5"
                 >
-                  {copiedPayload ? <Check className="w-3.5 h-3.5 text-cyan-600" /> : <Copy className="w-3.5 h-3.5 text-stone-500" />}
+                  {copiedPayload ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-stone-500" />}
                   <span>{copiedPayload ? 'Copied' : 'Copy JSON'}</span>
                 </button>
               </div>

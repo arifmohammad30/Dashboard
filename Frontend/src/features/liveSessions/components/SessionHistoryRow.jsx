@@ -40,11 +40,11 @@ export default function SessionHistoryRow({
       {/* 2. User */}
       <td className="px-4 py-3 whitespace-nowrap">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#1EB8D4]/20 to-[#1EB8D4]/10 border border-[#1EB8D4]/30 text-[#148296] font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#4DA944]/20 to-[#4DA944]/10 border border-[#4DA944]/30 text-[#30702a] font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
             {session.userInitials || session.userName?.[0] || 'U'}
           </div>
           <div>
-            <span className="font-bold text-slate-900 block group-hover/row:text-[#1EB8D4] transition-colors">
+            <span className="font-bold text-slate-900 block group-hover/row:text-[#4DA944] transition-colors">
               {session.userName || 'EV Driver'}
             </span>
             {session.userPhone && (
@@ -97,8 +97,8 @@ export default function SessionHistoryRow({
       {/* 7. Status */}
       <td className="px-4 py-3 whitespace-nowrap">
         {isCompleted ? (
-          <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full text-[11px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-200/80">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-500"></span>
+          <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
             Completed
           </span>
         ) : (
@@ -125,7 +125,7 @@ export default function SessionHistoryRow({
       </td>
 
       {/* 11. Cost */}
-      <td className="px-4 py-3 font-extrabold text-cyan-700 font-mono whitespace-nowrap">
+      <td className="px-4 py-3 font-extrabold text-emerald-700 font-mono whitespace-nowrap">
         ₹{session.cost || (typeof session.totalCost === 'number' ? session.totalCost.toFixed(2) : '0.00')}
       </td>
 

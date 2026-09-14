@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import BackButton from '../../../components/ui/BackButton';
-import Select from '../../../components/ui/Select';
 import ChargePointStatsTab from '../components/ChargePointStatsTab';
 import ChargePointConnectorsTab from '../components/ChargePointConnectorsTab';
 import ChargePointTransactionsTab from '../components/ChargePointTransactionsTab';
@@ -9,50 +8,21 @@ import ChargePointConfigTab from '../components/ChargePointConfigTab';
 import ChargePointControlTab from '../components/ChargePointControlTab';
 import ChargePointTariffsTab from '../components/ChargePointTariffsTab';
 import {
-  ArrowLeft,
   Edit,
-  Download,
   Activity,
   Plug,
-  ListFilter,
   Zap,
   Settings,
   Sliders,
   Tag,
-  Eye,
   Loader2,
-  ChevronRight,
-  ChevronDown,
-  Power,
-  RefreshCw,
-  RotateCcw,
-  Lock,
-  Unlock,
-  CheckCircle2,
-  XCircle,
-  AlertTriangle,
   Info,
-  Clock,
-  DollarSign,
-  QrCode,
-  Play,
-  Shield,
-  Layers,
-  MapPin,
-  Factory,
-  Calendar,
-  Send,
-  FileText,
-  Database,
-  UploadCloud,
-  Cpu,
-  KeyRound,
-  Trash2,
-  Sparkles
+  QrCode
 } from 'lucide-react';
 import { getChargePointById } from '../api/chargePointService';
 import { useToast } from '../../../context/ToastContext';
 
+// Charge Point Details & Multi-Tab Monitoring Page
 export default function ViewChargePoint({ defaultTab }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -61,6 +31,7 @@ export default function ViewChargePoint({ defaultTab }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialData = location.state?.chargePoint;
 
+  // 1. Tab Management & URL Synchronization
   const validTabs = ['stats', 'connectors', 'transactions', 'config', 'control', 'tariffs'];
   const tabFromUrl = searchParams.get('tab') || defaultTab;
   const activeTab = validTabs.includes(tabFromUrl) ? tabFromUrl : 'stats';
@@ -69,13 +40,11 @@ export default function ViewChargePoint({ defaultTab }) {
     setSearchParams({ tab: tabId }, { replace: true });
   };
 
+  // 2. Component State
   const [chargePoint, setChargePoint] = useState(initialData);
   const [loading, setLoading] = useState(!initialData && Boolean(id));
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
-  const [openDropdownIds, setOpenDropdownIds] = useState({});
-  const [connectorStatusMap, setConnectorStatusMap] = useState({});
-
+  // 3. Extract Connectors for Options & Count
   const cpObj = chargePoint || initialData || {};
   let rawConnArray = [];
   if (Array.isArray(cpObj.connectors)) {
@@ -91,7 +60,7 @@ export default function ViewChargePoint({ defaultTab }) {
     rawConnArray = [];
   }
 
-
+  // Generate Connector ID options for Control Tab
   const connectorIdOptions = useMemo(() => {
     const opts = [{ value: 'All', label: 'All' }];
     rawConnArray.forEach((_, idx) => {
@@ -101,14 +70,12 @@ export default function ViewChargePoint({ defaultTab }) {
     return opts;
   }, [rawConnArray.length]);
 
-  const toggleRowDropdown = (id) => {
-    setOpenDropdownIds(prev => ({ ...prev, [id]: !prev[id] }));
-  };
-
+  // Toast feedback helper for control tab actions
   const handleControlAction = (msg) => {
     toast.success(msg, { code: 200 });
   };
 
+  // 4. Lifecycle: Fetch Authoritative Charge Point Data by ID
   useEffect(() => {
     if (!initialData && id) {
       setLoading(true);
@@ -122,15 +89,17 @@ export default function ViewChargePoint({ defaultTab }) {
     }
   }, [id, initialData]);
 
+  // 5. Loading State
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[500px] text-[#1EB8D4]">
+      <div className="flex flex-col items-center justify-center min-h-[500px] text-[#4DA944]">
         <Loader2 className="w-12 h-12 animate-spin mb-4" />
-        <p className="text-sm font-bold text-stone-600">Loading station details...</p>
+        <p className="text-sm font-bold text-stone-600">Loading charge point details...</p>
       </div>
     );
   }
 
+  // 6. Missing Entity Error State
   if (!chargePoint) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
@@ -145,62 +114,24 @@ export default function ViewChargePoint({ defaultTab }) {
 
   const cp = chargePoint;
 
-
-  const isOffline = cp.stage === 'Inactive' || cp.stage === 'Offline';
-
-  let rawConnectors = [];
-  if (Array.isArray(cp.connectors)) {
-    rawConnectors = cp.connectors;
-  } else if (typeof cp.connectors === 'string' && cp.connectors.trim() !== '') {
-    try {
-      const parsed = JSON.parse(cp.connectors);
-      rawConnectors = Array.isArray(parsed) ? parsed : [];
-    } catch (e) {
-      rawConnectors = [];
-    }
-  } else {
-    rawConnectors = [];
-  }
-
-
-  const connectorRows = rawConnectors.map((c, index) => {
-    const connId = index + 1;
-    const cStr = typeof c === 'string' ? c : (c?.type || c?.name || String(c || ''));
-    const typeStr = cStr.includes('CCS2') ? 'CCS2' : cStr.includes('Type2') ? 'Type2' : (c?.type || '15A');
-    const qrStr = `CQ${(cp.code || 'XYZ').replace(/[^A-Z0-9]/gi, '')}${connId}1GYMY`.slice(0, 10).toUpperCase();
-
-    const currentOverride = connectorStatusMap[connId];
-    const isInoperative = currentOverride === 'Faulted' || (currentOverride === undefined && (cp.status === 'Faulted' || isOffline));
-
-    let currentAvailability = isInoperative ? 'Inoperative' : 'Operative';
-    let currentStatus = isInoperative ? 'Faulted' : (currentOverride || cp.status || 'Available');
-
-    return {
-      id: connId,
-      type: typeStr,
-      qrCode: qrStr,
-      availability: currentAvailability,
-      status: currentStatus,
-      error: currentStatus === 'Faulted' ? 'OtherError' : 'NoError',
-      vendorError: currentStatus === 'Faulted' ? 'EmergencyPressed' : 'None'
-    };
-  });
-
+  // Sub-tabs configuration
   const tabs = [
     { id: 'stats', label: 'Stats', icon: Activity },
-    { id: 'connectors', label: 'Connectors', icon: Plug, count: connectorRows.length },
+    { id: 'connectors', label: 'Connectors', icon: Plug, count: rawConnArray.length },
     { id: 'transactions', label: 'Charge Transactions', icon: Zap },
     { id: 'config', label: 'Configuration', icon: Settings },
     { id: 'control', label: 'Control', icon: Sliders },
     { id: 'tariffs', label: 'Tariffs', icon: Tag },
   ];
 
+  // Download QR Code Action
   const handleDownloadQR = () => {
     toast.success(`QR Code bundle downloaded for ${cp.name}`, { code: 200 });
   };
 
   return (
     <div className="flex flex-col gap-3 max-w-[1500px] w-full mx-auto h-[calc(100vh-115px)] overflow-hidden">
+      {/* Top Header Bar: Back Button, Title, Live Status Badge, Actions */}
       <div className="shrink-0 space-y-2 px-1">
         <div>
           <BackButton to="/charge-points" label="Back to Charge Points" />
@@ -212,12 +143,13 @@ export default function ViewChargePoint({ defaultTab }) {
               {cp.name}
             </h1>
 
-            <span className={`inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-medium border shadow-2xs ${cp.status === 'Available' ? 'bg-cyan-50/90 text-cyan-800 border-cyan-200/60' :
+            {/* Status Badge */}
+            <span className={`inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-medium border shadow-2xs ${cp.status === 'Available' ? 'bg-emerald-50/90 text-emerald-800 border-emerald-200/60' :
               cp.status === 'Charging' ? 'bg-blue-50/90 text-blue-700 border-blue-200/60' :
                 cp.status === 'Preparing' ? 'bg-amber-50/90 text-amber-800 border-amber-200/60' :
                   'bg-red-50/90 text-red-700 border-red-200/60'
               }`}>
-              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cp.status === 'Available' ? 'bg-cyan-500' :
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cp.status === 'Available' ? 'bg-emerald-500' :
                 cp.status === 'Charging' ? 'bg-blue-500 animate-pulse' :
                   cp.status === 'Preparing' ? 'bg-amber-500' :
                     'bg-red-500'
@@ -227,8 +159,7 @@ export default function ViewChargePoint({ defaultTab }) {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-
-
+            {/* Download QR Code Button */}
             <button
               onClick={handleDownloadQR}
               className="flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 font-semibold rounded-xl text-xs shadow-2xs transition-colors cursor-pointer"
@@ -237,9 +168,10 @@ export default function ViewChargePoint({ defaultTab }) {
               <span>Download QR Code</span>
             </button>
 
+            {/* Edit Charge Point Button */}
             <button
-              onClick={() => navigate(`/charge-points/edit/${cp.id || id}`, { state: { chargePoint: cp } })}
-              className="flex items-center gap-2 px-4 py-2 bg-[#1EB8D4] hover:bg-[#19A5C0] text-slate-950 font-bold rounded-xl text-xs shadow-xs transition-colors cursor-pointer"
+              onClick={() => navigate(`/charge-points/edit/${cp.id || id}`)}
+              className="flex items-center gap-2 px-4 py-2 bg-[#4DA944] hover:bg-[#43953b] text-slate-950 font-bold rounded-xl text-xs shadow-xs transition-colors cursor-pointer"
             >
               <Edit className="w-4 h-4" />
               <span>Edit Details</span>
@@ -248,8 +180,10 @@ export default function ViewChargePoint({ defaultTab }) {
         </div>
       </div>
 
+      {/* Main Tabbed Container */}
       <div className="bg-white/80 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] rounded-2xl overflow-hidden flex flex-col flex-1 min-h-0">
-        <div className="shrink-0 px-5 pt-2 pb-0 bg-[#F8FAFC] border-b border-stone-200/80 overflow-x-auto md:overflow-x-visible flex items-center gap-1.5 z-10 scrollbar-none">
+        {/* Tab Navigation Header */}
+        <div className="shrink-0 px-5 pt-2 pb-0 bg-[#F8FAFC] border-b border-stone-200/80 overflow-x-auto md:overflow-x-visible flex items-end gap-1.5 z-10 scrollbar-none">
           {tabs.map((t) => {
             const Icon = t.icon;
             const isActive = activeTab === t.id;
@@ -257,17 +191,18 @@ export default function ViewChargePoint({ defaultTab }) {
               <button
                 key={t.id}
                 onClick={() => handleTabChange(t.id)}
-                className={`flex items-center gap-2 px-4.5 py-3 text-xs font-bold tracking-tight transition-all duration-150 border-b-2 rounded-t-xl whitespace-nowrap cursor-pointer select-none relative ${isActive
-                  ? 'border-b-2 border-b-[#1EB8D4] text-slate-900 bg-white border-t border-x border-stone-200/90 shadow-2xs font-extrabold'
-                  : 'border-transparent text-stone-500 hover:text-stone-900 hover:bg-stone-100/60 font-medium'
-                  }`}
+                className={`flex items-center gap-2 px-4.5 py-3 text-xs font-bold tracking-tight rounded-t-xl whitespace-nowrap cursor-pointer select-none relative -mb-px border-t border-x border-b-2 transition-colors duration-150 ${
+                  isActive
+                    ? 'bg-white text-slate-900 border-t-stone-200/90 border-x-stone-200/90 border-b-[#4DA944] shadow-xs'
+                    : 'bg-transparent text-stone-500 hover:text-stone-800 hover:bg-stone-200/40 border-transparent'
+                }`}
               >
-                <Icon strokeWidth={2.25} className={`w-4 h-4 transition-transform ${isActive ? 'text-[#1EB8D4] scale-105' : 'text-stone-400'
-                  }`} />
+                <Icon strokeWidth={2.25} className={`w-4 h-4 ${isActive ? 'text-[#4DA944]' : 'text-stone-400'}`} />
                 <span>{t.label}</span>
                 {t.count !== undefined && (
-                  <span className={`px-2 py-0.5 text-[11px] font-mono font-bold rounded transition-colors ${isActive ? 'bg-[#1EB8D4]/10 text-[#148296] border border-[#1EB8D4]/20' : 'bg-stone-100 text-stone-600 border border-stone-200/60'
-                    }`}>
+                  <span className={`px-2 py-0.5 text-[11px] font-mono font-bold rounded transition-colors ${
+                    isActive ? 'bg-[#4DA944]/10 text-[#30702a] border border-[#4DA944]/20' : 'bg-stone-100 text-stone-600 border border-stone-200/60'
+                  }`}>
                     {t.count}
                   </span>
                 )}
@@ -276,7 +211,12 @@ export default function ViewChargePoint({ defaultTab }) {
           })}
         </div>
 
+        {/* Tab Content Body */}
         <div className="p-6 sm:p-8 flex-1 overflow-y-auto custom-scrollbar">
+          {activeTab === 'stats' && (
+            <ChargePointStatsTab cp={cp} />
+          )}
+
           {activeTab === 'connectors' && (
             <ChargePointConnectorsTab
               cp={cp}
@@ -284,10 +224,6 @@ export default function ViewChargePoint({ defaultTab }) {
               onUpdate={(updatedCp) => setChargePoint(prev => ({ ...prev, ...updatedCp }))}
               handleControlAction={handleControlAction}
             />
-          )}
-
-          {activeTab === 'stats' && (
-            <ChargePointStatsTab cp={cp} />
           )}
 
           {activeTab === 'transactions' && (

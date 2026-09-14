@@ -114,10 +114,10 @@ export default function DashboardLayout({ children }) {
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className={`w-10 h-10 rounded-full bg-stone-100/80 hover:bg-stone-200/80 border-2 transition-colors duration-200 flex items-center justify-center cursor-pointer shadow-2xs active:scale-95 ${isUserMenuOpen ? 'border-[#1EB8D4] ring-2 ring-[#1EB8D4]/20' : 'border-stone-300 hover:border-slate-800'}`}
+                className={`w-10 h-10 rounded-full bg-stone-100/80 hover:bg-stone-200/80 border-2 transition-colors duration-200 flex items-center justify-center cursor-pointer shadow-2xs active:scale-95 ${isUserMenuOpen ? 'border-[#4DA944] ring-2 ring-[#4DA944]/20' : 'border-stone-300 hover:border-slate-800'}`}
                 aria-label="User Profile"
               >
-                <span className="font-extrabold text-sm text-[#1EB8D4]">
+                <span className="font-extrabold text-sm text-[#4DA944]">
                   {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
                 </span>
               </button>
@@ -125,14 +125,14 @@ export default function DashboardLayout({ children }) {
               {isUserMenuOpen && (
                 <div className="absolute right-0 mt-3 w-64 bg-white/95 backdrop-blur-xl border-2 border-stone-200 rounded-2xl shadow-xl p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
                   <div className="flex items-center gap-3 pb-3 border-b border-stone-200">
-                    <div className="w-10 h-10 rounded-full bg-[#1EB8D4]/10 border-2 border-[#1EB8D4]/30 flex items-center justify-center text-[#1EB8D4] font-extrabold text-base shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-[#4DA944]/10 border-2 border-[#4DA944]/30 flex items-center justify-center text-[#4DA944] font-extrabold text-base shrink-0">
                       {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-extrabold text-stone-900 text-sm truncate">{user?.name || 'Admin User'}</p>
-                      <p className="text-xs text-stone-500 font-medium truncate">{user?.email || 'admin@openev.io'}</p>
-                      <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-extrabold bg-[#1EB8D4]/15 text-[#148296] border border-[#1EB8D4]/30 rounded-full uppercase tracking-wider">
-                        {role || 'System Admin'}
+                      <p className="font-extrabold text-stone-900 text-sm truncate">{user?.name || '-'}</p>
+                      <p className="text-xs text-stone-500 font-medium truncate">{user?.email || '-'}</p>
+                      <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-extrabold bg-[#4DA944]/15 text-[#30702a] border border-[#4DA944]/30 rounded-full uppercase tracking-wider">
+                        {user?.role || "-"}
                       </span>
                     </div>
                   </div>

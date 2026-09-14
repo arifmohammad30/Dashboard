@@ -30,7 +30,7 @@ export default function FilterSection({ title, options = [], selected = [], sele
               key={optKey} 
               htmlFor={fieldId}
               className={`flex items-center px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition-colors duration-200 border ${isSelected
-                ? 'bg-[#1EB8D4]/8 border-[#1EB8D4]/35 text-[#2d7a26] shadow-2xs'
+                ? 'bg-[#4DA944]/8 border-[#4DA944]/35 text-[#2d7a26] shadow-2xs'
                 : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50 shadow-sm'
               }`}
             >

@@ -194,8 +194,8 @@ const Login = () => {
   return (
     <div className="min-h-screen lg:h-screen w-full bg-[#f6f8fa] flex items-center justify-center p-3 sm:p-4 lg:p-6 text-slate-800 font-sans overflow-y-auto lg:overflow-hidden relative">
       {/* Decorative ambient background accents */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#1EB8D4]/5 rounded-full blur-3xl pointer-events-none -z-0"></div>
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-100/30 rounded-full blur-3xl pointer-events-none -z-0"></div>
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#4DA944]/5 rounded-full blur-3xl pointer-events-none -z-0"></div>
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-100/30 rounded-full blur-3xl pointer-events-none -z-0"></div>
 
       {/* Unified Floating Card */}
       <div className="w-full max-w-[1140px] xl:max-w-[1200px] lg:h-[88vh] lg:max-h-[630px] xl:max-h-[660px] lg:min-h-[480px] bg-white rounded-2xl sm:rounded-3xl border border-stone-200/90 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.07),0_1px_3px_rgba(0,0,0,0.03)] flex flex-col lg:flex-row overflow-hidden relative z-10 my-auto">
@@ -223,7 +223,7 @@ const Login = () => {
               Smart charging solutions & intelligent station management for a sustainable future.
             </p>
 
-            <div className="w-10 h-1.5 bg-[#1EB8D4] rounded-full mt-3.5"></div>
+            <div className="w-10 h-1.5 bg-[#4DA944] rounded-full mt-3.5"></div>
           </div>
 
           {/* Hero Illustration Layer */}
@@ -266,7 +266,7 @@ const Login = () => {
                         className={`absolute transition-all duration-200 pointer-events-none z-10 rounded-md ${
                           isEmailActive
                             ? '-top-2.5 translate-y-0 left-3.5 px-1.5 bg-white text-[11px] font-bold ' +
-                              (authError ? 'text-rose-500' : 'text-[#1EB8D4]')
+                              (authError ? 'text-rose-500' : 'text-[#4DA944]')
                             : 'top-1/2 -translate-y-1/2 left-10.5 text-xs sm:text-sm font-medium text-slate-400'
                         }`}
                       >
@@ -275,7 +275,7 @@ const Login = () => {
                       <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 z-10">
                         <Mail
                           className={`h-4.5 w-4.5 transition-colors ${
-                            authError ? 'text-rose-500' : isEmailActive ? 'text-[#1EB8D4]' : 'text-slate-400'
+                            authError ? 'text-rose-500' : isEmailActive ? 'text-[#4DA944]' : 'text-slate-400'
                           }`}
                         />
                       </div>
@@ -295,7 +295,7 @@ const Login = () => {
                           authError
                             ? 'border-rose-300 bg-rose-50/30 text-rose-900'
                             : isEmailActive
-                              ? 'border-[#1EB8D4] bg-white text-slate-800'
+                              ? 'border-[#4DA944] bg-white text-slate-800'
                               : 'border-slate-200 bg-white text-slate-800 hover:border-slate-300'
                         } pl-10.5 pr-3.5 py-3 text-xs sm:text-sm font-medium transition-all duration-200 outline-none`}
                         placeholder=""
@@ -316,7 +316,7 @@ const Login = () => {
                     <button
                       type="submit"
                       disabled={isSubmitting || !email.trim()}
-                      className="w-full py-3 px-4 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#1EB8D4] hover:bg-[#19A5C0] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed shadow-2xs hover:shadow-sm transition-all duration-200 flex items-center justify-center cursor-pointer"
+                      className="w-full py-3 px-4 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#4DA944] hover:bg-[#43953b] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed shadow-2xs hover:shadow-sm transition-all duration-200 flex items-center justify-center cursor-pointer"
                     >
                       {isSubmitting ? (
                         <div className="flex items-center gap-2">
@@ -389,8 +389,8 @@ const Login = () => {
                             authError
                               ? 'border-rose-300 bg-rose-50/40 text-rose-900 focus:border-rose-500'
                               : digit
-                                ? 'border-[#1EB8D4] bg-white text-slate-900 shadow-2xs'
-                                : 'border-slate-200 bg-slate-50/50 text-slate-800 hover:border-slate-300 focus:border-[#1EB8D4] focus:bg-white'
+                                ? 'border-[#4DA944] bg-white text-slate-900 shadow-2xs'
+                                : 'border-slate-200 bg-slate-50/50 text-slate-800 hover:border-slate-300 focus:border-[#4DA944] focus:bg-white'
                           }`}
                         />
                       ))}
@@ -407,7 +407,7 @@ const Login = () => {
                       className={`flex items-center gap-1 font-semibold transition-colors ${
                         resendCooldown > 0
                           ? 'text-slate-400 cursor-not-allowed'
-                          : 'text-[#1EB8D4] hover:text-[#3f8b37] cursor-pointer'
+                          : 'text-[#4DA944] hover:text-[#3f8b37] cursor-pointer'
                       }`}
                     >
                       <RefreshCw className={`w-3 h-3 ${isSubmitting ? 'animate-spin' : ''}`} />
@@ -429,7 +429,7 @@ const Login = () => {
                     <button
                       type="submit"
                       disabled={isSubmitting || !isOtpComplete}
-                      className="w-full py-3 px-4 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#1EB8D4] hover:bg-[#19A5C0] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed shadow-2xs hover:shadow-sm transition-all duration-200 flex items-center justify-center cursor-pointer"
+                      className="w-full py-3 px-4 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#4DA944] hover:bg-[#43953b] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed shadow-2xs hover:shadow-sm transition-all duration-200 flex items-center justify-center cursor-pointer"
                     >
                       {isSubmitting ? (
                         <div className="flex items-center gap-2">

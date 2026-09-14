@@ -1,30 +1,20 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Search,
-  Download,
   Filter,
-  Plus,
   Loader2,
   Settings2,
-
+  Edit,
   Tag,
   Zap,
   CreditCard,
-  Users,
   IndianRupee,
-  Car,
   Clock,
-  Gauge,
-  Play,
-  Square,
   Layers,
   Calendar,
   Percent,
-  X,
-  Check,
-  Eye,
-  Info
+  X
 } from 'lucide-react';
 
 import Pagination from '../../../components/ui/Pagination';
@@ -34,62 +24,76 @@ import FilterSection from '../../../components/ui/FilterSection';
 import TableActions from '../../../components/ui/TableActions';
 import SearchInput from '../../../components/ui/SearchInput';
 import PermissionGuard from '../../../components/ui/PermissionGuard';
+import DeleteModal from '../../../components/ui/DeleteModal';
 import { PERMISSIONS } from '../../../config/permissions';
 
-import { getTariffs, getFilterOptions, createTariff, exportTariffs } from '../api/tariffService';
+import { getTariffs, getFilterOptions, deleteTariff, exportTariffs } from '../api/tariffService';
 
 import { useToast } from '../../../context/ToastContext';
 import { useTableData } from '../../../hooks/useTableData';
 
+/**
+ * Tariffs List & Management View Component
+ * Displays a paginated, filterable table of all EV charging tariff profiles.
+ * Supports searching, multi-select filtering, viewing details, and navigation to the tariff editor.
+ */
 export default function TariffsList() {
   const navigate = useNavigate();
   const toast = useToast();
   const [searchParams] = useSearchParams();
-  const initialSearch = searchParams.get('id') || searchParams.get('search') || '';
+  const initialSearch = searchParams.get('search') || searchParams.get('name') || '';
 
+  // 1. Filter Drawer State
   const [filters, setFilters] = useState({ type: [], gstPercentage: [] });
   const [filterOptions, setFilterOptions] = useState({ types: [], gstPercentages: [] });
+  const [filterOptionsLoading, setFilterOptionsLoading] = useState(true);
+  const [filterOptionsError, setFilterOptionsError] = useState(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterRef = useRef(null);
 
+  // Load dynamic filter options with robust error handling
+  const loadFilterOptions = async () => {
+    setFilterOptionsLoading(true);
+    setFilterOptionsError(null);
+    try {
+      const data = await getFilterOptions();
+      if (data) {
+        setFilterOptions({
+          types: data.types || [],
+          gstPercentages: data.gstPercentages || []
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load tariff filter options:', err);
+      setFilterOptionsError(err);
+      toast.error(err.message || 'Failed to load filter options', {
+        title: err.title || 'Filter Error',
+        code: err.code || 500
+      });
+    } finally {
+      setFilterOptionsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    getFilterOptions()
-      .then((data) => {
-        if (data) {
-          setFilterOptions({
-            types: data.types || [],
-            gstPercentages: data.gstPercentages || []
-          });
-        }
-      })
-      .catch((err) => console.error('Failed to load tariff filter options:', err));
+    loadFilterOptions();
   }, []);
 
+  // 2. View & Modal State
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [tariffToView, setTariffToView] = useState(null);
 
-  const [addModalOpen, setAddModalOpen] = useState(false);
-  const [newTariff, setNewTariff] = useState({
-    name: '',
-    type: 'Default',
-    costingType: 'Charging Only',
-    applicableTo: 'All Fleets',
-    chargingFee: '12',
-    parkingFee: 'NA',
-    idleFee: '0',
-    soc: 'NA',
-    startsAt: 'NA',
-    endsAt: 'NA',
-    weight: '1',
-    gstPercentage: '18'
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // 3. Delete Modal State
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [tariffToDelete, setTariffToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-
+  // 3. Server-Side Paginated Table Data Hook
   const {
     data: tariffs,
     setData: setTariffs,
     loading,
+    error,
     searchTerm,
     setSearchTerm,
     currentPage,
@@ -132,51 +136,6 @@ export default function TariffsList() {
 
   const activeFiltersCount = Object.values(filters).reduce((acc, curr) => acc + curr.length, 0);
 
-  const handleCreateTariff = async (e) => {
-    e.preventDefault();
-    if (!newTariff.name.trim()) return;
-
-    setIsSubmitting(true);
-    try {
-      const created = await createTariff({
-        name: newTariff.name.trim(),
-        type: newTariff.type,
-        costingType: newTariff.costingType,
-        applicableTo: newTariff.applicableTo,
-        chargingFee: `₹${newTariff.chargingFee} / kWh`,
-        parkingFee: newTariff.parkingFee,
-        idleFee: newTariff.idleFee === '0' ? '₹0 / min' : `₹${newTariff.idleFee} / min`,
-        soc: newTariff.soc,
-        startsAt: newTariff.startsAt,
-        endsAt: newTariff.endsAt,
-        weight: Number(newTariff.weight) || 1,
-        gstPercentage: `${newTariff.gstPercentage} %`
-      });
-
-      setTariffs(prev => [created, ...prev]);
-      setAddModalOpen(false);
-      setNewTariff({
-        name: '',
-        type: 'Default',
-        costingType: 'Charging Only',
-        applicableTo: 'All Fleets',
-        chargingFee: '12',
-        parkingFee: 'NA',
-        idleFee: '0',
-        soc: 'NA',
-        startsAt: 'NA',
-        endsAt: 'NA',
-        weight: '1',
-        gstPercentage: '18'
-      });
-    } catch (err) {
-      console.error("Failed to create tariff:", err);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-
   const handleExportCSV = async () => {
     try {
       await exportTariffs(searchTerm, filters);
@@ -190,6 +149,36 @@ export default function TariffsList() {
         title: err.title || "Export Error",
         code: err.code || 500
       });
+    }
+  };
+
+  // 4. Delete Handlers
+  const handleDeleteClick = (e, tariff) => {
+    e.stopPropagation();
+    setTariffToDelete(tariff);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!tariffToDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteTariff(tariffToDelete.id);
+      await loadData();
+      setDeleteModalOpen(false);
+      setTariffToDelete(null);
+      toast.success('Tariff plan deleted successfully', {
+        title: 'Tariff Deleted',
+        code: 200
+      });
+    } catch (error) {
+      console.error('Failed to delete tariff:', error);
+      toast.error(error.message || 'Failed to delete tariff plan', {
+        title: error.title || 'Delete Error',
+        code: error.code || 500
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -221,7 +210,7 @@ export default function TariffsList() {
               <Filter className="w-4 h-4 text-violet-600 shrink-0" />
               <span className="leading-none">Filter</span>
               {activeFiltersCount > 0 && (
-                <span className="flex items-center justify-center w-4 h-4 bg-[#1EB8D4] text-slate-950 rounded-full text-[10px] ml-1 font-bold">
+                <span className="flex items-center justify-center w-4 h-4 bg-[#4DA944] text-white rounded-full text-[10px] ml-1 font-bold">
                   {activeFiltersCount}
                 </span>
               )}
@@ -244,20 +233,40 @@ export default function TariffsList() {
                   )}
                 </div>
 
-                <div className="space-y-6">
-                  <FilterSection
-                    title="Tariff Type"
-                    options={filterOptions.types}
-                    selected={filters.type}
-                    onChange={(val) => handleFilterChange('type', val)}
-                  />
-                  <FilterSection
-                    title="GST Percentage"
-                    options={filterOptions.gstPercentages}
-                    selected={filters.gstPercentage}
-                    onChange={(val) => handleFilterChange('gstPercentage', val)}
-                  />
-                </div>
+                {filterOptionsLoading ? (
+                  <div className="py-6 text-center">
+                    <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-[#4DA944]" />
+                    <p className="text-xs font-medium text-stone-500">Loading filter options...</p>
+                  </div>
+                ) : filterOptionsError ? (
+                  <div className="py-6 text-center">
+                    <p className="text-xs font-semibold text-rose-600 mb-3">
+                      {filterOptionsError.message || 'Failed to load filter options'}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={loadFilterOptions}
+                      className="text-xs font-bold text-[#4DA944] hover:text-[#30702a] cursor-pointer"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <FilterSection
+                      title="Tariff Type"
+                      options={filterOptions.types}
+                      selected={filters.type}
+                      onChange={(val) => handleFilterChange('type', val)}
+                    />
+                    <FilterSection
+                      title="GST Percentage"
+                      options={filterOptions.gstPercentages}
+                      selected={filters.gstPercentage}
+                      onChange={(val) => handleFilterChange('gstPercentage', val)}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -321,8 +330,34 @@ export default function TariffsList() {
                 <tr>
                   <td colSpan="8" className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <Loader2 className="w-8 h-8 text-[#1EB8D4] animate-spin" />
+                      <Loader2 className="w-8 h-8 text-[#4DA944] animate-spin" />
                       <p className="text-sm font-bold text-stone-500">Loading tariffs...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : error ? (
+                /* API Error State */
+                <tr>
+                  <td colSpan="8" className="px-5 py-24 text-center">
+                    <div className="flex flex-col items-center">
+                      <div className="w-16 h-16 bg-rose-50 border border-rose-100 flex items-center justify-center mb-4 rounded-full">
+                        <X className="w-8 h-8 text-rose-500" />
+                      </div>
+                      <p className="text-sm font-bold text-stone-800">
+                        {error.isNetworkError
+                          ? 'Unable to connect to the server.'
+                          : error.title || 'Failed to load tariffs.'}
+                      </p>
+                      <p className="text-xs text-stone-500 mt-1 max-w-md">
+                        {error.message || 'Something went wrong while loading tariff records.'}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={loadData}
+                        className="mt-4 text-xs font-bold text-[#4DA944] hover:text-[#30702a] cursor-pointer"
+                      >
+                        Retry
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -330,7 +365,7 @@ export default function TariffsList() {
                 <tr>
                   <td colSpan="8" className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <div className="w-12 h-12 rounded-2xl bg-white/40 border border-stone-200/60 flex items-center justify-center text-[#1EB8D4] mb-1">
+                      <div className="w-12 h-12 rounded-2xl bg-white/40 border border-stone-200/60 flex items-center justify-center text-[#4DA944] mb-1">
                         <Search className="w-6 h-6" />
                       </div>
                       <p className="text-sm font-bold text-stone-500">No tariffs found.</p>
@@ -360,10 +395,10 @@ export default function TariffsList() {
                   const pricingTagClass = pricingSummary === 'ToD + SOC'
                     ? 'bg-indigo-50 text-indigo-700 border-indigo-200/80'
                     : pricingSummary === 'ToD'
-                    ? 'bg-purple-50 text-purple-700 border-purple-200/80'
-                    : pricingSummary === 'SOC'
-                    ? 'bg-teal-50 text-teal-700 border-teal-200/80'
-                    : 'bg-stone-100 text-stone-600 border-stone-200/80';
+                      ? 'bg-purple-50 text-purple-700 border-purple-200/80'
+                      : pricingSummary === 'SOC'
+                        ? 'bg-teal-50 text-teal-700 border-teal-200/80'
+                        : 'bg-stone-100 text-stone-600 border-stone-200/80';
 
                   return (
                     <tr
@@ -377,7 +412,9 @@ export default function TariffsList() {
                             e.stopPropagation();
                             navigate(`/tariffs/edit/${t.id}`, { state: { tariff: t } });
                           }}
+                          onDelete={(e) => handleDeleteClick(e, t)}
                           editTitle="Edit Tariff"
+                          deleteTitle="Delete Tariff"
                           editPermission={PERMISSIONS.TARIFF_UPDATE}
                           deletePermission={PERMISSIONS.TARIFF_DELETE}
                         />
@@ -392,7 +429,7 @@ export default function TariffsList() {
                         setViewModalOpen(true);
                       }}>
                         <div className="flex flex-col">
-                          <span className="text-slate-900 font-semibold text-[13px] hover:text-[#148296] transition-colors duration-150 cursor-pointer">
+                          <span className="text-slate-900 font-semibold text-[13px] hover:text-[#30702a] transition-colors duration-150 cursor-pointer">
                             {t.name}
                           </span>
                           <span className="text-[10px] font-mono font-medium text-stone-400">
@@ -410,12 +447,11 @@ export default function TariffsList() {
 
                       {/* 4. Status */}
                       <td className="px-4 py-3 text-left whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                          isActive
-                            ? 'bg-cyan-50 text-cyan-700 border-cyan-200/80'
-                            : 'bg-stone-100 text-stone-600 border-stone-200/80'
-                        }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${isActive ? 'bg-cyan-500' : 'bg-stone-400'}`} />
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${isActive
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
+                          : 'bg-stone-100 text-stone-600 border-stone-200/80'
+                          }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${isActive ? 'bg-emerald-500' : 'bg-stone-400'}`} />
                           {status}
                         </span>
                       </td>
@@ -463,122 +499,7 @@ export default function TariffsList() {
         </div>
       </div>
 
-      {addModalOpen && (
-        <div className="fixed inset-0 z-50 bg-stone-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-stone-200 shadow-2xl max-w-lg w-full p-6 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-4 mb-4">
-              <h2 className="text-lg font-black text-stone-800 flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-sky-500" /> Create New Tariff
-              </h2>
-              <button
-                onClick={() => setAddModalOpen(false)}
-                className="p-1.5 text-stone-400 hover:text-stone-600 rounded-xl hover:bg-stone-100 transition cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
 
-            <form onSubmit={handleCreateTariff} className="space-y-4">
-              <div>
-                <label htmlFor="tariff-modal-name" className="text-xs font-bold text-stone-700 block mb-1">Tariff Name *</label>
-                <input
-                  id="tariff-modal-name"
-                  name="name"
-                  type="text"
-                  required
-                  autoComplete="off"
-                  placeholder="e.g. DLF Park Place DC"
-                  value={newTariff.name}
-                  onChange={(e) => setNewTariff({ ...newTariff, name: e.target.value })}
-                  className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:border-sky-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label htmlFor="tariff-modal-type" className="text-xs font-bold text-stone-700 block mb-1">Type</label>
-                  <select
-                    id="tariff-modal-type"
-                    name="type"
-                    autoComplete="off"
-                    value={newTariff.type}
-                    onChange={(e) => setNewTariff({ ...newTariff, type: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:border-sky-500"
-                  >
-                    <option value="Default">Default</option>
-                    <option value="ToD">ToD</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="tariff-modal-chargingFee" className="text-xs font-bold text-stone-700 block mb-1">Charging Fee (₹ / kWh)</label>
-                  <input
-                    id="tariff-modal-chargingFee"
-                    name="chargingFee"
-                    type="number"
-                    step="0.01"
-                    required
-                    autoComplete="off"
-                    value={newTariff.chargingFee}
-                    onChange={(e) => setNewTariff({ ...newTariff, chargingFee: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:border-sky-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label htmlFor="tariff-modal-gstPercentage" className="text-xs font-bold text-stone-700 block mb-1">GST Percentage</label>
-                  <select
-                    id="tariff-modal-gstPercentage"
-                    name="gstPercentage"
-                    autoComplete="off"
-                    value={newTariff.gstPercentage}
-                    onChange={(e) => setNewTariff({ ...newTariff, gstPercentage: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:border-sky-500"
-                  >
-                    <option value="18">18 %</option>
-                    <option value="0">0 %</option>
-                    <option value="5">5 %</option>
-                    <option value="12">12 %</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="tariff-modal-weight" className="text-xs font-bold text-stone-700 block mb-1">Weight</label>
-                  <input
-                    id="tariff-modal-weight"
-                    name="weight"
-                    type="number"
-                    autoComplete="off"
-                    value={newTariff.weight}
-                    onChange={(e) => setNewTariff({ ...newTariff, weight: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:border-sky-500"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-stone-100">
-                <button
-                  type="button"
-                  onClick={() => setAddModalOpen(false)}
-                  className="px-4 py-2 border border-stone-200 hover:bg-stone-50 text-stone-700 font-bold rounded-xl text-xs transition cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-5 py-2 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl text-xs shadow-md transition disabled:opacity-50 flex items-center gap-2 cursor-pointer"
-                >
-                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                  <span>Save Tariff</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {viewModalOpen && tariffToView && (
         <div className="fixed inset-0 z-50 bg-stone-900/40 backdrop-blur-xs flex items-center justify-center p-4">
@@ -611,7 +532,7 @@ export default function TariffsList() {
 
               <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
                 <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Status</span>
-                <span className="text-xs font-black text-cyan-600">{tariffToView.status || 'Active'}</span>
+                <span className="text-xs font-black text-emerald-600">{tariffToView.status || 'Active'}</span>
               </div>
 
               <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
@@ -670,6 +591,18 @@ export default function TariffsList() {
         </div>
       )}
 
+      {/* Delete Confirmation Modal */}
+      <DeleteModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setTariffToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Delete Tariff Plan"
+        itemName={tariffToDelete?.name}
+        isDeleting={isDeleting}
+      />
 
     </div>
   );

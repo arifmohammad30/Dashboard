@@ -31,7 +31,7 @@ export default function TableActions({
             e.stopPropagation();
             onEdit && onEdit(e);
           }}
-          className="p-1 text-slate-400 hover:text-[#1EB8D4] transition-colors duration-150 cursor-pointer focus:outline-none"
+          className="p-1 text-slate-400 hover:text-[#4DA944] transition-colors duration-150 cursor-pointer focus:outline-none"
           title={editTitle}
         >
           <Edit className="w-4 h-4 stroke-[2.2]" />

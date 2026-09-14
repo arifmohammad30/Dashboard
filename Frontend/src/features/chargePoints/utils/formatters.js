@@ -22,6 +22,6 @@ export const formatCreatedOn = (dateStr) => {
       hour12: true
     }).toLowerCase();
   } catch (e) {
-    return 'Jul 8, 2026 11:27 am';
+    return '-';
   }
 };

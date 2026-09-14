@@ -1,5 +1,5 @@
 import prisma from '../../prisma.js';
-import { getChargePointById } from '../chargepoints/chargePoints.service.js';
+import { getChargePointById } from '../chargepoints/chargepoints.service.js';
 import { createBillFromSession } from '../bills/bill.service.js';
 import { safeIoEmit } from '../../socket.js';
 
@@ -168,14 +168,14 @@ export async function cleanStaleOngoingSessions(io) {
         await prisma.chargePoint.update({
           where: { id: session.chargePointId },
           data: { status: 'Available' }
-        }).catch(() => {});
+        }).catch(() => { });
       }
 
       if (session.connectorId) {
         await prisma.connector.update({
           where: { id: session.connectorId },
           data: { status: 'Available' }
-        }).catch(() => {});
+        }).catch(() => { });
       }
 
       await recordSessionLog(session.id, 'SystemTimeout', 'SYSTEM', `timeout_${Date.now()}`, {

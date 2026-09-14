@@ -1,310 +1,589 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import BackButton from '../../../components/ui/BackButton';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { ArrowLeft, Plus, Loader2, Trash2, Clock } from 'lucide-react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2, Plus, Trash2 } from 'lucide-react';
 
+import BackButton from '../../../components/ui/BackButton';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import LabelWithInfo from '../../../components/ui/LabelWithInfo';
 import FormCard from '../../../components/ui/FormCard';
 import PrimaryButton from '../../../components/ui/PrimaryButton';
-import { createChargingStation, updateChargingStation, getChargingStationById } from '../api/chargingStationService';
+
+import {
+  createChargingStation,
+  updateChargingStation,
+  getChargingStationById
+} from '../api/chargingStationService';
+
 import { useToast } from '../../../context/ToastContext';
 
-// ----------------------------------------------------------------------
-// 1. Validation Regex Patterns
-// ----------------------------------------------------------------------
-// Station code: alphanumeric with hyphens and underscores
+
+// ============================================================
+// Validation
+// ============================================================
+
 const codeRegex = /^[A-Za-z0-9_-]+$/;
 
-// International / national phone format: optional '+' followed by digits, spaces, hyphens
 const phoneRegex = /^\+?[0-9\s-]{7,15}$/;
 
-// 12-hour (e.g., "08:00 am") or 24-hour (e.g., "08:00") time format
-const timeRegex = /^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(am|pm|AM|PM)$|^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/i;
+const timeRegex =
+  /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/;
 
-// ----------------------------------------------------------------------
-// 2. Zod Form Validation Schema
-// ----------------------------------------------------------------------
-const chargingStationSchema = z.object({
-  // Basic Details
-  name: z.string().trim().min(2, 'Station name must be at least 2 characters'),
-  brand: z.string().trim().min(1, 'Brand / OEM selection is required'),
-  mobilityType: z.string().min(1, 'Mobility Type selection is required'),
-  code: z.string().trim().refine(val => !val || codeRegex.test(val), {
-    message: 'Station code can only contain letters, numbers, dashes, and underscores'
-  }).optional(),
-  category: z.string().optional(),
 
-  // GPS Geolocation Coordinates
-  latitude: z.string().trim().min(1, 'Latitude coordinate is required').refine(val => {
-    const num = Number(val);
-    return !isNaN(num) && num >= -90 && num <= 90;
-  }, {
-    message: 'Latitude must be a valid coordinate between -90 and 90'
-  }),
-  longitude: z.string().trim().min(1, 'Longitude coordinate is required').refine(val => {
-    const num = Number(val);
-    return !isNaN(num) && num >= -180 && num <= 180;
-  }, {
-    message: 'Longitude must be a valid coordinate between -180 and 180'
-  }),
+// ============================================================
+// Zod Schema
+// ============================================================
 
-  // Location Details
-  address: z.string().trim().min(4, 'Detailed street address must be at least 4 characters'),
-  country: z.string().optional(),
-  state: z.string().optional(),
-  city: z.string().optional(),
-  timeZone: z.string().optional(),
-  elevation: z.string().refine(val => !val || (!isNaN(Number(val)) && Number(val) >= 0), {
-    message: 'Elevation must be a non-negative number'
-  }).optional(),
+const chargingStationSchema = z
+  .object({
+    // Basic Details
+    name: z
+      .string()
+      .trim()
+      .min(2, 'Station name must be at least 2 characters'),
 
-  // Power Supply & Grid Parameters
-  gridPowerCapacity: z.string().refine(val => !val || (!isNaN(Number(val)) && Number(val) > 0), {
-    message: 'Grid power capacity must be a positive number in kW'
-  }).optional(),
-  gridCurrentCapacity: z.string().refine(val => !val || (!isNaN(Number(val)) && Number(val) > 0), {
-    message: 'Grid current capacity must be a positive number in A'
-  }).optional(),
-  gridPhases: z.string().optional(),
-  energyMeters: z.string().optional(),
+    brand: z
+      .string()
+      .trim()
+      .min(1, 'Brand / OEM selection is required'),
 
-  // Operational Availability & Schedule
-  stage: z.string().optional(),
-  open247: z.boolean().optional(),
-  opensAt: z.string().optional(),
-  closesAt: z.string().optional(),
+    mobilityType: z
+      .string()
+      .min(1, 'Mobility Type selection is required'),
 
-  // Operator Contacts & Amenities
-  contactNumbers: z.array(z.object({
-    number: z.string().refine(val => !val || phoneRegex.test(val.trim()), {
-      message: 'Invalid phone number format (e.g. +91 9876543210)'
-    })
-  })).optional(),
-  amenities: z.string().optional(),
-}).superRefine((data, ctx) => {
-  // Enforce mandatory opening and closing times when station is NOT open 24x7
-  if (!data.open247) {
-    if (!data.opensAt || data.opensAt.trim() === '') {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Opening time is required when not 24×7',
-        path: ['opensAt']
-      });
-    } else if (!timeRegex.test(data.opensAt.trim())) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Opening time must be valid format (e.g. 08:00 am or 08:00)',
-        path: ['opensAt']
-      });
+    code: z
+      .string()
+      .trim()
+      .refine(
+        (value) => !value || codeRegex.test(value),
+        {
+          message:
+            'Station code can only contain letters, numbers, dashes, and underscores'
+        }
+      )
+      .optional(),
+
+    category: z.string().optional(),
+
+    // GPS Coordinates
+    latitude: z
+      .string()
+      .trim()
+      .min(1, 'Latitude coordinate is required')
+      .refine(
+        (value) => {
+          const number = Number(value);
+          return (
+            !Number.isNaN(number) &&
+            number >= -90 &&
+            number <= 90
+          );
+        },
+        {
+          message:
+            'Latitude must be a valid coordinate between -90 and 90'
+        }
+      ),
+
+    longitude: z
+      .string()
+      .trim()
+      .min(1, 'Longitude coordinate is required')
+      .refine(
+        (value) => {
+          const number = Number(value);
+          return (
+            !Number.isNaN(number) &&
+            number >= -180 &&
+            number <= 180
+          );
+        },
+        {
+          message:
+            'Longitude must be a valid coordinate between -180 and 180'
+        }
+      ),
+
+    // Location
+    address: z
+      .string()
+      .trim()
+      .min(4, 'Detailed street address must be at least 4 characters'),
+
+    country: z.string().optional(),
+    state: z.string().optional(),
+    city: z.string().optional(),
+    timeZone: z.string().optional(),
+
+    elevation: z
+      .string()
+      .refine(
+        (value) =>
+          !value ||
+          (!Number.isNaN(Number(value)) && Number(value) >= 0),
+        {
+          message: 'Elevation must be a non-negative number'
+        }
+      )
+      .optional(),
+
+    // Power Supply
+    gridPowerCapacity: z
+      .string()
+      .refine(
+        (value) =>
+          !value ||
+          (!Number.isNaN(Number(value)) && Number(value) > 0),
+        {
+          message:
+            'Grid power capacity must be a positive number in kW'
+        }
+      )
+      .optional(),
+
+    gridCurrentCapacity: z
+      .string()
+      .refine(
+        (value) =>
+          !value ||
+          (!Number.isNaN(Number(value)) && Number(value) > 0),
+        {
+          message:
+            'Grid current capacity must be a positive number in A'
+        }
+      )
+      .optional(),
+
+    gridPhases: z.string().optional(),
+    energyMeters: z.string().optional(),
+
+    // Availability
+    stage: z.string().optional(),
+
+    open247: z.boolean().optional(),
+
+    opensAt: z.string().optional(),
+    closesAt: z.string().optional(),
+
+    // Contacts
+    contactNumbers: z
+      .array(
+        z.object({
+          number: z.string().refine(
+            (value) =>
+              !value || phoneRegex.test(value.trim()),
+            {
+              message:
+                'Invalid phone number format (e.g. +91 9876543210)'
+            }
+          )
+        })
+      )
+      .optional(),
+
+    amenities: z.string().optional()
+  })
+  .superRefine((data, ctx) => {
+    // Opening hours are required only when the station
+    // is not operating 24x7.
+    if (!data.open247) {
+      if (!data.opensAt?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Opening time is required when not 24×7',
+          path: ['opensAt']
+        });
+      } else if (!timeRegex.test(data.opensAt.trim())) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Opening time must be in HH:mm format',
+          path: ['opensAt']
+        });
+      }
+
+      if (!data.closesAt?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Closing time is required when not 24×7',
+          path: ['closesAt']
+        });
+      } else if (!timeRegex.test(data.closesAt.trim())) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Closing time must be in HH:mm format',
+          path: ['closesAt']
+        });
+      }
     }
+  });
 
-    if (!data.closesAt || data.closesAt.trim() === '') {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Closing time is required when not 24×7',
-        path: ['closesAt']
-      });
-    } else if (!timeRegex.test(data.closesAt.trim())) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Closing time must be valid format (e.g. 09:00 pm or 21:00)',
-        path: ['closesAt']
-      });
+
+// ============================================================
+// Default Form Values
+// ============================================================
+
+const defaultFormValues = {
+  name: '',
+  brand: '',
+  mobilityType: '',
+  code: '',
+  category: '',
+
+  latitude: '',
+  longitude: '',
+
+  address: '',
+  country: '',
+  state: '',
+  city: '',
+  timeZone: '',
+  elevation: '',
+
+  gridPowerCapacity: '',
+  gridCurrentCapacity: '',
+  gridPhases: '',
+  energyMeters: '',
+
+  stage: '',
+  open247: false,
+  opensAt: '',
+  closesAt: '',
+
+  contactNumbers: [
+    {
+      number: ''
     }
-  }
-});
+  ],
 
-// ----------------------------------------------------------------------
-// 3. Helper: Map Raw Entity Data to Form Values
-// ----------------------------------------------------------------------
+  amenities: ''
+};
+
+
+// ============================================================
+// API Entity → Form Values
+// ============================================================
+
 const getInitialFormValues = (data) => ({
-  name: data?.name || '',
-  brand: data?.brand || '',
-  mobilityType: data?.mobilityType || '',
-  code: data?.code || '',
-  category: data?.category || '',
-  // Convert coordinates to string for input rendering, preserving null/empty
-  latitude: data?.latitude !== undefined && data?.latitude !== null ? String(data.latitude) : '',
-  longitude: data?.longitude !== undefined && data?.longitude !== null ? String(data.longitude) : '',
-  address: data?.address || '',
-  country: data?.country || '',
-  state: data?.state || '',
-  city: data?.city || '',
-  timeZone: data?.timeZone || '',
-  // Numeric string conversions with exact zero checks
-  elevation: data?.elevation !== undefined && data?.elevation !== null ? String(data.elevation) : '',
-  gridPowerCapacity: data?.gridPowerCapacity !== undefined && data?.gridPowerCapacity !== null ? String(data.gridPowerCapacity) : '',
-  gridCurrentCapacity: data?.gridCurrentCapacity !== undefined && data?.gridCurrentCapacity !== null ? String(data.gridCurrentCapacity) : '',
-  gridPhases: data?.gridPhases || '',
-  energyMeters: data?.energyMeters || '',
-  stage: data?.stage || '',
+  name: data?.name ?? '',
+  brand: data?.brand ?? '',
+  mobilityType: data?.mobilityType ?? '',
+  code: data?.code ?? '',
+  category: data?.category ?? '',
+
+  latitude:
+    data?.latitude !== null && data?.latitude !== undefined
+      ? String(data.latitude)
+      : '',
+
+  longitude:
+    data?.longitude !== null && data?.longitude !== undefined
+      ? String(data.longitude)
+      : '',
+
+  address: data?.address ?? '',
+  country: data?.country ?? '',
+  state: data?.state ?? '',
+  city: data?.city ?? '',
+  timeZone: data?.timeZone ?? '',
+
+  elevation:
+    data?.elevation !== null && data?.elevation !== undefined
+      ? String(data.elevation)
+      : '',
+
+  gridPowerCapacity:
+    data?.gridPowerCapacity !== null &&
+      data?.gridPowerCapacity !== undefined
+      ? String(data.gridPowerCapacity)
+      : '',
+
+  gridCurrentCapacity:
+    data?.gridCurrentCapacity !== null &&
+      data?.gridCurrentCapacity !== undefined
+      ? String(data.gridCurrentCapacity)
+      : '',
+
+  gridPhases: data?.gridPhases ?? '',
+  energyMeters: data?.energyMeters ?? '',
+  stage: data?.stage ?? '',
+
   open247: data?.open247 ?? false,
-  opensAt: data?.opensAt || '',
-  closesAt: data?.closesAt || '',
-  // Normalize contact numbers array for useFieldArray
-  contactNumbers: data?.contactNumbers && data.contactNumbers.length > 0
-    ? (Array.isArray(data.contactNumbers) ? data.contactNumbers.map(n => (typeof n === 'string' ? { number: n } : { number: n.number || '' })) : [{ number: '' }])
-    : [{ number: '' }],
-  amenities: data?.amenities || '',
+
+  opensAt: data?.opensAt ?? '',
+  closesAt: data?.closesAt ?? '',
+
+  contactNumbers:
+    Array.isArray(data?.contactNumbers) &&
+      data.contactNumbers.length > 0
+      ? data.contactNumbers.map((contact) => ({
+        number:
+          typeof contact === 'string'
+            ? contact
+            : contact?.number ?? ''
+      }))
+      : [{ number: '' }],
+
+  amenities: data?.amenities ?? ''
 });
 
-// ----------------------------------------------------------------------
-// 4. Main Component: Add / Edit / View Charging Station
-// ----------------------------------------------------------------------
-export default function AddChargingStation({ isViewMode = false, isEditMode = false }) {
-  const location = useLocation();
+
+// ============================================================
+// Component
+// ============================================================
+
+export default function AddChargingStation({
+  isViewMode = false,
+  isEditMode = false
+}) {
   const navigate = useNavigate();
-  const toast = useToast();
-  // Authoritative entity ID from URL parameter
+  const location = useLocation();
   const { id } = useParams();
-  // Optional pre-fetched station state from navigation context
+  const toast = useToast();
+
+  // Optional station data passed from the list/detail page.
+  // Backend remains authoritative because edit/view fetches by ID.
   const stationData = location.state?.station;
 
-  // Track loading state for data-fetching on edit/view routes
-  const [loadingData, setLoadingData] = useState((isViewMode || isEditMode) && !stationData && Boolean(id));
-  const [activeStation, setActiveStation] = useState(stationData);
+  const [loadingData, setLoadingData] = useState(
+    Boolean((isViewMode || isEditMode) && id)
+  );
 
-  // Initialize React Hook Form with Zod schema resolver
   const {
     register,
     handleSubmit,
     watch,
     reset,
     control,
-    formState: { errors, isSubmitting }
+    formState: {
+      errors,
+      isSubmitting
+    }
   } = useForm({
     resolver: zodResolver(chargingStationSchema),
-    defaultValues: (isViewMode || isEditMode) && stationData ? getInitialFormValues(stationData) : {
-      name: '',
-      brand: '',
-      mobilityType: '',
-      code: '',
-      category: '',
-      latitude: '',
-      longitude: '',
-      address: '',
-      country: '',
-      state: '',
-      city: '',
-      timeZone: '',
-      elevation: '',
-      gridPowerCapacity: '',
-      gridCurrentCapacity: '',
-      gridPhases: '',
-      energyMeters: '',
-      stage: '',
-      open247: false,
-      opensAt: '',
-      closesAt: '',
-      contactNumbers: [{ number: '' }],
-      amenities: '',
-    }
+    defaultValues:
+      isViewMode || isEditMode
+        ? stationData
+          ? getInitialFormValues(stationData)
+          : defaultFormValues
+        : defaultFormValues
   });
 
-  // Dynamic contact numbers list management
-  const { fields, append, remove } = useFieldArray({
+  const {
+    fields,
+    append,
+    remove
+  } = useFieldArray({
     control,
     name: 'contactNumbers'
   });
 
-  // Watch 24x7 toggle to conditionally enable/disable opening hours fields
   const open247 = watch('open247');
 
-  // --------------------------------------------------------------------
-  // 5. Data Loading Lifecycle Hook
-  // --------------------------------------------------------------------
-  useEffect(() => {
-    // Unconditionally fetch fresh entity data from backend when ID is present
-    if ((isViewMode || isEditMode) && id) {
-      setLoadingData(true);
-      getChargingStationById(id)
-        .then(data => {
-          if (data) {
-            setActiveStation(data);
-            reset(getInitialFormValues(data));
-          }
-        })
-        .catch(err => {
-          console.error("Failed to fetch charging station by ID:", err);
-          toast.error("Failed to load charging station data.");
-          navigate('/charging-stations');
-        })
-        .finally(() => {
-          setLoadingData(false);
-        });
-    }
-  }, [id, isViewMode, isEditMode, reset, navigate, toast]);
 
-  // --------------------------------------------------------------------
-  // 6. Navigation Actions
-  // --------------------------------------------------------------------
-  // Cancel button safely redirects back to stations list without clearing form state
+  // ==========================================================
+  // Load Edit/View Data
+  // ==========================================================
+
+  useEffect(() => {
+    if (!(isViewMode || isEditMode) || !id) {
+      setLoadingData(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadStation = async () => {
+      setLoadingData(true);
+
+      try {
+        const data = await getChargingStationById(id);
+
+        if (!isMounted) {
+          return;
+        }
+
+        if (!data) {
+          toast.error('Charging station was not found.');
+          navigate('/charging-stations', { replace: true });
+          return;
+        }
+
+        reset(getInitialFormValues(data));
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        console.error(
+          'Failed to fetch charging station by ID:',
+          error
+        );
+
+        toast.error(
+          error?.message ||
+          'Failed to load charging station data.'
+        );
+
+        navigate('/charging-stations', {
+          replace: true
+        });
+      } finally {
+        if (isMounted) {
+          setLoadingData(false);
+        }
+      }
+    };
+
+    loadStation();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    id,
+    isViewMode,
+    isEditMode,
+    reset,
+    navigate,
+    toast
+  ]);
+
+
+  // ==========================================================
+  // Cancel / Back
+  // ==========================================================
+
   const handleCancelClick = () => {
-    navigate('/charging-stations');
+    navigate('/charging-stations', {
+      replace: true
+    });
   };
 
-  // --------------------------------------------------------------------
-  // 7. Form Submission Handler
-  // --------------------------------------------------------------------
+
+  // ==========================================================
+  // Submit
+  // ==========================================================
+
   const onSubmit = async (data) => {
+    console.log("data", data);
     try {
-      // Transform form data to match the authoritative backend JSON contract
       const payload = {
         ...data,
-        latitude: data.latitude !== '' && data.latitude != null ? Number(data.latitude) : null,
-        longitude: data.longitude !== '' && data.longitude != null ? Number(data.longitude) : null,
-        contactNumbers: data.contactNumbers ? data.contactNumbers.map(c => c.number?.trim()).filter(Boolean) : [],
-        elevation: data.elevation !== '' && data.elevation != null ? Number(data.elevation) : null,
-        gridPowerCapacity: data.gridPowerCapacity !== '' && data.gridPowerCapacity != null ? Number(data.gridPowerCapacity) : null,
-        gridCurrentCapacity: data.gridCurrentCapacity !== '' && data.gridCurrentCapacity != null ? Number(data.gridCurrentCapacity) : null,
+
+        latitude:
+          data.latitude !== ''
+            ? Number(data.latitude)
+            : null,
+
+        longitude:
+          data.longitude !== ''
+            ? Number(data.longitude)
+            : null,
+
+        elevation:
+          data.elevation !== ''
+            ? Number(data.elevation)
+            : null,
+
+        gridPowerCapacity:
+          data.gridPowerCapacity !== ''
+            ? Number(data.gridPowerCapacity)
+            : null,
+
+        gridCurrentCapacity:
+          data.gridCurrentCapacity !== ''
+            ? Number(data.gridCurrentCapacity)
+            : null,
+
+        contactNumbers: Array.isArray(data.contactNumbers)
+          ? data.contactNumbers
+            .map((contact) => contact.number?.trim())
+            .filter(Boolean)
+          : [],
+
+        // A 24x7 station does not need an operating schedule.
+        opensAt: data.open247
+          ? null
+          : data.opensAt?.trim() || null,
+
+        closesAt: data.open247
+          ? null
+          : data.closesAt?.trim() || null
       };
 
-      // ID-based authoritative routing: update existing station or create new
       if (isEditMode && id) {
         await updateChargingStation(id, payload);
-        toast.success('Charging station updated successfully!', { code: 200 });
+
+        toast.success(
+          'Charging station updated successfully!',
+          { code: 200 }
+        );
       } else {
         await createChargingStation(payload);
-        toast.success('Charging station added successfully!', { code: 201 });
+
+        toast.success(
+          'Charging station added successfully!',
+          { code: 201 }
+        );
       }
 
-      navigate('/charging-stations');
+      navigate('/charging-stations', {
+        replace: true
+      });
     } catch (error) {
-      console.error('Error submitting station form:', error);
-      toast.error('Failed to save charging station.', { code: 500 });
+      console.error(
+        'Error submitting charging station form:',
+        error
+      );
+
+      toast.error(
+        error?.message ||
+        'Failed to save charging station.'
+      );
     }
   };
 
-  // --------------------------------------------------------------------
-  // 8. Render: Loading State Spinner
-  // --------------------------------------------------------------------
+
+  // ==========================================================
+  // Loading State
+  // ==========================================================
+
   if (loadingData) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-[#1EB8D4]">
-        <Loader2 className="w-10 h-10 animate-spin mb-4" />
-        <p className="text-sm font-bold text-stone-600">Loading charging station details...</p>
+      <div className="flex flex-col items-center justify-center min-h-[400px]">
+        <Loader2 className="w-10 h-10 text-[#4DA944] animate-spin mb-4" />
+
+        <p className="text-sm font-bold text-stone-600">
+          Loading charging station details...
+        </p>
       </div>
     );
   }
 
-  // --------------------------------------------------------------------
-  // 9. Render: Form Structure
-  // --------------------------------------------------------------------
+
+  // ==========================================================
+  // Form
+  // ==========================================================
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 max-w-[1280px] mx-auto pb-12 animate-in fade-in duration-200">
-      {/* Top Header Bar with Back Button & Action Controls */}
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex flex-col gap-5 max-w-[1280px] mx-auto pb-12 animate-in fade-in duration-200"
+    >
+
+      {/* Header */}
       <div className="flex items-center justify-between px-2">
-        <div>
-          <BackButton to="/charging-stations" label="Back to Charging Stations" />
-        </div>
+
+        <BackButton
+          to="/charging-stations"
+          label="Back to Charging Stations"
+        />
 
         <div className="flex items-center gap-2.5">
-          {/* Cancel / Back Button */}
+
           <button
             type="button"
             onClick={handleCancelClick}
@@ -313,7 +592,6 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
             {isViewMode ? 'Back' : 'Cancel'}
           </button>
 
-          {/* Submit Button (Hidden in View Mode) */}
           {!isViewMode && (
             <PrimaryButton
               type="submit"
@@ -323,125 +601,286 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
               editLabel="Save Changes"
             />
           )}
+
         </div>
       </div>
 
-      {/* Main 2-Column Responsive Form Grid */}
+
+      {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
 
-        {/* Left Column: Basic Details, Power Supply, & Other Details     */}
+        {/* ====================================================
+            LEFT COLUMN
+        ==================================================== */}
 
         <div className="flex flex-col gap-5">
-          {/* Basic Details Card */}
+
+          {/* Basic Details */}
           <FormCard title="Basic Details">
-            {/* Station Name */}
+
             <div>
-              <LabelWithInfo htmlFor="name" label="Name" required info="Public Display Name of the Charging Station" />
-              <Input id="name" disabled={isViewMode} placeholder="Lonavala Wax Museum" {...register('name')} error={errors.name} />
+              <LabelWithInfo
+                htmlFor="name"
+                label="Name"
+                required
+                info="Public Display Name of the Charging Station"
+              />
+
+              <Input
+                id="name"
+                disabled={isViewMode}
+                placeholder="Lonavala Wax Museum"
+                {...register('name')}
+                error={errors.name}
+              />
             </div>
 
-            {/* Manufacturing Brand */}
+
             <div>
-              <LabelWithInfo htmlFor="brand" label="Brand" required info="Select or specify manufacturing brand" />
-              <Input id="brand" disabled={isViewMode} placeholder="Search for Brands" {...register('brand')} error={errors.brand} />
+              <LabelWithInfo
+                htmlFor="brand"
+                label="Brand"
+                required
+                info="Select or specify manufacturing brand"
+              />
+
+              <Input
+                id="brand"
+                disabled={isViewMode}
+                placeholder="Search for Brands"
+                {...register('brand')}
+                error={errors.brand}
+              />
             </div>
 
-            {/* Operational Mobility Classification */}
+
             <div>
-              <LabelWithInfo htmlFor="mobilityType" label="Mobility Type" required info="Operational mobility classification" />
+              <LabelWithInfo
+                htmlFor="mobilityType"
+                label="Mobility Type"
+                required
+                info="Operational mobility classification"
+              />
+
               <Select
                 id="mobilityType"
                 disabled={isViewMode}
                 placeholder="Select Mobility Type"
-                options={['Stationary', 'Mobile', 'Portable']}
+                options={[
+                  'Stationary',
+                  'Mobile',
+                  'Portable'
+                ]}
                 {...register('mobilityType')}
                 error={errors.mobilityType}
               />
             </div>
 
-            {/* Unique Station Code */}
+
             <div>
-              <LabelWithInfo htmlFor="code" label="Code" info="Unique internal site identifier code" />
-              <Input id="code" disabled={isViewMode} placeholder="ABC12345" {...register('code')} error={errors.code} />
+              <LabelWithInfo
+                htmlFor="code"
+                label="Code"
+                info="Unique internal site identifier code"
+              />
+
+              <Input
+                id="code"
+                disabled={isViewMode}
+                placeholder="ABC12345"
+                {...register('code')}
+                error={errors.code}
+              />
             </div>
 
-            {/* Functional Category Classification */}
+
             <div>
-              <LabelWithInfo htmlFor="category" label="Charging Station Category" info="Functional environment classification" />
+              <LabelWithInfo
+                htmlFor="category"
+                label="Charging Station Category"
+              />
+
               <Select
                 id="category"
                 disabled={isViewMode}
                 placeholder="Select Category"
-                options={['Public Hub', 'Commercial', 'Residential', 'Highway Hub', 'Fleet Hub', 'Other']}
+                options={[
+                  'Public Hub',
+                  'Commercial',
+                  'Residential',
+                  'Highway Hub',
+                  'Fleet Hub',
+                  'Other'
+                ]}
                 {...register('category')}
                 error={errors.category}
               />
             </div>
 
-            {/* GPS Latitude and Longitude */}
+
+            {/* Coordinates */}
             <div className="grid grid-cols-2 gap-4">
+
               <div>
-                <LabelWithInfo htmlFor="latitude" label="Latitude" required info="GPS Latitude coordinate (-90 to 90)" />
-                <Input id="latitude" type="number" step="any" disabled={isViewMode} placeholder="18.0986544" {...register('latitude')} error={errors.latitude} />
+                <LabelWithInfo
+                  htmlFor="latitude"
+                  label="Latitude"
+                  required
+                  info="GPS Latitude coordinate (-90 to 90)"
+                />
+
+                <Input
+                  id="latitude"
+                  type="number"
+                  step="any"
+                  disabled={isViewMode}
+                  placeholder="18.0986544"
+                  {...register('latitude')}
+                  error={errors.latitude}
+                />
               </div>
+
+
               <div>
-                <LabelWithInfo htmlFor="longitude" label="Longitude" required info="GPS Longitude coordinate (-180 to 180)" />
-                <Input id="longitude" type="number" step="any" disabled={isViewMode} placeholder="72.9162627" {...register('longitude')} error={errors.longitude} />
+                <LabelWithInfo
+                  htmlFor="longitude"
+                  label="Longitude"
+                  required
+                  info="GPS Longitude coordinate (-180 to 180)"
+                />
+
+                <Input
+                  id="longitude"
+                  type="number"
+                  step="any"
+                  disabled={isViewMode}
+                  placeholder="72.9162627"
+                  {...register('longitude')}
+                  error={errors.longitude}
+                />
               </div>
+
             </div>
+
           </FormCard>
 
-          {/* Power Supply Details Card */}
+
+          {/* Power Supply */}
           <FormCard title="Power supply details">
-            {/* Grid Connection Power Capacity (kW) */}
+
             <div>
-              <LabelWithInfo htmlFor="gridPowerCapacity" label="Grid Connection Power Capacity (kW)" info="Maximum allowed power intake in kilowatts" />
-              <Input id="gridPowerCapacity" type="number" step="any" min="0" disabled={isViewMode} placeholder="kW (e.g. 100)" {...register('gridPowerCapacity')} error={errors.gridPowerCapacity} />
+              <LabelWithInfo
+                htmlFor="gridPowerCapacity"
+                label="Grid Connection Power Capacity (kW)"
+                info="Maximum allowed power intake in kilowatts"
+              />
+
+              <Input
+                id="gridPowerCapacity"
+                type="number"
+                step="any"
+                min="0"
+                disabled={isViewMode}
+                placeholder="kW (e.g. 100)"
+                {...register('gridPowerCapacity')}
+                error={errors.gridPowerCapacity}
+              />
             </div>
 
-            {/* Grid Connection Current Capacity (A) */}
+
             <div>
-              <LabelWithInfo htmlFor="gridCurrentCapacity" label="Grid Connection Current Capacity (A)" info="Maximum rated current capacity in amperes" />
-              <Input id="gridCurrentCapacity" type="number" step="any" min="0" disabled={isViewMode} placeholder="A (e.g. 150)" {...register('gridCurrentCapacity')} error={errors.gridCurrentCapacity} />
+              <LabelWithInfo
+                htmlFor="gridCurrentCapacity"
+                label="Grid Connection Current Capacity (A)"
+                info="Maximum rated current capacity in amperes"
+              />
+
+              <Input
+                id="gridCurrentCapacity"
+                type="number"
+                step="any"
+                min="0"
+                disabled={isViewMode}
+                placeholder="A (e.g. 150)"
+                {...register('gridCurrentCapacity')}
+                error={errors.gridCurrentCapacity}
+              />
             </div>
 
-            {/* AC Power Phase Configuration */}
+
             <div>
-              <LabelWithInfo htmlFor="gridPhases" label="Grid Connection Phases (1 or 3)" info="AC power phase configuration" />
+              <LabelWithInfo
+                htmlFor="gridPhases"
+                label="Grid Connection Phases (1 or 3)"
+                info="AC power phase configuration"
+              />
+
               <Select
                 id="gridPhases"
                 disabled={isViewMode}
                 placeholder="Select Phases"
-                options={['3-Phase', '1-Phase']}
+                options={[
+                  '3-Phase',
+                  '1-Phase'
+                ]}
                 {...register('gridPhases')}
                 error={errors.gridPhases}
               />
             </div>
 
-            {/* Utility Energy Meter Identifiers */}
+
             <div>
-              <LabelWithInfo htmlFor="energyMeters" label="Energy Meters" info="Linked utility grid energy meter identifiers" />
-              <Input id="energyMeters" disabled={isViewMode} placeholder="Search for energy meters" {...register('energyMeters')} error={errors.energyMeters} />
+              <LabelWithInfo
+                htmlFor="energyMeters"
+                label="Energy Meters"
+                info="Linked utility grid energy meter identifiers"
+              />
+
+              <Input
+                id="energyMeters"
+                disabled={isViewMode}
+                placeholder="Search for energy meters"
+                {...register('energyMeters')}
+                error={errors.energyMeters}
+              />
             </div>
+
           </FormCard>
 
-          {/* Other Details Card: Contacts & Amenities */}
+
+          {/* Other */}
           <FormCard title="Other">
-            {/* Dynamic Contact Numbers List */}
+
             <div>
-              <LabelWithInfo htmlFor="contactNumber-0" label="Contact Numbers" info="On-site support or operator contact numbers" />
+              <LabelWithInfo
+                htmlFor="contactNumber-0"
+                label="Contact Numbers"
+                info="On-site support or operator contact numbers"
+              />
+
               <div className="flex flex-col gap-3 mt-2">
+
                 {fields.map((field, index) => (
-                  <div key={field.id} className="flex flex-col gap-1">
+                  <div
+                    key={field.id}
+                    className="flex flex-col gap-1"
+                  >
+
                     <div className="flex items-center gap-2">
+
                       <Input
                         id={`contactNumber-${index}`}
                         autoComplete="tel"
                         disabled={isViewMode}
                         placeholder="+91 9876543210"
-                        {...register(`contactNumbers.${index}.number`)}
+                        {...register(
+                          `contactNumbers.${index}.number`
+                        )}
+                        error={
+                          errors.contactNumbers?.[index]?.number
+                        }
                       />
-                      {/* Delete Contact Button */}
+
                       {!isViewMode && fields.length > 1 && (
                         <button
                           type="button"
@@ -452,141 +891,271 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
                           <Trash2 className="w-4 h-4" />
                         </button>
                       )}
+
                     </div>
-                    {/* Inline Phone Validation Error */}
-                    {errors?.contactNumbers?.[index]?.number && (
-                      <p className="text-[11px] font-bold text-rose-500 ml-1">
-                        {errors.contactNumbers[index].number.message}
-                      </p>
-                    )}
+
                   </div>
                 ))}
 
-                {/* Add New Contact Row Button */}
+
                 {!isViewMode && (
                   <button
                     type="button"
                     onClick={() => append({ number: '' })}
-                    className="self-start mt-1 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:text-[#1EB8D4] bg-white hover:bg-stone-50 border border-stone-200 shadow-2xs rounded-xl transition-all duration-150 cursor-pointer flex items-center gap-2 group active:scale-98"
+                    className="self-start mt-1 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:text-[#4DA944] bg-white hover:bg-stone-50 border border-stone-200 shadow-2xs rounded-xl transition-all duration-150 cursor-pointer flex items-center gap-2 group active:scale-98"
                   >
-                    <Plus className="w-3.5 h-3.5 text-[#1EB8D4] group-hover:scale-110 transition-transform" />
-                    <span>Add New Contact Number</span>
+                    <Plus className="w-3.5 h-3.5 text-[#4DA944] group-hover:scale-110 transition-transform" />
+
+                    <span>
+                      Add New Contact Number
+                    </span>
                   </button>
                 )}
+
               </div>
             </div>
 
-            {/* Site Amenities (Free text / comma-separated) */}
+
             <div>
-              <LabelWithInfo htmlFor="amenities" label="Amenities" info="Available facilities for drivers" />
-              <Input id="amenities" disabled={isViewMode} placeholder="Cafe, Dining, Restroom, Wi-Fi" {...register('amenities')} error={errors.amenities} />
+              <LabelWithInfo
+                htmlFor="amenities"
+                label="Amenities"
+                info="Available facilities for drivers"
+              />
+
+              <Input
+                id="amenities"
+                disabled={isViewMode}
+                placeholder="Cafe, Dining, Restroom, Wi-Fi"
+                {...register('amenities')}
+                error={errors.amenities}
+              />
             </div>
+
           </FormCard>
+
         </div>
 
 
-        {/* Right Column: Location Info & Operational Availability       */}
+        {/* ====================================================
+            RIGHT COLUMN
+        ==================================================== */}
 
         <div className="flex flex-col gap-5">
-          {/* Location Info Card */}
+
+          {/* Location */}
           <FormCard title="Location Info">
-            {/* Street Address */}
+
             <div>
-              <LabelWithInfo htmlFor="address" label="Address" required info="Complete street address of the site" />
-              <Input id="address" autoComplete="street-address" disabled={isViewMode} placeholder="Tamil Nadu, Chennai" {...register('address')} error={errors.address} />
+              <LabelWithInfo
+                htmlFor="address"
+                label="Address"
+                required
+                info="Complete street address of the site"
+              />
+
+              <Input
+                id="address"
+                autoComplete="street-address"
+                disabled={isViewMode}
+                placeholder="Tamil Nadu, Chennai"
+                {...register('address')}
+                error={errors.address}
+              />
             </div>
 
-            {/* Country Selector */}
+
             <div>
-              <LabelWithInfo htmlFor="country" label="Country" info="Host country location" />
+              <LabelWithInfo
+                htmlFor="country"
+                label="Country"
+                info="Host country location"
+              />
+
               <Select
                 id="country"
                 disabled={isViewMode}
                 placeholder="Select Country"
-                options={['India', 'United States', 'Germany', 'United Kingdom', 'Other']}
+                options={[
+                  'India',
+                  'United States',
+                  'Germany',
+                  'United Kingdom',
+                  'Other'
+                ]}
                 {...register('country')}
                 error={errors.country}
               />
             </div>
 
-            {/* State / Province Selector */}
+
             <div>
-              <LabelWithInfo htmlFor="state" label="State" info="Host state / province" />
+              <LabelWithInfo
+                htmlFor="state"
+                label="State"
+                info="Host state / province"
+              />
+
               <Select
                 id="state"
                 disabled={isViewMode}
                 placeholder="Select State"
-                options={['Tamil Nadu', 'Maharashtra', 'Karnataka', 'Telangana', 'Delhi', 'Gujarat', 'Other']}
+                options={[
+                  'Tamil Nadu',
+                  'Maharashtra',
+                  'Karnataka',
+                  'Telangana',
+                  'Delhi',
+                  'Gujarat',
+                  'Other'
+                ]}
                 {...register('state')}
                 error={errors.state}
               />
             </div>
 
-            {/* City Input */}
+
             <div>
-              <LabelWithInfo htmlFor="city" label="City" info="Host municipality or city" />
-              <Input id="city" autoComplete="address-level2" disabled={isViewMode} placeholder="Search for City" {...register('city')} error={errors.city} />
+              <LabelWithInfo
+                htmlFor="city"
+                label="City"
+                info="Host municipality or city"
+              />
+
+              <Input
+                id="city"
+                autoComplete="address-level2"
+                disabled={isViewMode}
+                placeholder="Search for City"
+                {...register('city')}
+                error={errors.city}
+              />
             </div>
 
-            {/* Time Zone Selector */}
+
             <div>
-              <LabelWithInfo htmlFor="timeZone" label="Time Zone" info="Local timezone for billing and operating hours" />
+              <LabelWithInfo
+                htmlFor="timeZone"
+                label="Time Zone"
+                info="Local timezone for billing and operating hours"
+              />
+
               <Select
                 id="timeZone"
                 disabled={isViewMode}
                 placeholder="Select Time Zone"
-                options={['Asia/Kolkata', 'UTC', 'America/New_York', 'Europe/London']}
+                options={[
+                  'Asia/Kolkata',
+                  'UTC',
+                  'America/New_York',
+                  'Europe/London'
+                ]}
                 {...register('timeZone')}
                 error={errors.timeZone}
               />
             </div>
 
-            {/* Elevation (Meters above sea level) */}
+
             <div>
-              <LabelWithInfo htmlFor="elevation" label="Elevation" info="Site elevation above sea level in meters" />
-              <Input id="elevation" type="number" min="0" disabled={isViewMode} placeholder="0" {...register('elevation')} error={errors.elevation} />
+              <LabelWithInfo
+                htmlFor="elevation"
+                label="Elevation"
+                info="Site elevation above sea level in meters"
+              />
+
+              <Input
+                id="elevation"
+                type="number"
+                min="0"
+                disabled={isViewMode}
+                placeholder="0"
+                {...register('elevation')}
+                error={errors.elevation}
+              />
             </div>
+
           </FormCard>
 
-          {/* Availability & Operating Hours Card */}
+
+          {/* Availability */}
           <FormCard title="Availability">
-            {/* Deployment Stage */}
+
             <div>
-              <LabelWithInfo htmlFor="stage" label="Stage" info="Current deployment lifecycle stage" />
+              <LabelWithInfo
+                htmlFor="stage"
+                label="Stage"
+                info="Current deployment lifecycle stage"
+              />
+
               <Select
                 id="stage"
                 disabled={isViewMode}
                 placeholder="Select Stage"
-                options={['Active', 'Inactive', 'Under Maintenance']}
+                options={[
+                  'Active',
+                  'Inactive',
+                  'Under Maintenance'
+                ]}
                 {...register('stage')}
                 error={errors.stage}
               />
             </div>
 
-            {/* 24x7 Availability Checkbox */}
+
+            {/* 24x7 */}
             <div className="flex items-center gap-3 pt-1">
-              <label htmlFor="open247" className="relative flex items-center gap-3 cursor-pointer select-none">
+
+              <label
+                htmlFor="open247"
+                className="relative flex items-center gap-3 cursor-pointer select-none"
+              >
+
                 <input
                   id="open247"
-                  name="open247"
                   type="checkbox"
                   disabled={isViewMode}
                   {...register('open247')}
                   className="peer sr-only"
                 />
-                <div className="w-5 h-5 rounded-md border border-stone-300 peer-checked:bg-[#1EB8D4] peer-checked:border-[#1EB8D4] flex items-center justify-center text-white transition-all shadow-2xs">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+
+                <div className="w-5 h-5 rounded-md border border-stone-300 peer-checked:bg-[#4DA944] peer-checked:border-[#4DA944] flex items-center justify-center text-white transition-all shadow-2xs">
+
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={3}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
+
                 </div>
-                <span className="text-sm font-semibold text-stone-700">Open 24×7</span>
+
+                <span className="text-sm font-semibold text-stone-700">
+                  Open 24×7
+                </span>
+
               </label>
+
             </div>
 
-            {/* Daily Opening and Closing Time Pickers */}
+
+            {/* Operating Hours */}
             <div className="grid grid-cols-2 gap-4">
+
               <div>
-                <LabelWithInfo htmlFor="opensAt" label="Opens at" required={!open247} info="Daily station opening time" />
+                <LabelWithInfo
+                  htmlFor="opensAt"
+                  label="Opens at"
+                  required={!open247}
+                  info="Daily station opening time"
+                />
+
                 <Input
                   id="opensAt"
                   type="time"
@@ -596,8 +1165,15 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
                 />
               </div>
 
+
               <div>
-                <LabelWithInfo htmlFor="closesAt" label="Closes at" required={!open247} info="Daily station closing time" />
+                <LabelWithInfo
+                  htmlFor="closesAt"
+                  label="Closes at"
+                  required={!open247}
+                  info="Daily station closing time"
+                />
+
                 <Input
                   id="closesAt"
                   type="time"
@@ -606,11 +1182,14 @@ export default function AddChargingStation({ isViewMode = false, isEditMode = fa
                   error={errors.closesAt}
                 />
               </div>
+
             </div>
+
           </FormCard>
+
         </div>
+
       </div>
     </form>
   );
 }
-

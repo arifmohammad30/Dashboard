@@ -11,8 +11,8 @@ export function useChargePointTariff(cp, onUpdate) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const activeTariff = cp?.tariff || null;
-  const activeTariffId = cp?.tariffId || activeTariff?.id || null;
-  const activeTariffName = activeTariff?.name || cp?.tariffProfiles || 'No Tariff Assigned';
+  const activeTariffId = activeTariff?.id || cp?.tariffId || null;
+  const activeTariffName = activeTariff?.name || 'No Tariff Assigned';
 
   useEffect(() => {
     let isMounted = true;

@@ -1,5 +1,11 @@
 /**
- * Tariff Validation Utility for Frontend & Backend
+ * Tariff Validation Utility for Complex EV Charging Structures
+ * Performs real-time validation for:
+ * 1. GST percentage bounds (0 - 100%)
+ * 2. Energy and time price non-negativity
+ * 3. Parking and idle fee boundaries
+ * 4. SOC (State of Charge) range overlaps and 0-100% boundary checks
+ * 5. Time interval format, day selection, and inter-period time overlaps (including midnight-crossing intervals)
  */
 
 const DAYS_MAP = {
@@ -14,6 +20,9 @@ const DAYS_MAP = {
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
+/**
+ * Converts HH:mm time string into total minutes from midnight (0 - 1439).
+ */
 function timeToMinutes(timeStr) {
   if (!timeStr || typeof timeStr !== 'string') return null;
   const parts = timeStr.trim().split(':');
@@ -24,6 +33,10 @@ function timeToMinutes(timeStr) {
   return h * 60 + m;
 }
 
+/**
+ * Validates the complete nested pricing configuration object.
+ * Returns { valid: boolean, error: string|null, periodErrors: object, socErrors: object }.
+ */
 export function validatePricingConfig(config) {
   if (!config) return { valid: true, periodErrors: {}, socErrors: {} };
 
@@ -48,22 +61,22 @@ export function validatePricingConfig(config) {
       return { valid: false, error: 'Normal time price rate cannot be negative.', periodErrors, socErrors };
     }
     if (normalPricing.socRanges && normalPricing.socRanges.length > 0) {
-      validateSocRangesWithMap(normalPricing.socRanges, 'Normal Pricing', socErrors);
+      validateSocRangesWithMap(normalPricing.socRanges, socErrors, 'normal');
     }
   }
 
   // 2. Validate Special Periods (Peak & Off-Peak)
   const allSpecialPeriods = [
-    ...peakPeriods.map(p => ({ ...p, periodType: 'Peak' })),
-    ...offPeakPeriods.map(p => ({ ...p, periodType: 'Off-Peak' }))
+    ...peakPeriods.map((p, idx) => ({ ...p, periodType: 'Peak', _pIdx: idx })),
+    ...offPeakPeriods.map((p, idx) => ({ ...p, periodType: 'Off-Peak', _pIdx: idx }))
   ];
 
   for (const period of allSpecialPeriods) {
     if (period.energyPrice !== undefined && !isNaN(period.energyPrice) && period.energyPrice < 0) {
-      return { valid: false, error: `${period.periodType} period "${period.title || period.id}" energy price cannot be negative.`, periodErrors, socErrors };
+      return { valid: false, error: `${period.periodType} period "${period.title || (period._pIdx + 1)}" energy price cannot be negative.`, periodErrors, socErrors };
     }
     if (period.timePrice !== undefined && !isNaN(period.timePrice) && period.timePrice < 0) {
-      return { valid: false, error: `${period.periodType} period "${period.title || period.id}" time price cannot be negative.`, periodErrors, socErrors };
+      return { valid: false, error: `${period.periodType} period "${period.title || (period._pIdx + 1)}" time price cannot be negative.`, periodErrors, socErrors };
     }
   }
 
@@ -77,44 +90,47 @@ export function validatePricingConfig(config) {
     }
   }
 
-
   const emittedIntervals = [];
 
   for (const period of allSpecialPeriods) {
-    const periodName = `${period.periodType} Period "${period.title || period.id}"`;
-
+    const periodKey = period.id || `${period.periodType}_${period._pIdx}`;
     if (period.socRanges && period.socRanges.length > 0) {
-      validateSocRangesWithMap(period.socRanges, periodName, socErrors);
+      validateSocRangesWithMap(period.socRanges, socErrors, periodKey);
     }
 
     const startMin = timeToMinutes(period.startTime);
     const endMin = timeToMinutes(period.endTime);
 
+    const setPeriodError = (msg) => {
+      periodErrors[periodKey] = msg;
+      if (period.id) periodErrors[period.id] = msg;
+    };
+
     if (startMin === null || endMin === null) {
-      periodErrors[period.id] = `Invalid time format (${period.startTime} - ${period.endTime}). Use HH:mm format.`;
+      setPeriodError(`Invalid time format (${period.startTime || 'empty'} - ${period.endTime || 'empty'}). Use HH:mm format.`);
     } else if (startMin === endMin && period.startTime !== '00:00') {
-      periodErrors[period.id] = `Start and end time cannot be equal (${period.startTime}).`;
+      setPeriodError(`Start and end time cannot be equal (${period.startTime}).`);
     } else if (!period.days || !Array.isArray(period.days) || period.days.length === 0) {
-      periodErrors[period.id] = `Must select at least one applicable day.`;
+      setPeriodError(`Must select at least one applicable day.`);
     } else {
       for (const dayName of period.days) {
         const dayIdx = DAYS_MAP[dayName];
         if (dayIdx === undefined) continue;
 
         if (startMin === endMin && period.startTime === '00:00') {
-          emittedIntervals.push({ day: dayIdx, start: 0, end: 1440, periodId: period.id, periodTitle: period.title || period.id, periodType: period.periodType });
+          emittedIntervals.push({ day: dayIdx, start: 0, end: 1440, periodKey, periodId: period.id, periodTitle: period.title || periodKey, periodType: period.periodType });
         } else if (startMin < endMin) {
-          emittedIntervals.push({ day: dayIdx, start: startMin, end: endMin, periodId: period.id, periodTitle: period.title || period.id, periodType: period.periodType });
+          emittedIntervals.push({ day: dayIdx, start: startMin, end: endMin, periodKey, periodId: period.id, periodTitle: period.title || periodKey, periodType: period.periodType });
         } else {
-          emittedIntervals.push({ day: dayIdx, start: startMin, end: 1440, periodId: period.id, periodTitle: period.title || period.id, periodType: period.periodType });
+          emittedIntervals.push({ day: dayIdx, start: startMin, end: 1440, periodKey, periodId: period.id, periodTitle: period.title || periodKey, periodType: period.periodType });
           const nextDayIdx = (dayIdx + 1) % 7;
-          emittedIntervals.push({ day: nextDayIdx, start: 0, end: endMin, periodId: period.id, periodTitle: period.title || period.id, periodType: period.periodType });
+          emittedIntervals.push({ day: nextDayIdx, start: 0, end: endMin, periodKey, periodId: period.id, periodTitle: period.title || periodKey, periodType: period.periodType });
         }
       }
     }
   }
 
-  // 3. Overlap Check across emitted intervals
+  // Overlap Check across emitted intervals
   for (let day = 0; day < 7; day++) {
     const dayIntervals = emittedIntervals.filter(i => i.day === day);
     for (let i = 0; i < dayIntervals.length; i++) {
@@ -134,8 +150,11 @@ export function validatePricingConfig(config) {
           const msgA = `Overlaps with ${intB.periodType} "${intB.periodTitle}" on ${DAY_NAMES[day]} (${formatMin(overlapStart)} - ${formatMin(overlapEnd)})`;
           const msgB = `Overlaps with ${intA.periodType} "${intA.periodTitle}" on ${DAY_NAMES[day]} (${formatMin(overlapStart)} - ${formatMin(overlapEnd)})`;
 
-          periodErrors[intA.periodId] = periodErrors[intA.periodId] ? `${periodErrors[intA.periodId]}; ${msgA}` : msgA;
-          periodErrors[intB.periodId] = periodErrors[intB.periodId] ? `${periodErrors[intB.periodId]}; ${msgB}` : msgB;
+          periodErrors[intA.periodKey] = periodErrors[intA.periodKey] ? `${periodErrors[intA.periodKey]}; ${msgA}` : msgA;
+          periodErrors[intB.periodKey] = periodErrors[intB.periodKey] ? `${periodErrors[intB.periodKey]}; ${msgB}` : msgB;
+
+          if (intA.periodId) periodErrors[intA.periodId] = periodErrors[intA.periodKey];
+          if (intB.periodId) periodErrors[intB.periodId] = periodErrors[intB.periodKey];
         }
       }
     }
@@ -153,32 +172,45 @@ export function validatePricingConfig(config) {
   };
 }
 
-function validateSocRangesWithMap(ranges, sectionName, socErrors) {
+function validateSocRangesWithMap(ranges, socErrors, parentKey = '') {
   if (!Array.isArray(ranges) || ranges.length === 0) return;
 
-  const sorted = [...ranges].map(r => ({
-    id: r.id,
-    from: parseInt(r.from, 10),
-    to: parseInt(r.to, 10),
-    price: parseFloat(r.price)
-  })).sort((a, b) => a.from - b.from);
+  const sorted = ranges
+    .map((r, originalIdx) => ({
+      key: r.id || `${parentKey}_soc_${originalIdx}`,
+      id: r.id,
+      originalIdx,
+      from: r.from === '' ? '' : parseInt(r.from, 10),
+      to: r.to === '' ? '' : parseInt(r.to, 10),
+      price: r.price === '' ? '' : parseFloat(r.price)
+    }))
+    .sort((a, b) => {
+      if (a.from === '') return 1;
+      if (b.from === '') return -1;
+      return a.from - b.from;
+    });
 
-  if (sorted.length > 0 && !isNaN(sorted[0].from) && sorted[0].from !== 0) {
-    socErrors[sorted[0].id] = `First SOC range must start from 0%.`;
-  }
+  const setErr = (item, msg) => {
+    socErrors[item.key] = socErrors[item.key]
+      ? `${socErrors[item.key]}; ${msg}`
+      : msg;
+
+    if (item.id) {
+      socErrors[item.id] = socErrors[item.key];
+    }
+  };
 
   for (const r of sorted) {
     if (isNaN(r.from) || isNaN(r.to)) {
-      socErrors[r.id] = `Boundaries must be numeric values.`;
+      setErr(r, `Boundaries must be numeric values.`);
     } else if (r.from < 0 || r.to > 100) {
-      socErrors[r.id] = `Boundaries must be between 0% and 100%.`;
+      setErr(r, `Boundaries must be between 0% and 100%.`);
     } else if (r.from > r.to) {
-      socErrors[r.id] = `Lower bound (${r.from}%) cannot be greater than upper bound (${r.to}%).`;
+      setErr(r, `Lower bound (${r.from}%) cannot be greater than upper bound (${r.to}%).`);
     } else if (!isNaN(r.price) && r.price < 0) {
-      socErrors[r.id] = `SOC price rate cannot be a negative number.`;
+      setErr(r, `SOC price rate cannot be a negative number.`);
     }
   }
-
 
   for (let i = 0; i < sorted.length - 1; i++) {
     const curr = sorted[i];
@@ -186,8 +218,8 @@ function validateSocRangesWithMap(ranges, sectionName, socErrors) {
 
     if (next.from <= curr.to) {
       const msg = `Range ${curr.from}-${curr.to}% overlaps with ${next.from}-${next.to}%.`;
-      socErrors[curr.id] = socErrors[curr.id] ? `${socErrors[curr.id]}; ${msg}` : msg;
-      socErrors[next.id] = socErrors[next.id] ? `${socErrors[next.id]}; ${msg}` : msg;
+      setErr(curr, msg);
+      setErr(next, msg);
     }
   }
 }

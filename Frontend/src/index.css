@@ -27,8 +27,8 @@ html, body {
 }
 
 ::selection {
-  background-color: rgba(30, 184, 212, 0.25);
-  color: #0f6272;
+  background-color: rgba(77, 169, 68, 0.25);
+  color: #1a4d16;
 }
 
 code, kbd, samp, pre, .font-mono {
@@ -92,7 +92,7 @@ code, kbd, samp, pre, .font-mono {
   }
 
   .neo-search-input:focus {
-    box-shadow: inset 3px 3px 6px rgba(30, 184, 212, 0.25), inset -3px -3px 6px var(--shadow-light);
+    box-shadow: inset 3px 3px 6px rgba(77, 169, 68, 0.25), inset -3px -3px 6px var(--shadow-light);
   }
 
   .neo-search-input:-webkit-autofill,
@@ -101,7 +101,7 @@ code, kbd, samp, pre, .font-mono {
   .neo-search-input:-webkit-autofill:active {
     transition: background-color 5000s ease-in-out 0s !important;
     -webkit-text-fill-color: #292524 !important;
-    -webkit-box-shadow: inset 3px 3px 6px rgba(30, 184, 212, 0.25), inset -3px -3px 6px var(--shadow-light) !important;
+    -webkit-box-shadow: inset 3px 3px 6px rgba(77, 169, 68, 0.25), inset -3px -3px 6px var(--shadow-light) !important;
   }
 
   .neo-form-input {
@@ -188,7 +188,7 @@ code, kbd, samp, pre, .font-mono {
     border: 1px solid rgba(255, 255, 255, 0.4);
   }
 
-  .neo-inset-cyan {
+  .neo-inset-emerald {
     background-color: var(--neo-bg-30);
     box-shadow: inset 4px 4px 8px rgba(16, 185, 129, 0.25), inset -4px -4px 8px var(--shadow-light);
     transition: all 0.3s ease;
@@ -320,34 +320,4 @@ tbody::-webkit-scrollbar {
   height: 0 !important;
 }
 
-/* Sidebar Custom Ultra-Thin Scrollbar (Shows position indicator thumb only, no track bar) */
-.sidebar-scrollbar {
-  -ms-overflow-style: auto !important;
-  scrollbar-width: thin !important;
-  scrollbar-color: rgba(30, 184, 212, 0.45) transparent !important;
-}
-
-.sidebar-scrollbar::-webkit-scrollbar {
-  display: block !important;
-  width: 2px !important;
-  height: 2px !important;
-}
-
-.sidebar-scrollbar::-webkit-scrollbar-track {
-  background: transparent !important;
-  border-radius: 9999px !important;
-}
-
-.sidebar-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(30, 184, 212, 0.55) !important;
-  background-clip: padding-box !important;
-  border-top: 12px solid transparent !important;
-  border-bottom: 12px solid transparent !important;
-  border-radius: 9999px !important;
-  transition: background-color 0.2s ease !important;
-}
-
-.sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(30, 184, 212, 0.85) !important;
-}
 

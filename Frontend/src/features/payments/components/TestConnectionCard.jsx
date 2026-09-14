@@ -21,8 +21,8 @@ export default function TestConnectionCard({
           <div className="flex items-center gap-2 pt-0.5">
             <span className="text-xs font-semibold text-slate-700">Status:</span>
             {connectionStatus === 'connected' ? (
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#148296] bg-cyan-50 px-2 py-0.5 rounded-md border border-[#1EB8D4]/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#1EB8D4]"></span>
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#30702a] bg-emerald-50 px-2 py-0.5 rounded-md border border-[#4DA944]/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#4DA944]"></span>
                 Connected
               </span>
             ) : connectionStatus === 'failed' ? (
@@ -54,12 +54,12 @@ export default function TestConnectionCard({
         >
           {testingConnection ? (
             <>
-              <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#1EB8D4]" />
+              <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#4DA944]" />
               <span>Testing...</span>
             </>
           ) : (
             <>
-              <Zap className="w-3.5 h-3.5 fill-[#1EB8D4] text-[#1EB8D4]" />
+              <Zap className="w-3.5 h-3.5 fill-[#4DA944] text-[#4DA944]" />
               <span>Test Connection</span>
             </>
           )}

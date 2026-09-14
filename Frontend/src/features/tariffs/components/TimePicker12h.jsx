@@ -4,8 +4,13 @@ import { to12Hour, to24Hour } from '../utils/timeUtils';
 const HOURS = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
 const MINUTES = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
 
+/**
+ * 12-Hour Time Picker Component (HH : MM AM/PM)
+ * Renders hour and minute dropdown selects with an AM/PM toggle button.
+ * Automatically converts and emits standard 24-hour time strings ("HH:mm") upstream.
+ */
 export default function TimePicker12h({ value, onChange, disabled, id, name }) {
-  const val12 = to12Hour(value || '00:00');
+  const val12 = to12Hour(value);
   const match = val12.match(/^(\d{2}):(\d{2})\s*(AM|PM)$/);
   const hh = match ? match[1] : '12';
   const mm = match ? match[2] : '00';
@@ -51,11 +56,10 @@ export default function TimePicker12h({ value, onChange, disabled, id, name }) {
         type="button"
         disabled={disabled}
         onClick={() => updateTime(hh, mm, period === 'AM' ? 'PM' : 'AM')}
-        className={`ml-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold transition-all cursor-pointer border select-none ${
-          period === 'PM'
+        className={`ml-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold transition-all cursor-pointer border select-none ${period === 'PM'
             ? 'bg-amber-500 text-white border-amber-600 shadow-2xs'
             : 'bg-sky-500 text-white border-sky-600 shadow-2xs'
-        }`}
+          }`}
       >
         {period}
       </button>

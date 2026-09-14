@@ -18,10 +18,11 @@ export default function ChargePointTariffsTab({ cp, onUpdate }) {
   } = useChargePointTariff(cp, onUpdate);
 
   const handleNavigateCatalog = () => {
-    if (activeTariffId) {
-      navigate(`/tariffs?id=${encodeURIComponent(activeTariffId)}`);
+    const tariffName = cp?.tariff?.name || activeTariffName;
+    if (tariffName && tariffName !== '-') {
+      navigate(`/tariffs?search=${encodeURIComponent(tariffName)}`);
     } else {
-      navigate(`/tariffs?search=${encodeURIComponent(activeTariffName)}`);
+      navigate('/tariffs');
     }
   };
 
@@ -68,7 +69,7 @@ export default function ChargePointTariffsTab({ cp, onUpdate }) {
 
         <div className="flex items-center justify-between pt-1">
           <span className="text-[11px] font-medium text-stone-500 flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-cyan-500 shrink-0" />
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
             Active billing tariff profile bound to this charge point.
           </span>
 

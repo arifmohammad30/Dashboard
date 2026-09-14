@@ -60,7 +60,7 @@ export default function GatewayConfigForm({
               value={formData.displayName || ''}
               onChange={(e) => onFieldChange('displayName', e.target.value)}
               placeholder={environment === 0 ? 'e.g. Razorpay (Test)' : 'e.g. Razorpay (Live)'}
-              className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-medium focus:bg-white focus:border-[#1EB8D4] focus:ring-1 focus:ring-[#1EB8D4]/20 focus:outline-none transition-all shadow-2xs"
+              className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-medium focus:bg-white focus:border-[#4DA944] focus:ring-1 focus:ring-[#4DA944]/20 focus:outline-none transition-all shadow-2xs"
             />
           </div>
         </div>
@@ -82,7 +82,7 @@ export default function GatewayConfigForm({
               value={formData.keyId || ''}
               onChange={(e) => onFieldChange('keyId', e.target.value)}
               placeholder={environment === 0 ? 'rzp_test_...' : 'rzp_live_...'}
-              className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-mono font-medium focus:bg-white focus:border-[#1EB8D4] focus:ring-1 focus:ring-[#1EB8D4]/20 focus:outline-none transition-all shadow-2xs"
+              className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-mono font-medium focus:bg-white focus:border-[#4DA944] focus:ring-1 focus:ring-[#4DA944]/20 focus:outline-none transition-all shadow-2xs"
             />
           </div>
 
@@ -94,7 +94,7 @@ export default function GatewayConfigForm({
                 <button
                   type="button"
                   onClick={() => setIsChangingKeySecret(true)}
-                  className="text-xs font-semibold text-[#1EB8D4] hover:underline cursor-pointer"
+                  className="text-xs font-semibold text-[#4DA944] hover:underline cursor-pointer"
                 >
                   Change Secret
                 </button>
@@ -116,8 +116,8 @@ export default function GatewayConfigForm({
             {formData.hasKeySecret && !isChangingKeySecret ? (
               <div className="flex items-center justify-between bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2 shadow-2xs">
                 <span className="text-xs font-mono text-slate-500 tracking-wider font-medium">••••••••••••••••</span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#148296] bg-cyan-50 px-2 py-0.5 rounded-md border border-[#1EB8D4]/20">
-                  <Lock className="w-3 h-3 text-[#1EB8D4]" />
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#30702a] bg-emerald-50 px-2 py-0.5 rounded-md border border-[#4DA944]/20">
+                  <Lock className="w-3 h-3 text-[#4DA944]" />
                   Configured
                 </span>
               </div>
@@ -131,7 +131,7 @@ export default function GatewayConfigForm({
                   value={newKeySecret}
                   onChange={(e) => setNewKeySecret(e.target.value)}
                   placeholder={formData.hasKeySecret ? 'Enter new Key Secret to replace' : 'Enter Razorpay Key Secret'}
-                  className="w-full pl-3.5 pr-9 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-mono font-medium focus:bg-white focus:border-[#1EB8D4] focus:ring-1 focus:ring-[#1EB8D4]/20 focus:outline-none transition-all shadow-2xs"
+                  className="w-full pl-3.5 pr-9 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-mono font-medium focus:bg-white focus:border-[#4DA944] focus:ring-1 focus:ring-[#4DA944]/20 focus:outline-none transition-all shadow-2xs"
                 />
                 <button
                   type="button"
@@ -155,7 +155,7 @@ export default function GatewayConfigForm({
                 <button
                   type="button"
                   onClick={() => setIsChangingWebhookSecret(true)}
-                  className="text-xs font-semibold text-[#1EB8D4] hover:underline cursor-pointer"
+                  className="text-xs font-semibold text-[#4DA944] hover:underline cursor-pointer"
                 >
                   Change Secret
                 </button>
@@ -177,8 +177,8 @@ export default function GatewayConfigForm({
             {formData.hasWebhookSecret && !isChangingWebhookSecret ? (
               <div className="flex items-center justify-between bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2 shadow-2xs">
                 <span className="text-xs font-mono text-slate-500 tracking-wider font-medium">••••••••••••••••</span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#148296] bg-cyan-50 px-2 py-0.5 rounded-md border border-[#1EB8D4]/20">
-                  <Lock className="w-3 h-3 text-[#1EB8D4]" />
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#30702a] bg-emerald-50 px-2 py-0.5 rounded-md border border-[#4DA944]/20">
+                  <Lock className="w-3 h-3 text-[#4DA944]" />
                   Configured
                 </span>
               </div>
@@ -192,7 +192,7 @@ export default function GatewayConfigForm({
                   value={newWebhookSecret}
                   onChange={(e) => setNewWebhookSecret(e.target.value)}
                   placeholder={formData.hasWebhookSecret ? 'Enter new Webhook Secret' : 'Enter Webhook Secret (Optional)'}
-                  className="w-full pl-3.5 pr-9 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-mono font-medium focus:bg-white focus:border-[#1EB8D4] focus:ring-1 focus:ring-[#1EB8D4]/20 focus:outline-none transition-all shadow-2xs"
+                  className="w-full pl-3.5 pr-9 py-2 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-mono font-medium focus:bg-white focus:border-[#4DA944] focus:ring-1 focus:ring-[#4DA944]/20 focus:outline-none transition-all shadow-2xs"
                 />
                 <button
                   type="button"
@@ -227,7 +227,7 @@ export default function GatewayConfigForm({
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-700 transition cursor-pointer z-10"
                   title="Copy Webhook URL"
                 >
-                  {copiedUrl ? <Check className="w-3.5 h-3.5 text-[#1EB8D4]" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copiedUrl ? <Check className="w-3.5 h-3.5 text-[#4DA944]" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
               )}
             </div>
@@ -277,7 +277,7 @@ export default function GatewayConfigForm({
             value={formData.description || ''}
             onChange={(e) => onFieldChange('description', e.target.value)}
             placeholder="Add any operational notes about this payment configuration..."
-            className="w-full p-3.5 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-medium focus:bg-white focus:border-[#1EB8D4] focus:ring-1 focus:ring-[#1EB8D4]/20 focus:outline-none transition-all shadow-2xs resize-none"
+            className="w-full p-3.5 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl text-xs font-medium focus:bg-white focus:border-[#4DA944] focus:ring-1 focus:ring-[#4DA944]/20 focus:outline-none transition-all shadow-2xs resize-none"
           />
         </div>
 
@@ -305,7 +305,7 @@ export default function GatewayConfigForm({
                   type="checkbox"
                   checked={formData.autoCapture ?? true}
                   onChange={(e) => onFieldChange('autoCapture', e.target.checked)}
-                  className="w-4 h-4 accent-[#1EB8D4] rounded cursor-pointer"
+                  className="w-4 h-4 accent-[#4DA944] rounded cursor-pointer"
                 />
               </div>
 
@@ -320,7 +320,7 @@ export default function GatewayConfigForm({
                   type="checkbox"
                   checked={formData.autoRefund ?? true}
                   onChange={(e) => onFieldChange('autoRefund', e.target.checked)}
-                  className="w-4 h-4 accent-[#1EB8D4] rounded cursor-pointer"
+                  className="w-4 h-4 accent-[#4DA944] rounded cursor-pointer"
                 />
               </div>
             </div>

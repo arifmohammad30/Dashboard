@@ -30,7 +30,7 @@ export default function SegmentedToggle({
               } ${buttonClassName}`}
           >
             <span
-              className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors duration-150 ${isSelected ? 'bg-[#1EB8D4]' : 'bg-slate-300'
+              className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors duration-150 ${isSelected ? 'bg-[#4DA944]' : 'bg-slate-300'
                 }`}
             />
             <span className="whitespace-nowrap">{optionLabel}</span>

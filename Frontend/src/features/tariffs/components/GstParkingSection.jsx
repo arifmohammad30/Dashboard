@@ -3,6 +3,11 @@ import { Percent } from 'lucide-react';
 import Select from '../../../components/ui/Select';
 import TariffSectionCard from './TariffSectionCard';
 
+/**
+ * GST Tax Rate & Idle Parking Fee Section Component
+ * Manages GST percentage input (0-100%) and optional parking fee settings
+ * (fee per hour, grace period in minutes, and trigger condition).
+ */
 export default function GstParkingSection({
   gstPercentage,
   setGstPercentage,

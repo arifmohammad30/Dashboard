@@ -4,9 +4,14 @@ import { useLiveSessions } from '../hooks/useLiveSessions';
 import LiveSessionsToolbar from '../components/LiveSessionsToolbar';
 import LiveSessionsTable from '../components/LiveSessionsTable';
 
+/**
+ * LiveSessionsList Page
+ * Displays active ongoing charging sessions streaming real-time telemetry from charge points.
+ */
 export default function LiveSessionsList() {
   const navigate = useNavigate();
 
+  // Custom hook for live sessions data, socket updates, and search state
   const {
     searchTerm,
     currentPage,
@@ -18,6 +23,7 @@ export default function LiveSessionsList() {
     setCurrentPage
   } = useLiveSessions();
 
+  // Navigation handlers for stations, charge points, and telemetry logs
   const handleNavigateStation = (stationObj) => {
     if (stationObj?.id) {
       navigate(`/charging-stations/${stationObj.id}`, { state: { station: stationObj } });

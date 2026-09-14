@@ -1,7 +1,7 @@
 import React from 'react';
 import BackButton from '../../../components/ui/BackButton';
 import PrimaryButton from '../../../components/ui/PrimaryButton';
-import { Plus, Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { useTariffForm } from '../hooks/useTariffForm';
 
 import TariffBasicInfoSection from '../components/TariffBasicInfoSection';
@@ -10,6 +10,11 @@ import SpecialPeriodSection from '../components/SpecialPeriodSection';
 import GstParkingSection from '../components/GstParkingSection';
 import DailyPreviewTimeline from '../components/DailyPreviewTimeline';
 
+/**
+ * Add / Edit / View Tariff Page Component
+ * Serves as the main container page assembling all tariff configuration sections:
+ * Basic Info, Normal Pricing, Peak Periods, Off-Peak Periods, GST/Parking, and Daily Preview Timeline.
+ */
 export default function AddNewTariff({ isViewMode = false, isEditMode = false }) {
   const form = useTariffForm({ isViewMode, isEditMode });
 
@@ -18,6 +23,34 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
       <div className="flex flex-col items-center justify-center py-24 gap-3">
         <Loader2 className="w-8 h-8 text-sky-600 animate-spin" />
         <p className="text-xs font-bold text-stone-500">Loading tariff details...</p>
+      </div>
+    );
+  }
+
+  if (form.fetchError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 px-4 max-w-lg mx-auto text-center animate-in fade-in duration-200">
+        <div className="w-16 h-16 rounded-3xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 mb-4 shadow-2xs">
+          <AlertCircle className="w-8 h-8" />
+        </div>
+        <h2 className="text-lg font-black text-stone-900 mb-1">
+          {form.fetchError.isNetworkError
+            ? 'Unable to connect to server'
+            : form.fetchError.title || 'Failed to load tariff details'}
+        </h2>
+        <p className="text-xs text-stone-500 font-medium mb-6 leading-relaxed">
+          {form.fetchError.message || 'We could not retrieve the configuration for this tariff. Please check your connection or verify the tariff ID.'}
+        </p>
+        <div className="flex items-center gap-3">
+          <BackButton to="/tariffs" label="Back to Tariffs" />
+          <button
+            type="button"
+            onClick={form.reloadTariff}
+            className="h-9 px-4 inline-flex items-center justify-center text-xs font-bold bg-[#4DA944] hover:bg-[#30702a] text-white rounded-xl shadow-xs transition cursor-pointer"
+          >
+            Retry Loading
+          </button>
+        </div>
       </div>
     );
   }

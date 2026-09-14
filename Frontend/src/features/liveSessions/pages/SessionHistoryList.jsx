@@ -8,10 +8,15 @@ import { apiClient } from '../../../lib/apiClient';
 import SessionHistoryToolbar from '../components/SessionHistoryToolbar';
 import SessionHistoryTable from '../components/SessionHistoryTable';
 
+/**
+ * SessionHistoryList Page
+ * Displays the complete audit log of completed, stopped, and failed charging sessions.
+ */
 export default function SessionHistoryList() {
   const navigate = useNavigate();
   const toast = useToast();
 
+  // Custom hook for session history data, pagination, and multi-filters
   const {
     activeTab,
     searchTerm,
@@ -32,6 +37,7 @@ export default function SessionHistoryList() {
   const [stationOptions, setStationOptions] = useState([]);
   const [cpOptions, setCpOptions] = useState([]);
 
+  // Fetch real station and charge point name options for filter dropdowns
   useEffect(() => {
     apiClient('/api/charging-stations?limit=100')
       .then(res => {
@@ -50,10 +56,12 @@ export default function SessionHistoryList() {
       .catch(() => {});
   }, []);
 
+  // Export filtered sessions as CSV
   const handleExportCsv = () => {
     exportSessionsToCsv(toast, { status: activeTab, search: searchTerm, filters });
   };
 
+  // Navigation handlers for stations, charge points, and telemetry logs
   const handleNavigateStation = (stationObj) => {
     if (stationObj?.id) {
       navigate(`/charging-stations/${stationObj.id}`, { state: { station: stationObj } });
@@ -107,7 +115,6 @@ export default function SessionHistoryList() {
         activeFiltersCount={activeFiltersCount}
         stationOptions={stationOptions}
         cpOptions={cpOptions}
-        onNavigateActiveSessions={() => navigate('/live-sessions')}
       />
 
       <SessionHistoryTable

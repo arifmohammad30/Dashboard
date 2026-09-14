@@ -39,6 +39,9 @@ export async function apiClient(endpoint, options = {}) {
   try {
     response = await fetch(url, config);
   } catch (netErr) {
+    if (netErr.name === 'AbortError' || netErr.name === 'CanceledError') {
+      throw netErr;
+    }
     const error = new Error('Server connection error. Please check if the server is connected.');
     error.title = 'Server Disconnected';
     error.code = 503;

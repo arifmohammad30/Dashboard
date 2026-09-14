@@ -98,7 +98,7 @@ export default function BillsList() {
               <Filter className="w-4 h-4 text-violet-600 shrink-0" />
               <span className="leading-none">Filter</span>
               {activeFiltersCount > 0 && (
-                <span className="flex items-center justify-center w-4 h-4 bg-[#1EB8D4] text-slate-950 rounded-full text-[10px] ml-1 font-bold">
+                <span className="flex items-center justify-center w-4 h-4 bg-[#4DA944] text-white rounded-full text-[10px] ml-1 font-bold">
                   {activeFiltersCount}
                 </span>
               )}
@@ -238,8 +238,8 @@ export default function BillsList() {
                       {/* 2. Bill Status */}
                       <td className="px-4 py-3.5 whitespace-nowrap">
                         {isPaid ? (
-                          <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full text-[11px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-200/80">
-                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-500"></span>
+                          <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                             Paid
                           </span>
                         ) : isUnpaid ? (
@@ -258,8 +258,8 @@ export default function BillsList() {
                       {/* 3. Charge Transaction Status */}
                       <td className="px-4 py-3.5 whitespace-nowrap">
                         {isCompleted ? (
-                          <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full text-[11px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-200/80">
-                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-500"></span>
+                          <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                             {row.chargeTransactionStatus}
                           </span>
                         ) : isOngoing ? (
@@ -330,11 +330,11 @@ export default function BillsList() {
                       {/* 10. Driver / User */}
                       <td className="px-4 py-3.5 whitespace-nowrap">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#1EB8D4]/20 to-[#1EB8D4]/10 border border-[#1EB8D4]/30 text-[#148296] font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#4DA944]/20 to-[#4DA944]/10 border border-[#4DA944]/30 text-[#30702a] font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                             {driverInitial}
                           </div>
                           <div>
-                            <span className="font-bold text-slate-900 block group-hover:text-[#1EB8D4] transition-colors">
+                            <span className="font-bold text-slate-900 block group-hover:text-[#4DA944] transition-colors">
                               {row.customerDriver?.name || 'EV Driver'}
                             </span>
                             {row.customerDriver?.phone && (
@@ -369,7 +369,7 @@ export default function BillsList() {
                               navigate(`/charge-points/${encodeURIComponent(row.chargePoint)}`);
                             }
                           }}
-                          className="text-stone-800 font-bold text-xs group-hover:text-cyan-600 transition-colors cursor-pointer text-left"
+                          className="text-stone-800 font-bold text-xs group-hover:text-emerald-600 transition-colors cursor-pointer text-left"
                         >
                           {row.chargePoint}
                         </button>

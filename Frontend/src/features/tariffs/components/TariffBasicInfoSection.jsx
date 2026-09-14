@@ -3,6 +3,10 @@ import { Layers } from 'lucide-react';
 import Select from '../../../components/ui/Select';
 import TariffSectionCard from './TariffSectionCard';
 
+/**
+ * Tariff Basic Information Section Component
+ * Handles tariff name input and status selection (Active, Draft, Inactive).
+ */
 export default function TariffBasicInfoSection({
   tariffName,
   setTariffName,

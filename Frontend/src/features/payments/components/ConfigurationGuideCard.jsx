@@ -40,7 +40,7 @@ export default function ConfigurationGuideCard({
             href={docsUrl}
             target="_blank"
             rel="noreferrer"
-            className="text-[11px] font-semibold text-[#1EB8D4] hover:underline inline-flex items-center gap-1 transition-colors"
+            className="text-[11px] font-semibold text-[#4DA944] hover:underline inline-flex items-center gap-1 transition-colors"
           >
             <span>View Razorpay Documentation</span>
             <ExternalLink className="w-3 h-3" />

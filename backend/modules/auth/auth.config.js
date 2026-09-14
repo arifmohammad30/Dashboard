@@ -5,7 +5,6 @@ export const TEMPORARY_USERS = [
     id: 'usr_admin_001',
     name: 'Admin User',
     email: 'admin@example.com',
-    password: 'Admin@1234',
     role: 'ADMIN',
     permissions: [
       // Analytics & Dashboard
@@ -76,7 +75,6 @@ export const TEMPORARY_USERS = [
     id: 'usr_operator_002',
     name: 'Operator User',
     email: 'operator@example.com',
-    password: 'Operator@1234',
     role: 'OPERATOR',
     permissions: [
       'analytics:view',
@@ -98,17 +96,16 @@ export const TEMPORARY_USERS = [
     id: 'usr_user_003',
     name: 'Standard User',
     email: 'user@example.com',
-    password: 'User@1234',
     role: 'USER',
     permissions: [
 
 
       'charge_point:view',
       'session:view',
-      'charge_point:create',
-      'charge_point:update',
-      'charge_point:delete',
-      'charge_point:control'
+
+
+      'charge_point:control',
+      'payment:view'
 
 
 

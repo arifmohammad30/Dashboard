@@ -30,8 +30,8 @@ export default function ProviderSelectionCard({
         {/* Configuration status indicator badge */}
         <div className="pt-0.5">
           {configured ? (
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#148296]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#1EB8D4]"></span>
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#30702a]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4DA944]"></span>
               Active ({environment === 0 ? 'Test Mode' : 'Live Mode'})
             </span>
           ) : (

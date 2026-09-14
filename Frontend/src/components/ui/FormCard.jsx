@@ -7,7 +7,7 @@ export default function FormCard({ title, subtitle, children, className = '', bo
       {title && (
         <div className="px-5 py-3.5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between rounded-t-2xl">
           <div className="flex items-center gap-2">
-            <span className="w-1 h-3.5 rounded-full bg-[#1EB8D4] inline-block shrink-0" />
+            <span className="w-1 h-3.5 rounded-full bg-[#4DA944] inline-block shrink-0" />
             <div>
               <h2 className="text-sm font-bold text-slate-900 tracking-tight">{title}</h2>
               {subtitle && <p className="text-xs font-normal text-slate-500 mt-0.5">{subtitle}</p>}
