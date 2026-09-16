@@ -249,13 +249,33 @@ export async function getSessionByIdFromDb(sessionId) {
     include: {
       user: true,
       chargingStation: true,
-      chargePoint: true,
-      connector: true,
-      tariff: true
+      chargePoint: true
     }
   });
 
-  return session ? calculateSessionTelemetry(session) : null;
+  if (!session) return null;
+
+  const kwh = typeof session.kwhDelivered === 'number' ? session.kwhDelivered : (parseFloat(session.kwhDelivered) || 0.0);
+  const costVal = typeof session.totalCost === 'number' ? session.totalCost : (parseFloat(session.cost ?? session.totalCost) || 0.0);
+  const effectiveTxCode = session.chargeTxCode || (session.id && session.id.startsWith('sess_') ? session.id.split('_')[3] || session.id : session.id);
+
+  return {
+    id: session.id,
+    chargeTxCode: effectiveTxCode,
+    status: session.status || 'Ongoing',
+    chargingStation: (session.chargingStationId || session.chargingStation?.name) ? {
+      id: session.chargingStationId || session.chargingStation?.id,
+      name: session.chargingStation?.name || 'Unknown Station'
+    } : null,
+    chargePoint: (session.chargePointId || session.chargePoint?.name) ? {
+      id: session.chargePointId || session.chargePoint?.id,
+      name: session.chargePoint?.name || 'Unknown Charge Point',
+      code: session.chargePoint?.code || '-'
+    } : null,
+    userName: session.user?.name || session.userName || 'EV Driver',
+    kwhDelivered: parseFloat(kwh.toFixed(2)),
+    cost: parseFloat(costVal.toFixed(2))
+  };
 }
 
 export async function getLiveSessionsFromDb(query = {}) {

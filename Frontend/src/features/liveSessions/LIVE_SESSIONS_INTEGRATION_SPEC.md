@@ -444,9 +444,32 @@ From the Live Sessions page, operators can seamlessly drill into related operati
 
 ---
 
-## 8. Telemetry & Protocol Logs (`/session-logs/:id`) Specification
+## 8. Session Logs View (`/session-logs/:id`) Specification
 
-### 8.1 Endpoint Contract: `GET /api/live-sessions/:id/logs`
+### 8.1 Single Session Header Contract: `GET /api/live-sessions/:id`
+Returns only the essential session metadata displayed in the top header summary and breadcrumb navigation:
+
+```json
+{
+  "id": "sess_cp-1034_tx_60062_1789566077707",
+  "chargeTxCode": "60062",
+  "status": "Failed",
+  "chargingStation": {
+    "id": "ec0fb759-6081-427b-bf21-cfc830b9d539",
+    "name": "Location 7 Hub"
+  },
+  "chargePoint": {
+    "id": "03a84154-80bc-4c51-96da-08ec050080ba",
+    "name": "Charge Point Station 34 AC",
+    "code": "CP-1034"
+  },
+  "userName": "B108901020",
+  "kwhDelivered": 0.0,
+  "cost": 0.0
+}
+```
+
+### 8.2 Telemetry & Protocol Logs Contract: `GET /api/live-sessions/:id/logs`
 
 ```json
 {
@@ -475,6 +498,6 @@ From the Live Sessions page, operators can seamlessly drill into related operati
 }
 ```
 
-### 8.2 WebSocket Stream: `session:log` & `session:log:<sessionId>`
+### 8.3 WebSocket Stream: `session:log` & `session:log:<sessionId>`
 Emits the exact same clean, parsed Log DTO for zero-discrepancy real-time protocol inspection.
 
