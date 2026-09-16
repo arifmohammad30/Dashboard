@@ -17,6 +17,8 @@ export function useSessionHistory() {
   const {
     data: paginatedSessions,
     loading,
+    error,
+    isError,
     searchTerm,
     setSearchTerm,
     currentPage,
@@ -80,6 +82,9 @@ export function useSessionHistory() {
     setSearchTerm,
     currentPage,
     loading,
+    error,
+    isError,
+    reload: reloadData,
     totalItems,
     totalPages,
     paginatedSessions,

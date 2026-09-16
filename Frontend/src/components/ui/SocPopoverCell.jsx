@@ -17,15 +17,15 @@ export default function SocPopoverCell({ initialSoc, currentSoc }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  const formatSoc = (val, fallback) => {
-    if (val === undefined || val === null || val === '') return fallback;
+  const formatSoc = (val) => {
+    if (val === undefined || val === null || val === '') return '0.0%';
     if (typeof val === 'number') return `${val.toFixed(1)}%`;
     const str = String(val).trim();
     return str.endsWith('%') ? str : `${str}%`;
   };
 
-  const initialDisplay = formatSoc(initialSoc, '20.0%');
-  const currentDisplay = formatSoc(currentSoc, '20.0%');
+  const initialDisplay = formatSoc(initialSoc);
+  const currentDisplay = formatSoc(currentSoc);
 
   return (
     <div className="relative inline-block" ref={popoverRef}>

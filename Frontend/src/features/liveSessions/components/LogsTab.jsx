@@ -12,7 +12,8 @@ import {
   X,
   Copy,
   Settings2,
-  RefreshCw
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 import FilterSection from '../../../components/ui/FilterSection';
 import ExportButton from '../../../components/ui/ExportButton';
@@ -90,7 +91,7 @@ export default function LogsTab({ sessionData, sessionId: propSessionId }) {
   const pageSize = 15;
 
   // Consume session logs from custom hook
-  const { logsList, total, totalPages, loading } = useSessionLogs({
+  const { logsList, total, totalPages, loading, error, isError, reload } = useSessionLogs({
     sessionId,
     sessionStatus: sessionData?.status,
     page: currentPage,
@@ -139,7 +140,7 @@ export default function LogsTab({ sessionData, sessionId: propSessionId }) {
 
   const handleExport = async () => {
     try {
-      await exportLogs({ search: searchTerm });
+      await exportLogs({ search: searchTerm, sessionId });
       toast.success("Telemetry logs CSV export downloaded", {
         title: 'Export Complete',
         code: 200
@@ -283,6 +284,22 @@ export default function LogsTab({ sessionData, sessionId: propSessionId }) {
           />
         </div>
       </div>
+
+      {isError && (
+        <div className="mx-5 my-3 p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs font-medium flex items-center justify-between gap-3 animate-in fade-in duration-200">
+          <div className="flex items-center gap-2.5">
+            <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+            <span>{error || 'Failed to load telemetry logs from backend.'}</span>
+          </div>
+          <button
+            onClick={() => reload()}
+            className="flex items-center gap-1.5 px-3 py-1 bg-white border border-rose-200 hover:bg-rose-100 text-rose-800 font-bold rounded-lg transition cursor-pointer shadow-2xs text-[11px]"
+          >
+            <RefreshCw className="w-3 h-3" />
+            <span>Retry</span>
+          </button>
+        </div>
+      )}
 
       {/* Main Table + Inspector Pane */}
       <div className="flex flex-col lg:flex-row gap-0 w-full items-start flex-1">

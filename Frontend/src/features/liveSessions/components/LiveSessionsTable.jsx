@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Hash,
   User as UserIcon,
@@ -10,7 +9,9 @@ import {
   Activity,
   Zap,
   IndianRupee,
-  Clock
+  Clock,
+  Radio,
+  SearchX
 } from 'lucide-react';
 import LiveSessionsRow from './LiveSessionsRow';
 import Pagination from '../../../components/ui/Pagination';
@@ -18,6 +19,8 @@ import Pagination from '../../../components/ui/Pagination';
 export default function LiveSessionsTable({
   sessions,
   loading,
+  searchTerm = '',
+  onResetSearch,
   onNavigateStation,
   onNavigateChargePoint,
   onNavigateLogs,
@@ -27,10 +30,11 @@ export default function LiveSessionsTable({
   itemsPerPage = 10,
   onPageChange
 }) {
-  if (loading) {
+  if (loading && (!sessions || sessions.length === 0)) {
     return (
-      <div className="bg-white rounded-2xl border border-stone-200/80 p-12 text-center text-stone-500 font-medium">
-        Loading live sessions data...
+      <div className="bg-white rounded-2xl border border-stone-200/80 p-12 text-center text-stone-500 font-medium flex flex-col items-center justify-center gap-3 shadow-2xs">
+        <div className="w-8 h-8 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
+        <span className="text-xs font-semibold text-stone-600">Loading active charging sessions...</span>
       </div>
     );
   }
@@ -82,8 +86,38 @@ export default function LiveSessionsTable({
           <tbody className="divide-y divide-stone-200/70 bg-white">
             {sessions.length === 0 ? (
               <tr>
-                <td colSpan="12" className="px-4 py-12 text-center text-stone-500 font-medium">
-                  No active charging sessions found.
+                <td colSpan="12" className="px-4 py-16 text-center text-stone-500 font-medium">
+                  <div className="flex flex-col items-center justify-center gap-2 max-w-sm mx-auto">
+                    {searchTerm ? (
+                      <>
+                        <div className="p-3 bg-stone-100 rounded-2xl text-stone-500 mb-1">
+                          <SearchX className="w-6 h-6" />
+                        </div>
+                        <span className="font-bold text-stone-800 text-sm">No Matching Live Sessions</span>
+                        <p className="text-xs text-stone-500">
+                          No active sessions found matching &ldquo;<span className="font-semibold text-stone-700">{searchTerm}</span>&rdquo;.
+                        </p>
+                        {onResetSearch && (
+                          <button
+                            onClick={onResetSearch}
+                            className="mt-2 px-3.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl transition cursor-pointer"
+                          >
+                            Clear Search
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <div className="p-3 bg-emerald-50 text-[#4DA944] rounded-2xl mb-1 border border-emerald-200/80">
+                          <Radio className="w-6 h-6" />
+                        </div>
+                        <span className="font-bold text-stone-800 text-sm">No Active Live Sessions</span>
+                        <p className="text-xs text-stone-500">
+                          There are currently no active charging sessions streaming telemetry.
+                        </p>
+                      </>
+                    )}
+                  </div>
                 </td>
               </tr>
             ) : (

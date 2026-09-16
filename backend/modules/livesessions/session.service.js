@@ -2,8 +2,8 @@ import prisma from '../../prisma.js';
 import { formatCsvRow } from '../../utils/csvSanitizer.js';
 
 export function calculateSessionTelemetry(s) {
-  const kwh = s.kwhDelivered ?? 0.0;
-  const costVal = s.totalCost ?? 0.0;
+  const kwh = typeof s.kwhDelivered === 'number' ? s.kwhDelivered : (parseFloat(s.kwhDelivered) || 0.0);
+  const costVal = typeof s.totalCost === 'number' ? s.totalCost : (parseFloat(s.totalCost ?? s.cost) || 0.0);
 
   const start = s.createdAt ? new Date(s.createdAt).getTime() : Date.now();
   const end = s.updatedAt ? new Date(s.updatedAt).getTime() : Date.now();
@@ -15,7 +15,10 @@ export function calculateSessionTelemetry(s) {
   const durationStr = `${hrs}:${mins}:${secs}`;
 
   const basePower = s.chargePoint?.totalCapacity ? parseFloat(s.chargePoint.totalCapacity) : 30.0;
-  const socFactor = (s.currentSoc ?? 50) > 80 ? Math.max(0.2, (100 - (s.currentSoc ?? 50)) / 20) : 1.0;
+  const rawCurrentSoc = typeof s.currentSoc === 'number' ? s.currentSoc : (parseFloat(String(s.currentSoc).replace('%', '')) || 55);
+  const rawInitialSoc = typeof s.initialSoc === 'number' ? s.initialSoc : (parseFloat(String(s.initialSoc).replace('%', '')) || 10);
+
+  const socFactor = rawCurrentSoc > 80 ? Math.max(0.2, (100 - rawCurrentSoc) / 20) : 1.0;
   const tickJitter = (Math.sin(diffMs / 1000) * 1.8) + (Math.cos(diffMs / 2500) * 0.9);
   const powerKw = parseFloat(Math.max(1.5, (basePower * socFactor) + tickJitter).toFixed(2));
 
@@ -30,30 +33,38 @@ export function calculateSessionTelemetry(s) {
   const station = s.chargingStation || null;
 
   const stationId = s.chargingStationId || station?.id || null;
-  const stationName = station?.name || (typeof s.chargingStation === 'string' ? s.chargingStation : (typeof s.station === 'string' ? s.station : null)) || s.chargingStationName || null;
+  const stationName = station?.name || (typeof s.chargingStation === 'string' ? s.chargingStation : (typeof s.station === 'string' ? s.station : null)) || s.chargingStationName || '-';
 
   const cpId = s.chargePointId || cp?.id || null;
-  const cpName = cp?.name || cp?.code || (typeof s.chargePoint === 'string' ? s.chargePoint : null) || s.chargePointName || s.cpCode || null;
-  const cpCode = cp?.code || s.chargePointCode || s.cpCode || cpName || null;
+  const cpName = cp?.name || (typeof s.chargePoint === 'string' ? s.chargePoint : null) || s.chargePointName || cp?.code || s.cpCode || '-';
+  const cpCode = cp?.code || s.chargePointCode || s.cpCode || (typeof s.chargePoint === 'string' ? s.chargePoint : '') || '';
+
+  let connectorLabel = 'Type2 (1)';
+  if (s.connector) {
+    if (typeof s.connector === 'string' && !s.connector.startsWith('undefined')) {
+      connectorLabel = s.connector;
+    } else if (typeof s.connector === 'object') {
+      connectorLabel = `${s.connector.type || 'Type2'} (${s.connector.connectorId || 1})`;
+    }
+  }
+
+  const effectiveTxCode = s.chargeTxCode || (s.id && s.id.startsWith('sess_') ? s.id.split('_')[3] || s.id : s.id);
+  const effectiveBillCode = s.bill?.billNumber || s.billCode || (effectiveTxCode ? `BILL-${effectiveTxCode}` : `BILL-${s.id}`);
 
   return {
     id: s.id,
-    sessionId: s.id,
-    status: s.status,
-    initialSoc: s.initialSoc ?? 10,
-    currentSoc: s.currentSoc ?? 55,
-    soc: {
-      initial: s.initialSoc ?? 10,
-      current: s.currentSoc ?? 55
-    },
-    kwhDelivered: kwh,
-    energy: `${kwh.toFixed(2)} kWh`,
-    totalCost: costVal,
-    cost: costVal.toFixed(2),
-    powerKw: powerKw,
-    power: `${powerKw.toFixed(2)} kW`,
-    voltage: `${voltageVal.toFixed(1)} V`,
-    current: `${currentVal.toFixed(1)} A`,
+    chargeTxCode: effectiveTxCode,
+    userName: s.userName || s.user?.name || 'EV Driver',
+    userInitials: s.userInitials || s.user?.initials || (s.userName ? s.userName.charAt(0).toUpperCase() : 'U'),
+    chargingStation: stationId || stationName !== '-' ? { id: stationId, name: stationName } : null,
+    chargePoint: cpId || cpName !== '-' ? { id: cpId, name: cpName, code: cpCode } : null,
+    connector: connectorLabel,
+    status: s.status || 'Ongoing',
+    initialSoc: rawInitialSoc,
+    currentSoc: rawCurrentSoc,
+    kwhDelivered: parseFloat(kwh.toFixed(2)),
+    cost: parseFloat(costVal.toFixed(2)),
+    totalCost: parseFloat(costVal.toFixed(2)),
     duration: durationStr,
     meterValues: {
       energy: `${kwh.toFixed(2)} kWh`,
@@ -61,27 +72,8 @@ export function calculateSessionTelemetry(s) {
       voltage: `${voltageVal.toFixed(1)} V`,
       current: `${currentVal.toFixed(1)} A`
     },
-    chargeTxCode: s.chargeTxCode,
-    billCode: s.bill?.billNumber || s.billCode || (s.chargeTxCode ? `BILL-${s.chargeTxCode}` : null),
-    billId: s.billId || s.bill?.id,
-    billNumber: s.bill?.billNumber || s.billCode || (s.chargeTxCode ? `BILL-${s.chargeTxCode}` : null),
-    userName: s.user?.name || 'Driver',
-
-    userInitials: s.user?.initials || 'DR',
-    userColor: s.user?.color || 'bg-indigo-100 text-indigo-700',
-    station: stationName,
-    chargingStation: station || (stationId || stationName ? { id: stationId, name: stationName } : null),
-    chargingStationId: stationId,
-    chargingStationName: stationName,
-    chargePoint: cp || (cpId || cpName ? { id: cpId, name: cpName, code: cpCode } : null),
-    chargePointId: cpId,
-    chargePointName: cpName,
-    chargePointCode: cpCode,
-    cpCode: cpCode,
-    connector: s.connector ? `${s.connector.type} (${s.connector.connectorId})` : 'Type2 (1)',
-    tariffName: s.tariff?.name || 'Standard Rate',
-    createdAt: s.createdAt,
-    updatedAt: s.updatedAt
+    billNumber: effectiveBillCode,
+    createdAt: s.createdAt
   };
 }
 
@@ -703,17 +695,33 @@ export async function streamSessionHistoryCsv(res, query = {}) {
 }
 
 export async function streamLogsCsv(res, query = {}) {
-  const { search } = query;
-  const where = {};
+  const { search, sessionId } = query;
+  const where = { AND: [] };
+
+  if (sessionId) {
+    const cpSessions = await prisma.liveSession.findMany({
+      where: {
+        OR: [
+          { chargePointId: sessionId },
+          { chargePoint: { code: sessionId } }
+        ]
+      },
+      select: { id: true }
+    });
+    const sessionIds = [sessionId, ...cpSessions.map(s => s.id)];
+    where.AND.push({ sessionId: { in: sessionIds } });
+  }
 
   if (search && search.trim()) {
     const term = search.trim();
-    where.OR = [
-      { command: { contains: term } },
-      { summary: { contains: term } },
-      { logType: { contains: term } },
-      { body: { contains: term } }
-    ];
+    where.AND.push({
+      OR: [
+        { command: { contains: term } },
+        { summary: { contains: term } },
+        { logType: { contains: term } },
+        { body: { contains: term } }
+      ]
+    });
   }
 
   const filename = `telemetry_logs_export_${new Date().toISOString().slice(0, 10)}.csv`;
@@ -724,7 +732,7 @@ export async function streamLogsCsv(res, query = {}) {
   res.write(formatCsvRow(headers));
 
   const logs = await prisma.sessionLog.findMany({
-    where,
+    where: where.AND.length > 0 ? where : {},
     orderBy: { createdAt: 'desc' }
   });
 
@@ -780,7 +788,6 @@ export async function getSessionLogsFromDb(sessionIdOrCode, query = {}) {
     });
   }
 
-
   if (commands) {
     const cmdList = typeof commands === 'string' ? commands.split(',').filter(Boolean) : (Array.isArray(commands) ? commands : []);
     if (cmdList.length > 0) {
@@ -798,12 +805,12 @@ export async function getSessionLogsFromDb(sessionIdOrCode, query = {}) {
   }
 
   let total = 0;
-  let logs = [];
+  let rawLogs = [];
 
   try {
-    total = await prisma.sessionLog.count({ where });
-    logs = await prisma.sessionLog.findMany({
-      where,
+    total = await prisma.sessionLog.count({ where: where.AND.length > 0 ? where : {} });
+    rawLogs = await prisma.sessionLog.findMany({
+      where: where.AND.length > 0 ? where : {},
       orderBy: { createdAt: 'desc' },
       skip: (pageNum - 1) * limitNum,
       take: limitNum
@@ -812,7 +819,35 @@ export async function getSessionLogsFromDb(sessionIdOrCode, query = {}) {
     console.warn('Failed to fetch session logs from DB:', e.message);
   }
 
-  if (total === 0 && logs.length === 0) {
+  let formattedLogs = rawLogs.map(l => {
+    let parsedBody = {};
+    if (l.body) {
+      if (typeof l.body === 'object') {
+        parsedBody = l.body;
+      } else {
+        try {
+          parsedBody = JSON.parse(l.body);
+        } catch {
+          parsedBody = { raw: l.body };
+        }
+      }
+    }
+    const idTag = parsedBody?.idTag || '-';
+
+    return {
+      id: l.id,
+      command: l.command,
+      direction: l.direction || 'INBOUND',
+      messageId: l.messageId || '-',
+      idTag,
+      logType: l.logType || 'OCPP 1.6J',
+      summary: l.summary || '',
+      body: parsedBody,
+      createdAt: l.createdAt ? new Date(l.createdAt).toISOString() : new Date().toISOString()
+    };
+  });
+
+  if (total === 0 && formattedLogs.length === 0) {
     const now = new Date().toISOString();
     const mockLogs = [
       {
@@ -820,15 +855,15 @@ export async function getSessionLogsFromDb(sessionIdOrCode, query = {}) {
         command: 'StartTransaction',
         direction: 'INBOUND',
         messageId: 'MSG-9081',
-        logType: 'OCPP 1.6J',
         idTag: 'TAG-8091',
+        logType: 'OCPP 1.6J',
         summary: `StartTransaction initiated for session #${sessionIdOrCode || '1042'}`,
-        body: JSON.stringify({
+        body: {
           connectorId: 1,
           idTag: 'TAG-8091',
           meterStart: 0,
           timestamp: now
-        }),
+        },
         createdAt: now
       },
       {
@@ -836,15 +871,15 @@ export async function getSessionLogsFromDb(sessionIdOrCode, query = {}) {
         command: 'StatusNotification',
         direction: 'INBOUND',
         messageId: 'MSG-9082',
-        logType: 'OCPP 1.6J',
         idTag: 'TAG-8091',
+        logType: 'OCPP 1.6J',
         summary: 'Connector Status changed to Charging',
-        body: JSON.stringify({
+        body: {
           connectorId: 1,
           errorCode: 'NoError',
           status: 'Charging',
           timestamp: now
-        }),
+        },
         createdAt: now
       },
       {
@@ -852,10 +887,10 @@ export async function getSessionLogsFromDb(sessionIdOrCode, query = {}) {
         command: 'MeterValues',
         direction: 'INBOUND',
         messageId: 'MSG-9083',
-        logType: 'OCPP 1.6J',
         idTag: 'TAG-8091',
+        logType: 'OCPP 1.6J',
         summary: 'MeterValues telemetry packet received',
-        body: JSON.stringify({
+        body: {
           connectorId: 1,
           transactionId: sessionIdOrCode || '1042',
           meterValue: [
@@ -870,7 +905,7 @@ export async function getSessionLogsFromDb(sessionIdOrCode, query = {}) {
               ]
             }
           ]
-        }),
+        },
         createdAt: now
       }
     ];
@@ -878,18 +913,18 @@ export async function getSessionLogsFromDb(sessionIdOrCode, query = {}) {
     const filteredMocks = mockLogs.filter(log => {
       if (search && search.trim()) {
         const term = search.trim().toLowerCase();
-        const matches = log.command.toLowerCase().includes(term) || log.messageId.toLowerCase().includes(term);
+        const matches = log.command.toLowerCase().includes(term) || (log.messageId && log.messageId.toLowerCase().includes(term));
         if (!matches) return false;
       }
       return true;
     });
 
     total = filteredMocks.length;
-    logs = filteredMocks.slice((pageNum - 1) * limitNum, pageNum * limitNum);
+    formattedLogs = filteredMocks.slice((pageNum - 1) * limitNum, pageNum * limitNum);
   }
 
   return {
-    data: logs,
+    data: formattedLogs,
     total,
     page: pageNum,
     limit: limitNum,

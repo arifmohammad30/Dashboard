@@ -39,6 +39,7 @@ import { PERMISSIONS } from '../../../config/permissions';
 import { getChargePoints, getFilterOptions, deleteChargePoint, exportChargePoints } from '../api/chargePointService';
 import { useTableData } from '../../../hooks/useTableData';
 import { useToast } from '../../../context/ToastContext';
+import { useSocketEvents } from '../../../hooks/useSocketEvents';
 import ConnectorBadgesCell from '../components/ConnectorBadgesCell';
 import { formatCreatedOn } from '../utils/formatters';
 
@@ -110,8 +111,33 @@ export default function ChargePointsList({ chargingStationId, hideHeader = false
     },
     [filters, chargingStationId]
   );
+ 
+   // Real-time WebSocket synchronization for charge point status and lifecycle events
+   useSocketEvents({
+     chargePointUpdated: (updatedCp) => {
+       if (!updatedCp || !updatedCp.id) return;
+       setChargePoints(prev =>
+         prev.map(cp => (cp.id === updatedCp.id ? { ...cp, ...updatedCp } : cp))
+       );
+     },
+     chargePointAdded: (newCp) => {
+       if (!newCp) return;
+       if (
+         chargingStationId &&
+         newCp.chargingStationId !== chargingStationId &&
+         newCp.chargingStation?.id !== chargingStationId
+       ) {
+         return;
+       }
+       reloadData();
+     },
+     chargePointDeleted: (deletedId) => {
+       if (!deletedId) return;
+       setChargePoints(prev => prev.filter(cp => cp.id !== deletedId));
+     }
+   });
 
-  // Close filter dropdown when clicking outside
+   // Close filter dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (filterRef.current && !filterRef.current.contains(event.target)) setIsFilterOpen(false);

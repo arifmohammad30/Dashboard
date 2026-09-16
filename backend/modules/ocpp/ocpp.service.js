@@ -110,14 +110,32 @@ async function recordSessionLog(sessionId, command, direction, messageId, payloa
         messageId: messageId || `msg_${Date.now()}`,
         logType: 'OCPP 1.6J',
         summary,
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload || {})
       }
     });
 
     if (io) {
+      let parsedBody = {};
+      if (typeof payload === 'object' && payload !== null) {
+        parsedBody = payload;
+      } else {
+        try {
+          parsedBody = JSON.parse(newLog.body) || {};
+        } catch {
+          parsedBody = { raw: newLog.body };
+        }
+      }
       const formattedLog = {
-        ...newLog,
-        body: typeof newLog.body === 'string' ? (JSON.parse(newLog.body) || {}) : (newLog.body || {}),
+        id: newLog.id,
+        sessionId,
+        command: newLog.command,
+        direction: newLog.direction || 'INBOUND',
+        messageId: newLog.messageId || '-',
+        idTag: parsedBody?.idTag || '-',
+        logType: newLog.logType || 'OCPP 1.6J',
+        summary: newLog.summary || '',
+        body: parsedBody,
+        createdAt: newLog.createdAt ? new Date(newLog.createdAt).toISOString() : new Date().toISOString(),
         recordedOn: new Date(newLog.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         fullTimestamp: new Date(newLog.createdAt).toLocaleString()
       };

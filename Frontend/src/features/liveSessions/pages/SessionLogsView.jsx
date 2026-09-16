@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import LogsTab from '../components/LogsTab';
+import { useSocketEvents } from '../../../hooks/useSocketEvents';
 import {
   ArrowLeft,
   Copy,
@@ -29,47 +30,58 @@ export default function SessionLogsView() {
   const [copiedSessionId, setCopiedSessionId] = useState(false);
 
   // Fetch real authoritative session details by ID from backend
-  useEffect(() => {
+  const fetchSession = useCallback(async () => {
     if (!id) {
       setError('No session ID provided');
       setLoading(false);
       return;
     }
 
-    let isMounted = true;
     setLoading(true);
-
-    getSessionById(id)
-      .then(res => {
-        if (!isMounted) return;
-        if (res && res.id) {
-          setSessionData(res);
-          setError(null);
-        } else {
-          setError('Session not found');
-        }
-      })
-      .catch(err => {
-        if (!isMounted) return;
-        console.error('[SessionLogsView] Error fetching session details:', err);
-        setError(err.message || 'Failed to load session details');
-      })
-      .finally(() => {
-        if (isMounted) setLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
+    try {
+      const res = await getSessionById(id);
+      if (res && res.id) {
+        setSessionData(res);
+        setError(null);
+      } else {
+        setError('Session not found');
+      }
+    } catch (err) {
+      console.error('[SessionLogsView] Error fetching session details:', err);
+      setError(err.message || 'Failed to load session details');
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
-  // Authoritative Station and Charge Point fields from backend contract
-  const stationDisplayName = sessionData?.station || '-';
-  const cpDisplayName = sessionData?.chargePointName || '-';
+  useEffect(() => {
+    fetchSession();
+  }, [fetchSession]);
 
-  // Authoritative foreign key IDs from backend contract
-  const stationId = sessionData?.chargingStationId;
-  const chargePointId = sessionData?.chargePointId;
+  // Real-time updates for active session metrics & status
+  useSocketEvents({
+    "session:updated": (updated) => {
+      if (!updated) return;
+      const targetId = updated.sessionId || updated.id;
+      if (targetId && String(targetId).trim().toLowerCase() === String(id).trim().toLowerCase()) {
+        setSessionData(prev => prev ? ({ ...prev, ...updated }) : updated);
+      }
+    },
+    "session:stopped": (stopped) => {
+      if (!stopped) return;
+      const targetId = stopped.sessionId || stopped.id;
+      if (targetId && String(targetId).trim().toLowerCase() === String(id).trim().toLowerCase()) {
+        setSessionData(prev => prev ? ({ ...prev, ...stopped, status: stopped.status || 'Completed' }) : stopped);
+      }
+    }
+  });
+
+  // Authoritative Station and Charge Point from backend contract
+  const stationDisplayName = sessionData?.chargingStation?.name || '-';
+  const cpDisplayName = sessionData?.chargePoint?.name || '-';
+
+  const stationId = sessionData?.chargingStation?.id;
+  const chargePointId = sessionData?.chargePoint?.id;
 
   const handleStationClick = (e) => {
     e?.stopPropagation();
@@ -107,18 +119,29 @@ export default function SessionLogsView() {
   if (error && !sessionData) {
     return (
       <div className="max-w-[1500px] w-full mx-auto p-6">
-        <div className="flex items-center gap-3 p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-medium">
-          <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />
-          <div className="flex-1">
-            <h3 className="font-bold text-sm text-rose-900">Session Error</h3>
-            <p>{error}</p>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-medium shadow-2xs">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />
+            <div>
+              <h3 className="font-bold text-sm text-rose-900">Session Error</h3>
+              <p className="mt-0.5 text-rose-700">{error}</p>
+            </div>
           </div>
-          <button
-            onClick={() => navigate('/live-sessions')}
-            className="px-3 py-1.5 bg-white border border-rose-200 hover:bg-rose-100 text-rose-800 font-bold rounded-xl transition cursor-pointer"
-          >
-            Back to Live Sessions
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={fetchSession}
+              className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition cursor-pointer shadow-2xs flex items-center gap-1.5"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Retry</span>
+            </button>
+            <button
+              onClick={() => navigate('/live-sessions')}
+              className="px-3.5 py-1.5 bg-white border border-rose-200 hover:bg-rose-100 text-rose-800 font-bold rounded-xl transition cursor-pointer shadow-2xs"
+            >
+              Back to Live Sessions
+            </button>
+          </div>
         </div>
       </div>
     );

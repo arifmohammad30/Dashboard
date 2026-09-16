@@ -7,6 +7,9 @@ export function useLiveSessions() {
     data: sessions,
     setData: setSessions,
     loading,
+    error,
+    isError,
+    reload: reloadData,
     searchTerm,
     setSearchTerm,
     currentPage,
@@ -16,12 +19,16 @@ export function useLiveSessions() {
   } = useTableData((page, limit, search) => getLiveSessions(page, limit, search));
 
   const matchSession = (s, target) => {
-    const targetId = target?.sessionId || target?.id;
-    return s.sessionId === targetId || s.id === targetId;
+    if (!s || !target) return false;
+    const targetId = typeof target === 'object' ? (target.sessionId || target.id) : target;
+    if (!targetId) return false;
+    const currentId = s.sessionId || s.id;
+    return String(currentId).trim().toLowerCase() === String(targetId).trim().toLowerCase();
   };
 
   useSocketEvents({
     "session:updated": (updatedSession) => {
+      if (!updatedSession) return;
       setSessions(prev => {
         if (updatedSession.status && updatedSession.status !== 'Ongoing') {
           return prev.filter(s => !matchSession(s, updatedSession));
@@ -36,6 +43,7 @@ export function useLiveSessions() {
       });
     },
     "session:created": (newSession) => {
+      if (!newSession) return;
       setSessions(prev => {
         if (newSession.status && newSession.status !== 'Ongoing') return prev;
         const exists = prev.some(s => matchSession(s, newSession));
@@ -44,6 +52,7 @@ export function useLiveSessions() {
       });
     },
     "session:stopped": (stoppedSession) => {
+      if (!stoppedSession) return;
       setSessions(prev => prev.filter(s => !matchSession(s, stoppedSession)));
     }
   });
@@ -52,6 +61,9 @@ export function useLiveSessions() {
     searchTerm,
     currentPage,
     loading,
+    error,
+    isError,
+    reload: reloadData,
     totalItems,
     totalPages,
     paginatedSessions: sessions,

@@ -5,7 +5,7 @@ import { useToast } from '../../../context/ToastContext';
 import { validatePricingConfig } from '../utils/tariffValidator';
 
 /**
- * Custom form hook for creating, editing, and viewing complex EV charging tariffs.
+ * Custom form hook for creating, editing, and viewing  tariffs.
  * Manages form state, nested pricing structures (Normal, Peak, Off-Peak, SOC tiers, Parking, GST),
  * real-time timeline overlap validation, and API submission.
  */

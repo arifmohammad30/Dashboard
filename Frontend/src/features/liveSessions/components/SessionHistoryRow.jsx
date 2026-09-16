@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getConnectorLabel, getTxId, getBillCode } from '../utils/sessionFormatters';
+import { getConnectorLabel, getTxId } from '../utils/sessionFormatters';
 import SocPopoverCell from '../../../components/ui/SocPopoverCell';
 import MeterValuesPopoverCell from '../../../components/ui/MeterValuesPopoverCell';
 import TelemetryActionButton from './TelemetryActionButton';
@@ -13,20 +13,19 @@ export default function SessionHistoryRow({
 }) {
   const navigate = useNavigate();
 
-  // Read relationships directly from authoritative session payload
-  const cpObj = typeof session.chargePoint === 'object' && session.chargePoint !== null ? session.chargePoint : null;
-  const cpName = cpObj?.name || cpObj?.code || session.chargePointName || (typeof session.chargePoint === 'string' ? session.chargePoint : null) || '-';
+  const cp = session.chargePoint;
+  const cpName = cp?.name || cp?.code || '-';
 
-  const stationObj = typeof session.chargingStation === 'object' && session.chargingStation !== null ? session.chargingStation : null;
-  const stationName = stationObj?.name || stationObj?.code || session.chargingStationName || session.station || (typeof session.chargingStation === 'string' ? session.chargingStation : null) || '-';
+  const station = session.chargingStation;
+  const stationName = station?.name || '-';
 
-  const billCodeStr = getBillCode(session);
+  const billNumber = session.billNumber;
   const isCompleted = session.status === 'Completed' || session.status === 'Stopped';
 
   const handleNavigateToBill = (e) => {
     e.stopPropagation();
-    if (isCompleted && billCodeStr && billCodeStr !== '-') {
-      navigate(`/bills?search=${encodeURIComponent(billCodeStr)}`);
+    if (isCompleted && billNumber && billNumber !== '-') {
+      navigate(`/bills?search=${encodeURIComponent(billNumber)}`);
     }
   };
 
@@ -41,27 +40,21 @@ export default function SessionHistoryRow({
       <td className="px-4 py-3 whitespace-nowrap">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#4DA944]/20 to-[#4DA944]/10 border border-[#4DA944]/30 text-[#30702a] font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-            {session.userInitials || session.userName?.[0] || 'U'}
+            {session.userInitials || 'U'}
           </div>
-          <div>
-            <span className="font-bold text-slate-900 block group-hover/row:text-[#4DA944] transition-colors">
-              {session.userName || 'EV Driver'}
-            </span>
-            {session.userPhone && (
-              <span className="text-[11px] text-stone-400 font-mono block">
-                {session.userPhone}
-              </span>
-            )}
-          </div>
+          <span className="font-bold text-slate-900 block group-hover/row:text-[#4DA944] transition-colors">
+            {session.userName || 'EV Driver'}
+          </span>
         </div>
       </td>
 
       {/* 3. Charge Point */}
       <td className="px-4 py-3 whitespace-nowrap">
-        {cpObj?.id && onNavigateChargePoint ? (
+        {cp?.id && onNavigateChargePoint && cpName !== '-' ? (
           <button
-            onClick={() => onNavigateChargePoint(cpObj)}
+            onClick={() => onNavigateChargePoint(cp)}
             className="text-[13px] font-semibold text-slate-800 hover:text-sky-600 cursor-pointer transition-colors text-left"
+            title={`View Charge Point: ${cpName}`}
           >
             {cpName}
           </button>
@@ -72,10 +65,11 @@ export default function SessionHistoryRow({
 
       {/* 4. Charging Station */}
       <td className="px-4 py-3 whitespace-nowrap">
-        {stationObj?.id && onNavigateStation ? (
+        {station?.id && onNavigateStation && stationName !== '-' ? (
           <button
-            onClick={() => onNavigateStation(stationObj)}
+            onClick={() => onNavigateStation(station)}
             className="text-[13px] font-semibold text-slate-800 hover:text-sky-600 cursor-pointer transition-colors text-left"
+            title={`View Charging Station: ${stationName}`}
           >
             {stationName}
           </button>
@@ -86,12 +80,12 @@ export default function SessionHistoryRow({
 
       {/* 5. Txn Id */}
       <td className="px-4 py-3 font-mono font-bold text-sky-600 whitespace-nowrap">
-        {getTxId(session.id)}
+        {getTxId(session.chargeTxCode || session.id)}
       </td>
 
       {/* 6. Connector */}
       <td className="px-4 py-3 whitespace-nowrap font-mono text-stone-600 font-medium">
-        {getConnectorLabel(session.connector, session)}
+        {getConnectorLabel(session.connector)}
       </td>
 
       {/* 7. Status */}
@@ -111,32 +105,32 @@ export default function SessionHistoryRow({
 
       {/* 8. SoC */}
       <td className="px-4 py-3 whitespace-nowrap">
-        <SocPopoverCell initialSoc={session.soc?.initial ?? session.initialSoc} currentSoc={session.soc?.current ?? session.currentSoc} />
+        <SocPopoverCell initialSoc={session.initialSoc} currentSoc={session.currentSoc} />
       </td>
 
       {/* 9. Telemetry */}
       <td className="px-4 py-3 whitespace-nowrap">
-        <MeterValuesPopoverCell row={session} />
+        <MeterValuesPopoverCell meterValues={session.meterValues} />
       </td>
 
       {/* 10. Energy */}
       <td className="px-4 py-3 font-bold text-slate-900 font-mono whitespace-nowrap">
-        {session.kwhDelivered || '0.00'} kWh
+        {(session.kwhDelivered ?? 0).toFixed(2)} kWh
       </td>
 
       {/* 11. Cost */}
       <td className="px-4 py-3 font-extrabold text-emerald-700 font-mono whitespace-nowrap">
-        ₹{session.cost || (typeof session.totalCost === 'number' ? session.totalCost.toFixed(2) : '0.00')}
+        ₹{(session.totalCost ?? 0).toFixed(2)}
       </td>
 
       {/* 12. Bill ID */}
       <td className="px-4 py-3 font-mono whitespace-nowrap">
-        {isCompleted ? (
+        {isCompleted && billNumber ? (
           <button
             onClick={handleNavigateToBill}
-            className="text-sky-600 hover:text-sky-800 font-semibold hover:underline cursor-pointer"
+            className="text-sky-600 hover:text-sky-800 font-semibold cursor-pointer"
           >
-            {billCodeStr}
+            {billNumber}
           </button>
         ) : (
           <span className="text-stone-400 font-medium">-</span>
@@ -145,7 +139,7 @@ export default function SessionHistoryRow({
 
       {/* 13. Date */}
       <td className="px-4 py-3 text-stone-500 font-medium whitespace-nowrap">
-        {session.createdAt ? new Date(session.createdAt).toLocaleString() : 'Recent'}
+        {session.createdAt ? new Date(session.createdAt).toLocaleString() : '-'}
       </td>
     </tr>
   );

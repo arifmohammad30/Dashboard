@@ -21,10 +21,15 @@ import {
 } from 'lucide-react';
 import { getChargePointById } from '../api/chargePointService';
 import { useToast } from '../../../context/ToastContext';
+import { useSocketRoom } from '../../../hooks/useSocketRoom';
+import { useSocketEvents } from '../../../hooks/useSocketEvents';
 
 // Charge Point Details & Multi-Tab Monitoring Page
 export default function ViewChargePoint({ defaultTab }) {
   const { id } = useParams();
+
+  // Join targeted real-time WebSocket room 'chargepoint:<id>' with automatic unmount cleanup
+  useSocketRoom(id ? `chargepoint:${id}` : null);
   const navigate = useNavigate();
   const toast = useToast();
   const location = useLocation();
@@ -88,6 +93,16 @@ export default function ViewChargePoint({ defaultTab }) {
         .finally(() => setLoading(false));
     }
   }, [id, initialData]);
+
+  // Synchronize charge point status badge and details in real-time
+  useSocketEvents({
+    chargePointUpdated: (updatedCp) => {
+      if (!updatedCp || !updatedCp.id) return;
+      if (updatedCp.id === id || updatedCp.code === id) {
+        setChargePoint(prev => ({ ...prev, ...updatedCp }));
+      }
+    }
+  });
 
   // 5. Loading State
   if (loading) {

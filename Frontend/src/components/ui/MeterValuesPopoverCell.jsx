@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 
-export default function MeterValuesPopoverCell({ meterValues, row }) {
+export default function MeterValuesPopoverCell({ meterValues }) {
   const [isOpen, setIsOpen] = useState(false);
   const popoverRef = useRef(null);
 
@@ -17,10 +17,10 @@ export default function MeterValuesPopoverCell({ meterValues, row }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  const energyVal = meterValues?.energy || row?.meterValues?.energy || (row?.kwhDelivered !== undefined ? `${Number(row.kwhDelivered).toFixed(2)} kWh` : (row?.energy || '0.00 kWh'));
-  const powerVal = meterValues?.power || row?.meterValues?.power || (row?.powerKw !== undefined ? `${Number(row.powerKw).toFixed(2)} kW` : (row?.power || '0.00 kW'));
-  const voltageVal = meterValues?.voltage || row?.meterValues?.voltage || (row?.voltage ? `${Number(row.voltage).toFixed(1)} V` : '-');
-  const currentVal = meterValues?.current || row?.meterValues?.current || (row?.current ? `${Number(row.current).toFixed(1)} A` : '-');
+  const energyVal = meterValues?.energy || '0.00 kWh';
+  const powerVal = meterValues?.power || '0.00 kW';
+  const voltageVal = meterValues?.voltage || '0.0 V';
+  const currentVal = meterValues?.current || '0.0 A';
 
   return (
     <div className="relative inline-block" ref={popoverRef}>

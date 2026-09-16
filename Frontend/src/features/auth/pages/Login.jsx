@@ -6,9 +6,18 @@ import finalLogoSvg from '../../../assets/final-logo.svg';
 import evIllustration from '../../../assets/ev_login_illustration.jpg';
 
 const Login = () => {
-  const { sendOtp, verifyOtp } = useAuth();
+  const { sendOtp, verifyOtp, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const from = location.state?.from?.pathname || '/analytics';
+
+  // If already authenticated, redirect to destination
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, from, navigate]);
 
   // Step state: 1 = Email Input, 2 = OTP Verification
   const [step, setStep] = useState(1);
@@ -27,8 +36,6 @@ const Login = () => {
 
   // Refs for the 6 OTP input boxes
   const otpInputRefs = useRef([]);
-
-  const from = location.state?.from?.pathname || '/';
 
   // Manage resend cooldown timer
   useEffect(() => {
