@@ -72,7 +72,7 @@ const JsonSyntaxHighlighter = ({ json }) => {
 };
 
 // UI component rendering telemetry logs table, search, filters, and inspector
-export default function LogsTab({ sessionData, sessionId: propSessionId }) {
+export default function LogsTab({ sessionData, sessionId: propSessionId, onSessionLoaded }) {
   const toast = useToast();
   const sessionId = sessionData?.id || propSessionId;
   const isOngoing = sessionData?.status === 'Ongoing';
@@ -91,7 +91,7 @@ export default function LogsTab({ sessionData, sessionId: propSessionId }) {
   const pageSize = 15;
 
   // Consume session logs from custom hook
-  const { logsList, total, totalPages, loading, error, isError, reload } = useSessionLogs({
+  const { session, logsList, total, totalPages, loading, error, isError, reload } = useSessionLogs({
     sessionId,
     sessionStatus: sessionData?.status,
     page: currentPage,
@@ -100,6 +100,13 @@ export default function LogsTab({ sessionData, sessionId: propSessionId }) {
     commands: selectedCommands,
     logTypes: selectedLogTypes
   });
+
+  // Notify parent view if session metadata loaded from unified logs endpoint
+  useEffect(() => {
+    if (session && typeof onSessionLoaded === 'function') {
+      onSessionLoaded(session);
+    }
+  }, [session, onSessionLoaded]);
 
   // Reset to page 1 on filter or search change
   useEffect(() => {

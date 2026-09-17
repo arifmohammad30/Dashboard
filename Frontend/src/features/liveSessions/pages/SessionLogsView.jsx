@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useCallback } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import LogsTab from '../components/LogsTab';
 import { useSocketEvents } from '../../../hooks/useSocketEvents';
 import {
@@ -9,11 +9,8 @@ import {
   User as UserIcon,
   Zap,
   CreditCard,
-  Hash,
-  RefreshCw,
-  AlertCircle
+  Hash
 } from 'lucide-react';
-import { getSessionById } from '../api/sessionService';
 import { getTxId } from '../utils/sessionFormatters';
 
 /**
@@ -23,40 +20,23 @@ import { getTxId } from '../utils/sessionFormatters';
 export default function SessionLogsView() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [sessionData, setSessionData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const passedSession = location.state?.session;
+  const isMatch = Boolean(
+    passedSession &&
+    (passedSession.id === id || String(passedSession.chargeTxCode) === String(id))
+  );
+
+  const [sessionData, setSessionData] = useState(isMatch ? passedSession : null);
   const [copiedSessionId, setCopiedSessionId] = useState(false);
 
-  // Fetch real authoritative session details by ID from backend
-  const fetchSession = useCallback(async () => {
-    if (!id) {
-      setError('No session ID provided');
-      setLoading(false);
-      return;
+  // Callback to receive authoritative session header metadata from unified /:id/logs response
+  const handleSessionLoaded = useCallback((loadedSession) => {
+    if (loadedSession) {
+      setSessionData(prev => prev ? ({ ...prev, ...loadedSession }) : loadedSession);
     }
-
-    setLoading(true);
-    try {
-      const res = await getSessionById(id);
-      if (res && res.id) {
-        setSessionData(res);
-        setError(null);
-      } else {
-        setError('Session not found');
-      }
-    } catch (err) {
-      console.error('[SessionLogsView] Error fetching session details:', err);
-      setError(err.message || 'Failed to load session details');
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    fetchSession();
-  }, [fetchSession]);
+  }, []);
 
   // Real-time updates for active session metrics & status
   useSocketEvents({
@@ -104,48 +84,6 @@ export default function SessionLogsView() {
       setTimeout(() => setCopiedSessionId(false), 2000);
     }
   };
-
-  // Loading state
-  if (loading && !sessionData) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[350px] gap-3 text-stone-500">
-        <RefreshCw className="w-6 h-6 animate-spin text-sky-500" />
-        <span className="text-xs font-semibold">Loading session details...</span>
-      </div>
-    );
-  }
-
-  // Error state
-  if (error && !sessionData) {
-    return (
-      <div className="max-w-[1500px] w-full mx-auto p-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-medium shadow-2xs">
-          <div className="flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />
-            <div>
-              <h3 className="font-bold text-sm text-rose-900">Session Error</h3>
-              <p className="mt-0.5 text-rose-700">{error}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={fetchSession}
-              className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition cursor-pointer shadow-2xs flex items-center gap-1.5"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Retry</span>
-            </button>
-            <button
-              onClick={() => navigate('/live-sessions')}
-              className="px-3.5 py-1.5 bg-white border border-rose-200 hover:bg-rose-100 text-rose-800 font-bold rounded-xl transition cursor-pointer shadow-2xs"
-            >
-              Back to Live Sessions
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col gap-3.5 max-w-[1500px] w-full mx-auto pb-8">
@@ -282,7 +220,11 @@ export default function SessionLogsView() {
       </div>
 
       {/* Telemetry and OCPP logs table */}
-      <LogsTab sessionData={sessionData} sessionId={id} />
+      <LogsTab
+        sessionData={sessionData}
+        sessionId={id}
+        onSessionLoaded={handleSessionLoaded}
+      />
     </div>
   );
 }

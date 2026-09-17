@@ -12,7 +12,7 @@ function safeJsonParse(body) {
   }
 }
 
-// Custom hook managing telemetry / OCPP logs for a specific session or charge point
+// Custom hook managing  logs for a specific session or charge point
 export function useSessionLogs({
   sessionId,
   sessionStatus,
@@ -22,6 +22,7 @@ export function useSessionLogs({
   commands = [],
   logTypes = []
 } = {}) {
+  const [sessionInfo, setSessionInfo] = useState(null);
   const [logsList, setLogsList] = useState([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -36,7 +37,7 @@ export function useSessionLogs({
           recordedOn: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
           fullTimestamp: d.toLocaleString()
         };
-      } catch {}
+      } catch { }
     }
     return {
       recordedOn: log.recordedOn || '-',
@@ -44,9 +45,10 @@ export function useSessionLogs({
     };
   };
 
-  // Fetch telemetry logs scoped to this session from REST API
+  // Fetch  logs scoped to this session from REST API
   const fetchLogs = useCallback(async () => {
     if (!sessionId) {
+      setSessionInfo(null);
       setLogsList([]);
       setTotal(0);
       setTotalPages(1);
@@ -64,6 +66,10 @@ export function useSessionLogs({
         commands,
         logTypes
       });
+
+      if (res?.session) {
+        setSessionInfo(res.session);
+      }
 
       const logsArray = Array.isArray(res) ? res : (res?.data || []);
       const formatted = logsArray.map(log => {
@@ -172,6 +178,7 @@ export function useSessionLogs({
   });
 
   return {
+    session: sessionInfo,
     logsList,
     total,
     totalPages,

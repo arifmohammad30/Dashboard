@@ -943,7 +943,53 @@ export async function getSessionLogsFromDb(sessionIdOrCode, query = {}) {
     formattedLogs = filteredMocks.slice((pageNum - 1) * limitNum, pageNum * limitNum);
   }
 
+  let sessionInfo = null;
+  if (sessionIdOrCode) {
+    try {
+      const s = await prisma.liveSession.findFirst({
+        where: {
+          OR: [
+            { id: sessionIdOrCode },
+            { chargeTxCode: String(sessionIdOrCode) }
+          ]
+        },
+        include: {
+          user: true,
+          chargingStation: true,
+          chargePoint: true
+        }
+      });
+
+      if (s) {
+        const kwh = typeof s.kwhDelivered === 'number' ? s.kwhDelivered : (parseFloat(s.kwhDelivered) || 0.0);
+        const costVal = typeof s.totalCost === 'number' ? s.totalCost : (parseFloat(s.cost ?? s.totalCost) || 0.0);
+        const effectiveTxCode = s.chargeTxCode || (s.id && s.id.startsWith('sess_') ? s.id.split('_')[3] || s.id : s.id);
+
+        sessionInfo = {
+          id: s.id,
+          chargeTxCode: effectiveTxCode,
+          status: s.status || 'Ongoing',
+          chargingStation: (s.chargingStationId || s.chargingStation?.name) ? {
+            id: s.chargingStationId || s.chargingStation?.id,
+            name: s.chargingStation?.name || 'Unknown Station'
+          } : null,
+          chargePoint: (s.chargePointId || s.chargePoint?.name) ? {
+            id: s.chargePointId || s.chargePoint?.id,
+            name: s.chargePoint?.name || 'Unknown Charge Point',
+            code: s.chargePoint?.code || '-'
+          } : null,
+          userName: s.user?.name || s.userName || 'EV Driver',
+          kwhDelivered: parseFloat(kwh.toFixed(2)),
+          cost: parseFloat(costVal.toFixed(2))
+        };
+      }
+    } catch (e) {
+      console.warn('Failed to resolve session info for logs:', e.message);
+    }
+  }
+
   return {
+    session: sessionInfo,
     data: formattedLogs,
     total,
     page: pageNum,
