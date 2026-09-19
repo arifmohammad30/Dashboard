@@ -258,14 +258,6 @@ function App() {
                     </PermissionRoute>
                   }
                 />
-                <Route
-                  path="/tariffs/view/:id"
-                  element={
-                    <PermissionRoute permission={PERMISSIONS.TARIFF_VIEW}>
-                      <AddNewTariff isViewMode={true} />
-                    </PermissionRoute>
-                  }
-                />
 
                 {/* Fleets */}
                 <Route

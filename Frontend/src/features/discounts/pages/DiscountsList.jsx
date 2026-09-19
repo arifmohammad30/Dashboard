@@ -12,7 +12,8 @@ import {
   Percent,
   Users,
   MapPin,
-  Sliders
+  Sliders,
+  SearchX
 } from 'lucide-react';
 
 import Pagination from '../../../components/ui/Pagination';
@@ -333,12 +334,39 @@ export default function DiscountsList() {
                 </tr>
               ) : paginatedDiscounts.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="px-4 py-12 text-center">
-                    <div className="flex flex-col items-center justify-center gap-2">
-                      <div className="w-12 h-12 rounded-2xl bg-white/40 border border-stone-200/60 flex items-center justify-center text-[#4DA944] mb-1">
-                        <Search className="w-6 h-6" />
-                      </div>
-                      <p className="text-sm font-bold text-stone-500">No records found.</p>
+                  <td colSpan="9" className="px-4 py-16 text-center text-stone-500 font-medium">
+                    <div className="flex flex-col items-center justify-center gap-2 max-w-sm mx-auto">
+                      {searchTerm ? (
+                        <>
+                          <div className="p-3 bg-stone-100 rounded-2xl text-stone-500 mb-1">
+                            <SearchX className="w-6 h-6" />
+                          </div>
+                          <span className="font-bold text-stone-800 text-sm">No Matching Discounts</span>
+                          <p className="text-xs text-stone-500">
+                            No discounts found matching &ldquo;<span className="font-semibold text-stone-700">{searchTerm}</span>&rdquo;.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSearchTerm('');
+                              setCurrentPage(1);
+                            }}
+                            className="mt-2 px-3.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl transition cursor-pointer"
+                          >
+                            Clear Search
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <div className="p-3 bg-emerald-50 text-[#4DA944] rounded-2xl mb-1 border border-emerald-200/80">
+                            <Percent className="w-6 h-6" />
+                          </div>
+                          <span className="font-bold text-stone-800 text-sm">No Discounts Found</span>
+                          <p className="text-xs text-stone-500">
+                            There are currently no discount vouchers or promotion rules created.
+                          </p>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>

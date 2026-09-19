@@ -44,17 +44,6 @@ export default function BillsList() {
     navigate(`/bills/${encodeURIComponent(bill.billNumber || bill.id)}`, { state: { bill } });
   };
 
-  const getAvatarStyle = (colorStr) => {
-    if (!colorStr || colorStr.includes('bg-indigo-100')) return 'bg-indigo-600 text-white';
-    if (colorStr.includes('bg-purple')) return 'bg-purple-600 text-white';
-    if (colorStr.includes('bg-amber')) return 'bg-amber-600 text-white';
-    if (colorStr.includes('bg-emerald')) return 'bg-emerald-600 text-white';
-    if (colorStr.includes('bg-sky')) return 'bg-sky-600 text-white';
-    if (colorStr.includes('bg-rose')) return 'bg-rose-600 text-white';
-    if (colorStr.includes('bg-violet')) return 'bg-violet-600 text-white';
-    return 'bg-indigo-600 text-white';
-  };
-
   return (
     <div className="flex flex-col gap-3.5 max-w-[1750px] w-full mx-auto pb-6 animate-in fade-in duration-200">
       {/* Top Header & Toolbar */}
@@ -151,43 +140,43 @@ export default function BillsList() {
           <table className="w-full text-left text-xs border-collapse">
             <thead className="bg-[#F8FAFC] border-b border-stone-200/80">
               <tr>
-                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="pl-6 pr-4 py-3.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   Bill Number
                 </th>
-                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   Bill Status
                 </th>
-                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   Transaction Status
                 </th>
-                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   Charge Transaction
                 </th>
-                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   Energy Delivered
                 </th>
-                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   Applied Discount
                 </th>
-                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   Amount
                 </th>
-                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   Fleet
                 </th>
-                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   Method
                 </th>
-                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   Driver
                 </th>
-                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   Invoice
                 </th>
-                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="px-4 py-3.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   Charge Point
                 </th>
-                <th className="px-4 py-3 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
+                <th className="pl-4 pr-6 py-3.5 text-left font-bold text-stone-700 text-[11px] uppercase tracking-wider whitespace-nowrap">
                   Generated On
                 </th>
               </tr>
@@ -196,7 +185,7 @@ export default function BillsList() {
             <tbody className="divide-y divide-stone-200/70 bg-white text-xs font-medium">
               {loading ? (
                 <tr>
-                  <td colSpan="13" className="px-4 py-16 text-center">
+                  <td colSpan="13" className="px-6 py-16 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Loader2 className="w-8 h-8 text-sky-500 animate-spin" />
                       <p className="text-sm font-bold text-stone-500">Loading bills...</p>
@@ -205,7 +194,7 @@ export default function BillsList() {
                 </tr>
               ) : bills.length === 0 ? (
                 <tr>
-                  <td colSpan="13" className="px-4 py-16 text-center">
+                  <td colSpan="13" className="px-6 py-16 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <div className="w-12 h-12 rounded-2xl bg-white/40 border border-white/60 flex items-center justify-center text-stone-400 mb-1">
                         <Search className="w-6 h-6" />
@@ -218,9 +207,20 @@ export default function BillsList() {
                 bills.map((row) => {
                   const isPaid = row.billStatus === 'Paid';
                   const isUnpaid = row.billStatus === 'Unpaid' || row.billStatus === 'Generated';
-                  const isCompleted = row.chargeTransactionStatus === 'Completed' || row.chargeTransactionStatus === 'Stopped';
-                  const driverName = row.customerDriver?.name || row.driverName || '-';
-                  const driverInitial = driverName !== '-' ? driverName.charAt(0).toUpperCase() : 'U';
+                  
+                  const txCode = (typeof row.chargeTransaction === 'object' ? (row.chargeTransaction?.txCode || row.chargeTransaction?.id) : row.chargeTransaction) || '-';
+                  const txStatus = (typeof row.chargeTransaction === 'object' ? row.chargeTransaction?.status : row.chargeTransactionStatus) || row.chargeTransactionStatus || 'Completed';
+                  const isCompleted = txStatus === 'Completed' || txStatus === 'Stopped';
+                  const isOngoing = txStatus === 'Ongoing';
+
+                  const fleetName = (typeof row.fleet === 'object' ? row.fleet?.name : row.fleet) || '-';
+                  const cpName = (typeof row.chargePoint === 'object' ? row.chargePoint?.name : row.chargePoint) || '-';
+                  const cpId = (typeof row.chargePoint === 'object' ? row.chargePoint?.id : row.chargePointId) || cpName;
+
+                  const driverName = (typeof row.customerDriver === 'object' ? row.customerDriver?.name : row.customerDriver) || row.driverName || 'EV Driver';
+                  const driverInitial = (typeof row.customerDriver === 'object' && row.customerDriver?.initial) 
+                    ? row.customerDriver.initial 
+                    : (driverName !== '-' ? driverName.charAt(0).toUpperCase() : 'U');
 
                   return (
                     <tr
@@ -228,8 +228,8 @@ export default function BillsList() {
                       onClick={() => handleOpenBill(row)}
                       className="group hover:bg-slate-50/80 transition-colors duration-150 cursor-pointer"
                     >
-                      {/* 1. Bill Number -> Indigo highlight */}
-                      <td className="px-4 py-3.5 whitespace-nowrap">
+                      {/* 1. Bill Number -> Indigo highlight with pl-6 space */}
+                      <td className="pl-6 pr-4 py-3.5 whitespace-nowrap">
                         <span className="text-slate-900 font-extrabold font-mono text-[13px] group-hover:text-indigo-600 transition-colors cursor-pointer">
                           {row.billNumber}
                         </span>
@@ -260,7 +260,7 @@ export default function BillsList() {
                         {isCompleted ? (
                           <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                            {row.chargeTransactionStatus}
+                            {txStatus}
                           </span>
                         ) : isOngoing ? (
                           <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full text-[11px] font-bold bg-sky-50 text-sky-700 border border-sky-200/80">
@@ -270,7 +270,7 @@ export default function BillsList() {
                         ) : (
                           <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80">
                             <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                            {row.chargeTransactionStatus}
+                            {txStatus}
                           </span>
                         )}
                       </td>
@@ -278,15 +278,17 @@ export default function BillsList() {
                       {/* 4. Charge Transaction -> Sky highlight */}
                       <td className="px-4 py-3.5 whitespace-nowrap">
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (row.chargeTransaction) {
-                              navigate(`/session-history?search=${encodeURIComponent(row.chargeTransaction)}`);
+                            if (txCode && txCode !== '-') {
+                              navigate(`/session-history?search=${encodeURIComponent(txCode)}`);
                             }
                           }}
                           className="text-slate-700 font-bold font-mono text-xs group-hover:text-sky-600 transition-colors cursor-pointer text-left"
+                          title={`View Transaction in Session History: ${txCode}`}
                         >
-                          {row.chargeTransaction}
+                          {txCode}
                         </button>
                       </td>
 
@@ -307,15 +309,17 @@ export default function BillsList() {
 
                       {/* 8. Fleet -> Violet highlight */}
                       <td className="px-4 py-3.5 whitespace-nowrap">
-                        {row.fleet && row.fleet !== '-' ? (
+                        {fleetName && fleetName !== '-' ? (
                           <button
+                            type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              navigate(`/fleets?search=${encodeURIComponent(row.fleet)}`);
+                              navigate(`/fleets?search=${encodeURIComponent(fleetName)}`);
                             }}
                             className="text-stone-700 font-semibold text-xs group-hover:text-violet-600 transition-colors cursor-pointer text-left"
+                            title={`Search Fleet: ${fleetName}`}
                           >
-                            {row.fleet}
+                            {fleetName}
                           </button>
                         ) : (
                           <span className="text-stone-400 font-medium">-</span>
@@ -335,7 +339,7 @@ export default function BillsList() {
                           </div>
                           <div>
                             <span className="font-bold text-slate-900 block group-hover:text-[#4DA944] transition-colors">
-                              {row.customerDriver?.name || 'EV Driver'}
+                              {driverName}
                             </span>
                             {row.customerDriver?.phone && (
                               <span className="text-[11px] text-stone-400 font-mono block">
@@ -349,13 +353,15 @@ export default function BillsList() {
                       {/* 11. Invoice */}
                       <td className="px-4 py-3.5 whitespace-nowrap">
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleOpenBill(row);
                           }}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 group-hover:bg-indigo-50 group-hover:border-indigo-200 text-slate-700 group-hover:text-indigo-600 border border-slate-200/90 rounded-lg text-xs font-bold transition-all duration-150 cursor-pointer active:scale-95 shadow-2xs"
+                          className="group/inv inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-slate-900 text-slate-700 hover:text-white border border-stone-200 hover:border-slate-900 rounded-md text-xs font-bold transition-all duration-150 cursor-pointer active:scale-95 shadow-2xs hover:shadow-xs"
+                          title={`View Invoice for Bill ${row.billNumber}`}
                         >
-                          <FileText className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-600 transition-colors" />
+                          <FileText className="w-3.5 h-3.5 text-stone-400 group-hover/inv:text-white transition-colors duration-150" />
                           <span>Invoice</span>
                         </button>
                       </td>
@@ -363,20 +369,22 @@ export default function BillsList() {
                       {/* 12. Charge Point -> Emerald highlight */}
                       <td className="px-4 py-3.5 whitespace-nowrap">
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (row.chargePoint) {
-                              navigate(`/charge-points/${encodeURIComponent(row.chargePoint)}`);
+                            if (cpId) {
+                              navigate(`/charge-points/${encodeURIComponent(cpId)}`);
                             }
                           }}
                           className="text-stone-800 font-bold text-xs group-hover:text-emerald-600 transition-colors cursor-pointer text-left"
+                          title={`View Charge Point: ${cpName}`}
                         >
-                          {row.chargePoint}
+                          {cpName}
                         </button>
                       </td>
 
                       {/* 13. Generated on */}
-                      <td className="px-4 py-3.5 whitespace-nowrap text-stone-500 text-xs font-medium">
+                      <td className="pl-4 pr-6 py-3.5 whitespace-nowrap text-stone-500 text-xs font-medium">
                         {row.generatedOn}
                       </td>
                     </tr>

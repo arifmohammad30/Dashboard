@@ -101,7 +101,7 @@ export default function SessionLogsView() {
           <div className="flex flex-col gap-0.5">
             <div className="flex items-center gap-2.5">
               <h1 className="text-xl font-extrabold text-stone-900 tracking-tight">
-                Session {sessionData ? getTxId(sessionData) : ''} Logs
+                Session {getTxId(sessionData || id)} Logs
               </h1>
 
               {sessionData?.status && (

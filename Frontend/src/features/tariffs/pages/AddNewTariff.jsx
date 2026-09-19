@@ -15,8 +15,8 @@ import DailyPreviewTimeline from '../components/DailyPreviewTimeline';
  * Serves as the main container page assembling all tariff configuration sections:
  * Basic Info, Normal Pricing, Peak Periods, Off-Peak Periods, GST/Parking, and Daily Preview Timeline.
  */
-export default function AddNewTariff({ isViewMode = false, isEditMode = false }) {
-  const form = useTariffForm({ isViewMode, isEditMode });
+export default function AddNewTariff({ isEditMode = false }) {
+  const form = useTariffForm({ isEditMode });
 
   if (form.isLoading) {
     return (
@@ -56,15 +56,14 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
   }
 
   return (
-    <div className="flex flex-col gap-4.5 max-w-[1180px] mx-auto pb-24 animate-in fade-in duration-200">
+    <div className="flex flex-col gap-6 max-w-[1400px] w-full mx-auto pb-28 px-2 sm:px-4 animate-in fade-in duration-200">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-1">
         <div>
           <BackButton to="/tariffs" label="Back to Tariffs" />
           <h1 className="text-2xl font-extrabold text-stone-900 tracking-tight mt-2">
-            {isViewMode ? 'View Tariff' : isEditMode ? 'Edit Tariff' : 'Create Tariff'}
+            {isEditMode ? 'Edit Tariff' : 'Create Tariff'}
           </h1>
-          <p className="text-xs text-stone-500 font-medium">Configure normal, peak, and off-peak charging prices.</p>
         </div>
 
         <div className="flex items-center gap-2.5">
@@ -73,19 +72,17 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
             onClick={() => form.navigate('/tariffs')}
             className="h-9 px-4 inline-flex items-center justify-center text-xs font-semibold bg-white hover:bg-slate-50 border border-slate-200/80 text-slate-700 rounded-xl shadow-2xs transition-all duration-150 active:scale-95 cursor-pointer shrink-0"
           >
-            {isViewMode ? 'Back' : 'Cancel'}
+            Cancel
           </button>
-          {!isViewMode && (
-            <PrimaryButton
-              type="button"
-              onClick={form.handleSubmit}
-              isSubmitting={form.isSubmitting}
-              isEditMode={isEditMode}
-              addLabel="Save Tariff"
-              editLabel="Save Changes"
-              className={form.validationError ? 'bg-rose-600 hover:bg-rose-700 border-rose-700/30' : ''}
-            />
-          )}
+          <PrimaryButton
+            type="button"
+            onClick={form.handleSubmit}
+            isSubmitting={form.isSubmitting}
+            isEditMode={isEditMode}
+            addLabel="Save Tariff"
+            editLabel="Save Changes"
+            className={form.validationError ? 'bg-rose-600 hover:bg-rose-700 border-rose-700/30' : ''}
+          />
         </div>
       </div>
 
@@ -106,7 +103,7 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
         setTariffName={form.setTariffName}
         status={form.status}
         setStatus={form.setStatus}
-        isViewMode={isViewMode}
+
       />
 
       {/* Section 2: Normal Pricing */}
@@ -120,7 +117,7 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
         addNormalSocRange={form.addNormalSocRange}
         updateNormalSocRange={form.updateNormalSocRange}
         removeNormalSocRange={form.removeNormalSocRange}
-        isViewMode={isViewMode}
+
       />
 
       {/* Section 3: Peak Pricing */}
@@ -136,7 +133,7 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
         onAddSocRange={form.addPeakSocRange}
         onUpdateSocRange={form.updatePeakSocRange}
         onRemoveSocRange={form.removePeakSocRange}
-        isViewMode={isViewMode}
+
       />
 
       {/* Section 4: Off-Peak Pricing */}
@@ -152,7 +149,7 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
         onAddSocRange={form.addOffPeakSocRange}
         onUpdateSocRange={form.updateOffPeakSocRange}
         onRemoveSocRange={form.removeOffPeakSocRange}
-        isViewMode={isViewMode}
+
       />
 
       {/* Section 5: GST & Parking */}
@@ -167,7 +164,7 @@ export default function AddNewTariff({ isViewMode = false, isEditMode = false })
         setParkingGracePeriod={form.setParkingGracePeriod}
         parkingChargeStarts={form.parkingChargeStarts}
         setParkingChargeStarts={form.setParkingChargeStarts}
-        isViewMode={isViewMode}
+
       />
 
       {/* Section 6: Daily Preview Timeline */}

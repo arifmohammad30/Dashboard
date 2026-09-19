@@ -32,7 +32,7 @@ const navGroups = [
     ],
   },
   {
-    title: 'Operations',
+    title: 'Sessions',
     items: [
       { name: 'Live Sessions', icon: Activity, path: '/live-sessions', permission: PERMISSIONS.SESSION_VIEW },
       { name: 'Session History', icon: History, path: '/session-history', permission: PERMISSIONS.SESSION_VIEW },
@@ -43,7 +43,6 @@ const navGroups = [
     items: [
       { name: 'Charging Stations', icon: MapPin, path: '/charging-stations', permission: PERMISSIONS.STATION_VIEW },
       { name: 'Charge Points', icon: Zap, path: '/charge-points', permission: PERMISSIONS.CHARGE_POINT_VIEW },
-      { name: 'Fleets', icon: Users, path: '/fleets', permission: PERMISSIONS.FLEET_VIEW },
       { name: 'Discounts', icon: Percent, path: '/discounts', permission: PERMISSIONS.DISCOUNT_VIEW },
     ],
   },
@@ -55,18 +54,18 @@ const navGroups = [
     ],
   },
   {
+    title: 'Payments',
+    items: [
+      { name: 'Payment Providers', icon: CreditCard, path: '/payment-providers', permission: PERMISSIONS.PAYMENT_VIEW },
+      { name: 'Payment Logs', icon: History, path: '/payment-logs', permission: PERMISSIONS.PAYMENT_LOGS_VIEW },
+    ],
+  },
+  {
     title: 'Teams',
     items: [
       { name: 'Team Members', icon: UserCheck, path: '/team-members', permission: PERMISSIONS.TEAM_VIEW },
       { name: 'Groups', icon: Users, path: '/groups', permission: PERMISSIONS.GROUP_VIEW },
       { name: 'Permission Rules', icon: Shield, path: '/permission-rules', permission: PERMISSIONS.PERMISSION_RULE_VIEW },
-    ],
-  },
-  {
-    title: 'Payments',
-    items: [
-      { name: 'Payment Providers', icon: CreditCard, path: '/payment-providers', permission: PERMISSIONS.PAYMENT_VIEW },
-      { name: 'Payment Logs', icon: History, path: '/payment-logs', permission: PERMISSIONS.PAYMENT_LOGS_VIEW },
     ],
   },
 ];
@@ -110,7 +109,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto pt-3.5 pb-6 px-4 space-y-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden bg-[#0f181f]">
+      <div className="flex-1 overflow-y-auto pt-6 pb-6 px-4 space-y-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden bg-[#0f181f]">
         {filteredNavGroups.map((group, idx) => (
           <div key={idx}>
             <h2 className="px-3 text-[11px] font-extrabold text-slate-300 uppercase tracking-widest mb-2.5 opacity-100">
@@ -131,31 +130,51 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                         }
                       }}
                       className={({ isActive }) =>
-                        `relative w-[calc(100%+2rem)] flex items-center justify-between py-2.5 pr-7 pl-7 rounded-none -ml-4 text-sm font-medium transition-colors duration-200 cursor-pointer active:scale-[0.98] group border-l-3 overflow-hidden ${
+                        `relative w-[calc(100%+2rem)] flex items-center justify-between py-2.5 pr-7 pl-7 rounded-none -ml-4 text-sm font-medium transition-all duration-150 cursor-pointer select-none active:scale-[0.98] group overflow-hidden ${
                           isActive
-                            ? 'text-white font-bold border-[#4DA944]'
-                            : 'text-slate-400 border-transparent hover:border-l-[#4DA944]/60 hover:text-slate-100 hover:bg-gradient-to-r hover:from-[#4DA944]/15 hover:to-transparent'
+                            ? 'text-white font-bold'
+                            : 'text-slate-400 hover:text-white hover:bg-white/[0.04] active:bg-white/[0.08]'
                         }`
                       }
                     >
                       {({ isActive }) => (
                         <>
-                          <div className={`absolute inset-y-0 left-0 w-64 bg-gradient-to-r from-[#4DA944]/25 via-[#4DA944]/10 to-transparent transition-transform duration-500 ease-out z-0 ${isActive ? 'translate-x-0' : '-translate-x-full'}`}></div>
+                          {/* Active Background Gradient sliding from left */}
+                          <div
+                            className={`absolute inset-y-0 left-0 w-full bg-gradient-to-r from-[#4DA944]/25 via-[#4DA944]/10 to-transparent transition-all duration-300 ease-out z-0 pointer-events-none ${
+                              isActive
+                                ? 'translate-x-0 opacity-100'
+                                : '-translate-x-full opacity-0 duration-150'
+                            }`}
+                          />
+
+                          {/* Active Left Indicator Bar sliding in from left */}
+                          <div
+                            className={`absolute inset-y-0 left-0 w-[3.5px] bg-[#4DA944] shadow-[0_0_8px_rgba(77,169,68,0.7)] transition-all duration-300 ease-out z-10 pointer-events-none ${
+                              isActive
+                                ? 'translate-x-0 opacity-100'
+                                : '-translate-x-full opacity-0 duration-150'
+                            }`}
+                          />
 
                           <div className="flex items-center gap-3 relative z-10">
                             <Icon
                               size={18}
-                              className={isActive ? 'text-[#4DA944] drop-shadow-[0_0_6px_rgba(77,169,68,0.5)]' : 'text-slate-400 group-hover:text-[#4DA944] transition-colors'}
+                              className={`transition-colors duration-200 ${
+                                isActive
+                                  ? 'text-[#4DA944] drop-shadow-[0_0_6px_rgba(77,169,68,0.5)]'
+                                  : 'text-slate-400 group-hover:text-white'
+                              }`}
                             />
-                            <span>{item.name}</span>
+                            <span className="tracking-tight">{item.name}</span>
                           </div>
 
                           {item.count && (
                             <span
-                              className={`relative z-10 text-xs py-0.5 px-2 rounded-full transition-colors ${
+                              className={`relative z-10 text-xs py-0.5 px-2 rounded-full transition-colors duration-200 ${
                                 isActive
                                   ? 'bg-[#4DA944]/20 text-[#6bd65f] border border-[#4DA944]/30'
-                                  : 'bg-slate-900 text-slate-400 group-hover:bg-slate-800'
+                                  : 'bg-slate-900 text-slate-400 group-hover:bg-slate-800 group-hover:text-slate-100'
                               }`}
                             >
                               {item.count}

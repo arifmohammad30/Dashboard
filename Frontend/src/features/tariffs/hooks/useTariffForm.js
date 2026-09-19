@@ -9,7 +9,7 @@ import { validatePricingConfig } from '../utils/tariffValidator';
  * Manages form state, nested pricing structures (Normal, Peak, Off-Peak, SOC tiers, Parking, GST),
  * real-time timeline overlap validation, and API submission.
  */
-export function useTariffForm({ isViewMode = false, isEditMode = false } = {}) {
+export function useTariffForm({ isEditMode = false } = {}) {
   const location = useLocation();
   const navigate = useNavigate();
   const toast = useToast();

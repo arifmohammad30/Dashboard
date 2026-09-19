@@ -28,6 +28,7 @@ export function useLiveSessions() {
 
   useSocketEvents({
     "session:updated": (updatedSession) => {
+      console.log("updatedSession : ", updatedSession);
       if (!updatedSession) return;
       setSessions(prev => {
         if (updatedSession.status && updatedSession.status !== 'Ongoing') {
@@ -43,6 +44,7 @@ export function useLiveSessions() {
       });
     },
     "session:created": (newSession) => {
+      console.log("newSession : ", newSession);
       if (!newSession) return;
       setSessions(prev => {
         if (newSession.status && newSession.status !== 'Ongoing') return prev;
@@ -52,6 +54,7 @@ export function useLiveSessions() {
       });
     },
     "session:stopped": (stoppedSession) => {
+      console.log("stoppedSession : ", stoppedSession);
       if (!stoppedSession) return;
       setSessions(prev => prev.filter(s => !matchSession(s, stoppedSession)));
     }

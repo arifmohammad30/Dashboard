@@ -17,7 +17,10 @@ export async function getBills(page = 1, limit = 10, search = '', filters = {}) 
       params.append('filters', JSON.stringify(filters));
     }
 
-    return await apiClient(`/bills?${params.toString()}`);
+    const data = await apiClient(`/bills?${params.toString()}`);
+    console.log("bills data : ", data);
+    return data;
+
   } catch (err) {
     console.error("Failed to fetch bills from API:", err);
     return { data: [], total: 0, page: 1, limit: 10, totalPages: 1 };
@@ -26,7 +29,9 @@ export async function getBills(page = 1, limit = 10, search = '', filters = {}) 
 
 export async function getBillById(billId) {
   try {
-    return await apiClient(`/bills/${billId}`);
+    const data = await apiClient(`/bills/${billId}`);
+    console.log("bill data : ", data);
+    return data;
   } catch (err) {
     console.error(`Failed to fetch bill ${billId} from API:`, err);
     return null;

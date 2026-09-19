@@ -109,6 +109,7 @@ export function useSessionLogs({
   // Real-time socket updates matched by authoritative sessionId or charge point identifier
   useSocketEvents({
     "session:log": (incomingLog) => {
+      console.log("incomingLog : ", incomingLog);
       if (!incomingLog || !sessionId) return;
       if (sessionStatus && sessionStatus !== 'Ongoing') return;
 

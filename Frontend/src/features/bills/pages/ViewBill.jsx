@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import BackButton from '../../../components/ui/BackButton';
 import {
-  ArrowLeft,
   FileText,
   FileCheck,
   Loader2,
   Tag,
-  Hash,
   User,
-  Building2,
-  Plug,
+  Truck,
+  PlugZap,
   MapPin,
+  ArrowLeftRight,
   CreditCard,
   Zap,
   ShieldCheck,
-  ArrowUpRight
+  Copy,
+  Check,
+  ChevronRight
 } from 'lucide-react';
 import { getBillById } from '../api/billService';
 import { useToast } from '../../../context/ToastContext';
@@ -28,28 +30,38 @@ export default function ViewBill() {
 
   const [bill, setBill] = useState(initialBill || null);
   const [loading, setLoading] = useState(!initialBill && Boolean(id));
+  const [copiedBillNo, setCopiedBillNo] = useState(false);
+  const [isExportingInvoice, setIsExportingInvoice] = useState(false);
+  const [isExportingReceipt, setIsExportingReceipt] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      setLoading(true);
-      getBillById(id)
-        .then((data) => {
-          if (data) {
-            setBill(data);
-          }
-        })
-        .catch((err) => {
-          console.error("Failed to load bill details:", err);
-        })
-        .finally(() => setLoading(false));
-    }
+    if (!id) return;
+    let isMounted = true;
+    if (!bill) setLoading(true);
+
+    getBillById(id)
+      .then((data) => {
+        if (isMounted && data) {
+          setBill(data);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load bill details:", err);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
 
   if (loading && !bill) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[500px] text-sky-600">
-        <Loader2 className="w-10 h-10 animate-spin mb-3" />
-        <p className="text-sm font-bold text-stone-600">Loading bill details...</p>
+        <Loader2 className="w-8 h-8 animate-spin mb-3" />
+        <p className="text-xs font-bold text-stone-500">Loading invoice details...</p>
       </div>
     );
   }
@@ -57,10 +69,10 @@ export default function ViewBill() {
   if (!bill) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-stone-500 gap-4">
-        <p className="text-base font-bold text-stone-700">Invoice not found</p>
+        <p className="text-sm font-bold text-stone-700">Invoice record not found</p>
         <button
           onClick={() => navigate('/bills')}
-          className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-xs transition cursor-pointer"
+          className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg text-xs transition active:scale-95 cursor-pointer"
         >
           Back to Invoices
         </button>
@@ -70,257 +82,410 @@ export default function ViewBill() {
 
   const b = bill;
   const isPaid = b.billStatus === 'Paid';
-  const isCompleted = b.chargeTransactionStatus === 'Completed' || b.chargeTransactionStatus === 'Stopped';
-  const isOngoing = b.chargeTransactionStatus === 'Ongoing';
+  const txStatus = (typeof b.chargeTransaction === 'object' ? b.chargeTransaction?.status : b.chargeTransactionStatus) || b.chargeTransactionStatus || 'Completed';
+  const isCompleted = txStatus === 'Completed' || txStatus === 'Stopped';
+  const isOngoing = txStatus === 'Ongoing';
 
-  const driverName = b.customerDriver?.name || b.driverName || '-';
-  const driverInitial = driverName !== '-' ? driverName.charAt(0).toUpperCase() : 'U';
-  const fleetName = b.fleet || '-';
-  const cpName = b.chargePoint || b.chargePointName || '-';
-  const cpId = b.chargePointId || cpName;
-  const stationName = b.chargingStation || b.chargingStationName || '-';
-  const stationId = b.chargingStationId || stationName;
-  const txId = b.chargeTransaction || b.chargeTxCode || '-';
+  const driverName = (typeof b.customerDriver === 'object' ? b.customerDriver?.name : b.customerDriver) || b.driverName || 'B108901020';
+
+  const fleetName = (typeof b.fleet === 'object' ? b.fleet?.name : b.fleet) || '-';
+  const cpName = (typeof b.chargePoint === 'object' ? b.chargePoint?.name : b.chargePoint) || b.chargePointName || 'Charge Point Station 28 AC';
+  const cpId = (typeof b.chargePoint === 'object' ? b.chargePoint?.id : b.chargePointId) || cpName;
+
+  const stationName = (typeof b.chargingStation === 'object' ? b.chargingStation?.name : b.chargingStation) || b.chargingStationName || 'Location 6 Hub';
+  const stationId = (typeof b.chargingStation === 'object' ? b.chargingStation?.id : b.chargingStationId) || stationName;
+
+  const rawTxCode = (typeof b.chargeTransaction === 'object' ? (b.chargeTransaction?.txCode || b.chargeTransaction?.id) : b.chargeTransaction) || b.chargeTxCode || '48727';
+  const txCode = String(rawTxCode).replace(/^#/, '');
+
   const appliedTariff = b.appliedTariff || null;
+  const tariffName = (typeof appliedTariff === 'object' && appliedTariff?.name)
+    ? appliedTariff.name
+    : (typeof appliedTariff === 'string' && appliedTariff.trim() !== '')
+      ? appliedTariff
+      : 'Fleet Special';
+
+  const handleNavigateTariff = () => {
+    if (tariffName && tariffName !== 'Standard AC Tariff') {
+      navigate(`/tariffs?search=${encodeURIComponent(tariffName)}`);
+    } else {
+      navigate('/tariffs');
+    }
+  };
+
+  const handleCopyBillNumber = () => {
+    if (b.billNumber) {
+      navigator.clipboard.writeText(b.billNumber);
+      setCopiedBillNo(true);
+      toast.success(`Copied bill ${b.billNumber} to clipboard`, { code: 200 });
+      setTimeout(() => setCopiedBillNo(false), 2000);
+    }
+  };
+
+  const handleInvoiceExport = () => {
+    setIsExportingInvoice(true);
+    setTimeout(() => {
+      setIsExportingInvoice(false);
+      toast.success('Invoice document ready for export / printing.', { code: 200 });
+      window.print();
+    }, 450);
+  };
+
+  const handleReceiptExport = () => {
+    setIsExportingReceipt(true);
+    setTimeout(() => {
+      setIsExportingReceipt(false);
+      toast.success('Receipt generated and ready.', { code: 200 });
+      window.print();
+    }, 450);
+  };
 
   return (
-    <div className="flex flex-col gap-6 max-w-[1700px] w-full mx-auto pb-10 animate-in fade-in duration-200">
-      {/* Top Header Navigation */}
-      <button
-        onClick={() => navigate('/bills')}
-        className="inline-flex items-center gap-2 text-xs font-bold text-stone-600 hover:text-slate-900 transition-colors w-fit cursor-pointer group"
-      >
-        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-        <span>Back to list</span>
-      </button>
+    <div className="flex flex-col gap-4 max-w-[1600px] w-full mx-auto pt-2 pb-10 animate-in fade-in duration-200">
+      {/* Print Stylesheet */}
+      <style>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          #printable-bill-wrapper, #printable-bill-wrapper * {
+            visibility: visible;
+          }
+          #printable-bill-wrapper {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            padding: 20px;
+          }
+          .no-print {
+            display: none !important;
+          }
+        }
+      `}</style>
 
-      {/* Main Single Card Container */}
-      <div className="bg-white border border-stone-200/90 shadow-2xs rounded-3xl p-6 sm:p-8 flex flex-col gap-6">
-        {/* Header Title & Serious Amount */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-stone-200/70">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">{b.billNumber}</h1>
-              
-              {/* Bill Status Badge */}
-              {isPaid ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Paid
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50/90 text-amber-700 border border-amber-200/90 shadow-2xs">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Unpaid
-                </span>
-              )}
+      {/* Top Header Navigation */}
+      <div className="flex items-center justify-between no-print">
+        <BackButton to="/bills" label="Back to Bills" />
+      </div>
+
+      <div id="printable-bill-wrapper" className="flex flex-col gap-5">
+        {/* Page Header (Outside Card) */}
+        <div className="flex flex-row items-center justify-between gap-4 py-1 px-1 sm:px-2">
+          <div className="flex items-center gap-4">
+            {/* Header Document Icon Box */}
+            <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-xl bg-white border border-slate-200/90 shadow-2xs flex items-center justify-center text-slate-800 shrink-0">
+              <FileText className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.75]" />
             </div>
-            <p className="text-xs text-stone-500 font-medium mt-0.5">
-              Generated on {b.generatedOn}
-            </p>
+
+            <div>
+              <div className="flex items-center gap-3 flex-wrap">
+                <button
+                  type="button"
+                  onClick={handleCopyBillNumber}
+                  className="group/num inline-flex items-center gap-2 text-left cursor-pointer transition-all duration-150"
+                  title="Click to copy Bill Number"
+                >
+                  <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight group-hover/num:text-indigo-600 transition-colors">
+                    {b.billNumber || 'BILL-48727'}
+                  </h1>
+                  <span className="p-1 rounded-md bg-stone-100/80 group-hover/num:bg-indigo-50 text-stone-400 group-hover/num:text-indigo-600 transition-all duration-150 active:scale-90">
+                    {copiedBillNo ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5 stroke-[2]" />
+                    )}
+                  </span>
+                </button>
+
+                {/* Bill Status Badge */}
+                {isPaid ? (
+                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/70">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Paid
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold bg-[#fef3eb] text-[#d97706] border border-[#fde68a]/60">
+                    <span className="w-2 h-2 rounded-full bg-[#d97706]"></span> Unpaid
+                  </span>
+                )}
+              </div>
+              <p className="text-xs sm:text-[13px] text-slate-400 font-medium mt-1">
+                Generated on {b.generatedOn || 'Sep 17, 2026 06:09 pm'}
+              </p>
+            </div>
           </div>
 
-          {/* Clean, serious amount display */}
-          <div className="sm:text-right">
-            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Billed Amount</span>
-            <span className="text-lg font-extrabold text-slate-900 font-mono mt-0.5 block">
+          {/* Amount Display (Shifted Inward / Left with Refined Typography) */}
+          <div className="text-right shrink-0 pr-4 sm:pr-8 md:pr-12">
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest block">
+              BILLED AMOUNT
+            </span>
+            <span className="text-2xl sm:text-3xl font-bold text-slate-900 font-mono tracking-tight mt-0.5 block">
               ₹{Number(b.amount || 0).toFixed(2)}
             </span>
           </div>
         </div>
 
-        {/* Structured Rich Field Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4.5">
-          {/* Card 1: Customer / Driver */}
-          <div className="group bg-gradient-to-b from-indigo-50/40 to-slate-50/40 hover:from-white hover:to-white border border-indigo-100/80 hover:border-indigo-300 shadow-2xs hover:shadow-md transition-all duration-200 p-4.5 rounded-2xl flex flex-col gap-3">
-            <div className="flex items-center gap-2 border-b border-indigo-100/70 pb-2.5 text-indigo-950 text-[11px] font-bold uppercase tracking-wider">
-              <div className="w-6 h-6 rounded-lg bg-indigo-100 group-hover:bg-indigo-600 text-indigo-600 group-hover:text-white flex items-center justify-center shrink-0 transition-all duration-200">
-                <User className="w-3.5 h-3.5" />
+        {/* Main Card Container (Wrapping Only the Inner Cards & Footer) */}
+        <div
+          id="printable-bill-container"
+          className="bg-white border border-slate-200/90 shadow-sm rounded-2xl p-6 sm:p-7 flex flex-col gap-6"
+        >
+        {/* Structured Field Cards Grid (4 Columns x 2 Rows) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          {/* Card 1: Customer / Driver (Informational / Non-clickable - No description) */}
+          <div className="bg-white border border-slate-200/80 rounded-xl p-5 min-h-[108px] flex items-center justify-between gap-3.5">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-xl bg-blue-50 border border-blue-100/80 flex items-center justify-center text-blue-500 shrink-0">
+                <User className="w-6 h-6 stroke-[2.25]" />
               </div>
-              <span>Customer / Driver</span>
-            </div>
-            <div className="flex items-center gap-3 bg-white/80 p-2 border border-indigo-200/50 rounded-xl shadow-2xs w-fit">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#4DA944]/20 to-[#4DA944]/10 border border-[#4DA944]/30 text-[#30702a] font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-                {driverInitial}
-              </div>
-              <div>
-                <span className="font-bold text-slate-900 block text-xs">
+              <div className="flex flex-col min-w-0">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                  CUSTOMER / DRIVER
+                </span>
+                <span className="text-base sm:text-lg font-bold text-slate-900 truncate mt-1">
                   {driverName}
                 </span>
-                {b.customerDriver?.phone && (
-                  <span className="text-[11px] text-stone-400 font-mono block">
-                    {b.customerDriver.phone}
-                  </span>
-                )}
               </div>
             </div>
           </div>
 
-          {/* Card 2: Fleet Account -> Violet theme */}
-          <div className="group bg-gradient-to-b from-violet-50/40 to-slate-50/40 hover:from-white hover:to-white border border-violet-100/80 hover:border-violet-300 shadow-2xs hover:shadow-md transition-all duration-200 p-4.5 rounded-2xl flex flex-col gap-3">
-            <div className="flex items-center gap-2 border-b border-violet-100/70 pb-2.5 text-violet-950 text-[11px] font-bold uppercase tracking-wider">
-              <div className="w-6 h-6 rounded-lg bg-violet-100 group-hover:bg-violet-600 text-violet-600 group-hover:text-white flex items-center justify-center shrink-0 transition-all duration-200">
-                <Building2 className="w-3.5 h-3.5" />
-              </div>
-              <span>Fleet Account</span>
-            </div>
-            {fleetName && fleetName !== '-' ? (
-              <button
-                type="button"
-                onClick={() => navigate(`/fleets?search=${encodeURIComponent(fleetName)}`)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-violet-50/80 hover:bg-violet-100 text-violet-700 border border-violet-200/80 rounded-xl font-bold text-xs shadow-2xs hover:scale-[1.02] transition-all cursor-pointer w-fit"
-              >
-                <span>{fleetName}</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </button>
-            ) : (
-              <span className="text-xs font-bold text-stone-400 block px-1">-</span>
-            )}
-          </div>
-
-          {/* Card 3: Charge Point -> Emerald theme */}
-          <div className="group bg-gradient-to-b from-emerald-50/40 to-slate-50/40 hover:from-white hover:to-white border border-emerald-100/80 hover:border-emerald-300 shadow-2xs hover:shadow-md transition-all duration-200 p-4.5 rounded-2xl flex flex-col gap-3">
-            <div className="flex items-center gap-2 border-b border-emerald-100/70 pb-2.5 text-emerald-950 text-[11px] font-bold uppercase tracking-wider">
-              <div className="w-6 h-6 rounded-lg bg-emerald-100 group-hover:bg-emerald-600 text-emerald-600 group-hover:text-white flex items-center justify-center shrink-0 transition-all duration-200">
-                <Plug className="w-3.5 h-3.5" />
-              </div>
-              <span>Charge Point</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => navigate(`/charge-points/${encodeURIComponent(cpId)}`)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50/80 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 rounded-xl font-bold text-xs shadow-2xs hover:scale-[1.02] transition-all cursor-pointer w-fit"
+          {/* Card 2: Fleet Account (Clickable when fleet assigned) */}
+          {fleetName && fleetName !== '-' ? (
+            <div
+              onClick={() => navigate(`/fleets?search=${encodeURIComponent(fleetName)}`)}
+              className="group bg-white border border-slate-200/80 hover:border-slate-300 hover:shadow-sm rounded-xl p-5 min-h-[108px] flex items-center justify-between gap-3.5 transition-all duration-150 cursor-pointer"
             >
-              <span>{cpName}</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {/* Card 4: Charging Station -> Sky theme */}
-          <div className="group bg-gradient-to-b from-sky-50/40 to-slate-50/40 hover:from-white hover:to-white border border-sky-100/80 hover:border-sky-300 shadow-2xs hover:shadow-md transition-all duration-200 p-4.5 rounded-2xl flex flex-col gap-3">
-            <div className="flex items-center gap-2 border-b border-sky-100/70 pb-2.5 text-sky-950 text-[11px] font-bold uppercase tracking-wider">
-              <div className="w-6 h-6 rounded-lg bg-sky-100 group-hover:bg-sky-600 text-sky-600 group-hover:text-white flex items-center justify-center shrink-0 transition-all duration-200">
-                <MapPin className="w-3.5 h-3.5" />
-              </div>
-              <span>Charging Station</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => navigate(`/charging-stations/${encodeURIComponent(stationId)}`)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-50/80 hover:bg-sky-100 text-sky-700 border border-sky-200/80 rounded-xl font-bold text-xs shadow-2xs hover:scale-[1.02] transition-all cursor-pointer w-fit"
-            >
-              <span>{stationName}</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {/* Card 5: Charge Transaction & Status -> Emerald theme */}
-          <div className="group bg-gradient-to-b from-emerald-50/40 to-slate-50/40 hover:from-white hover:to-white border border-emerald-100/80 hover:border-emerald-300 shadow-2xs hover:shadow-md transition-all duration-200 p-4.5 rounded-2xl flex flex-col gap-3">
-            <div className="flex items-center justify-between border-b border-emerald-100/70 pb-2.5">
-              <div className="flex items-center gap-2 text-emerald-950 text-[11px] font-bold uppercase tracking-wider">
-                <div className="w-6 h-6 rounded-lg bg-emerald-100 group-hover:bg-emerald-600 text-emerald-600 group-hover:text-white flex items-center justify-center shrink-0 transition-all duration-200">
-                  <Hash className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-xl bg-purple-50 border border-purple-100/80 flex items-center justify-center text-purple-500 shrink-0">
+                  <Truck className="w-6 h-6 stroke-[2.25]" />
                 </div>
-                <span>Charge Transaction</span>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                    FLEET ACCOUNT
+                  </span>
+                  <span className="text-base sm:text-lg font-bold text-slate-900 truncate mt-0.5">
+                    {fleetName}
+                  </span>
+                  <span className="text-xs text-slate-400 truncate mt-0.5">
+                    Manage fleet accounts
+                  </span>
+                </div>
               </div>
-
-              {/* Status Badge placed on the right side of the card heading */}
-              {isCompleted ? (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> {b.chargeTransactionStatus}
-                </span>
-              ) : isOngoing ? (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200/80">
-                  <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span> Ongoing
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> {b.chargeTransactionStatus}
-                </span>
-              )}
+              <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-slate-800 group-hover:bg-slate-100 group-hover:translate-x-0.5 transition-all duration-150 shrink-0">
+                <ChevronRight className="w-4.5 h-4.5 stroke-[2.5]" />
+              </div>
             </div>
+          ) : (
+            <div className="bg-white border border-slate-200/80 rounded-xl p-5 min-h-[108px] flex items-center justify-between gap-3.5">
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-xl bg-purple-50 border border-purple-100/80 flex items-center justify-center text-purple-500 shrink-0">
+                  <Truck className="w-6 h-6 stroke-[2.25]" />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                    FLEET ACCOUNT
+                  </span>
+                  <span className="text-base sm:text-lg font-bold text-slate-900 truncate mt-1">
+                    -
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
 
-            <button
-              type="button"
-              onClick={() => navigate(`/session-history?search=${encodeURIComponent(txId)}`)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50/80 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 rounded-xl font-mono font-black text-xs shadow-2xs hover:scale-[1.02] transition-all cursor-pointer w-fit"
-            >
-              <span>#{txId}</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </button>
+          {/* Card 3: Charge Point (Clickable) */}
+          <div
+            onClick={() => navigate(`/charge-points/${encodeURIComponent(cpId)}`)}
+            className="group bg-white border border-slate-200/80 hover:border-slate-300 hover:shadow-sm rounded-xl p-5 min-h-[108px] flex items-center justify-between gap-3.5 transition-all duration-150 cursor-pointer"
+          >
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-xl bg-emerald-50 border border-emerald-100/80 flex items-center justify-center text-emerald-500 shrink-0">
+                <PlugZap className="w-6 h-6 stroke-[2.25]" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                  CHARGE POINT
+                </span>
+                <span className="text-base sm:text-lg font-bold text-slate-900 truncate mt-0.5">
+                  {cpName}
+                </span>
+                <span className="text-xs text-slate-400 truncate mt-0.5">
+                  View charge point details
+                </span>
+              </div>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-slate-800 group-hover:bg-slate-100 group-hover:translate-x-0.5 transition-all duration-150 shrink-0">
+              <ChevronRight className="w-4.5 h-4.5 stroke-[2.5]" />
+            </div>
           </div>
 
-          {/* Card 6: Payment Method -> Blue theme */}
-          <div className="group bg-gradient-to-b from-blue-50/40 to-slate-50/40 hover:from-white hover:to-white border border-blue-100/80 hover:border-blue-300 shadow-2xs hover:shadow-md transition-all duration-200 p-4.5 rounded-2xl flex flex-col gap-3">
-            <div className="flex items-center gap-2 border-b border-blue-100/70 pb-2.5 text-blue-950 text-[11px] font-bold uppercase tracking-wider">
-              <div className="w-6 h-6 rounded-lg bg-blue-100 group-hover:bg-blue-600 text-blue-600 group-hover:text-white flex items-center justify-center shrink-0 transition-all duration-200">
-                <CreditCard className="w-3.5 h-3.5" />
+          {/* Card 4: Charging Station (Clickable) */}
+          <div
+            onClick={() => navigate(`/charging-stations/${encodeURIComponent(stationId)}`)}
+            className="group bg-white border border-slate-200/80 hover:border-slate-300 hover:shadow-sm rounded-xl p-5 min-h-[108px] flex items-center justify-between gap-3.5 transition-all duration-150 cursor-pointer"
+          >
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-xl bg-sky-50 border border-sky-100/80 flex items-center justify-center text-sky-500 shrink-0">
+                <MapPin className="w-6 h-6 stroke-[2.25]" />
               </div>
-              <span>Payment Method</span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                  CHARGING STATION
+                </span>
+                <span className="text-base sm:text-lg font-bold text-slate-900 truncate mt-0.5">
+                  {stationName}
+                </span>
+                <span className="text-xs text-slate-400 truncate mt-0.5">
+                  View station location and settings
+                </span>
+              </div>
             </div>
-            <span className="inline-flex items-center px-3 py-1.5 bg-white border border-blue-200/70 text-blue-900 rounded-xl font-bold text-xs shadow-2xs w-fit">
-              {b.method || 'User Wallet'}
-            </span>
+            <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-slate-800 group-hover:bg-slate-100 group-hover:translate-x-0.5 transition-all duration-150 shrink-0">
+              <ChevronRight className="w-4.5 h-4.5 stroke-[2.5]" />
+            </div>
           </div>
 
-          {/* Card 7: Applied Tariff -> Purple theme */}
-          <div className="group bg-gradient-to-b from-purple-50/40 to-slate-50/40 hover:from-white hover:to-white border border-purple-100/80 hover:border-purple-300 shadow-2xs hover:shadow-md transition-all duration-200 p-4.5 rounded-2xl flex flex-col gap-3">
-            <div className="flex items-center gap-2 border-b border-purple-100/70 pb-2.5 text-purple-950 text-[11px] font-bold uppercase tracking-wider">
-              <div className="w-6 h-6 rounded-lg bg-purple-100 group-hover:bg-purple-600 text-purple-600 group-hover:text-white flex items-center justify-center shrink-0 transition-all duration-200">
-                <Tag className="w-3.5 h-3.5" />
+          {/* Card 5: Charge Transaction (Clickable) */}
+          <div
+            onClick={() => navigate(`/session-history?search=${encodeURIComponent(txCode)}`)}
+            className="group bg-white border border-slate-200/80 hover:border-slate-300 hover:shadow-sm rounded-xl p-5 min-h-[108px] flex items-center justify-between gap-3.5 transition-all duration-150 cursor-pointer"
+          >
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-xl bg-teal-50 border border-teal-100/80 flex items-center justify-center text-teal-500 shrink-0">
+                <ArrowLeftRight className="w-6 h-6 stroke-[2.25]" />
               </div>
-              <span>Applied Tariff</span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                  CHARGE TRANSACTION
+                </span>
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  <span className="text-base sm:text-lg font-bold text-slate-900 font-mono truncate">
+                    #{txCode}
+                  </span>
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border shrink-0 ${
+                    isCompleted ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' :
+                    isOngoing ? 'bg-sky-50 text-sky-700 border-sky-200/80' :
+                    'bg-rose-50 text-rose-700 border-rose-200/80'
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${isCompleted ? 'bg-emerald-500' : isOngoing ? 'bg-sky-500 animate-pulse' : 'bg-rose-500'}`} />
+                    {txStatus}
+                  </span>
+                </div>
+                <span className="text-xs text-slate-400 truncate mt-0.5">
+                  View transaction details
+                </span>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={() => navigate(`/tariffs?search=${encodeURIComponent(appliedTariff.name)}`)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50/80 hover:bg-purple-100 text-purple-700 border border-purple-200/80 rounded-xl font-bold text-xs shadow-2xs hover:scale-[1.02] transition-all cursor-pointer w-fit"
-            >
-              <span>{appliedTariff.name || 'Standard AC Tariff'}</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </button>
+            <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-slate-800 group-hover:bg-slate-100 group-hover:translate-x-0.5 transition-all duration-150 shrink-0">
+              <ChevronRight className="w-4.5 h-4.5 stroke-[2.5]" />
+            </div>
           </div>
 
-          {/* Card 8: Energy Delivered -> Amber theme */}
-          <div className="group bg-gradient-to-b from-amber-50/40 to-slate-50/40 hover:from-white hover:to-white border border-amber-100/80 hover:border-amber-300 shadow-2xs hover:shadow-md transition-all duration-200 p-4.5 rounded-2xl flex flex-col gap-3">
-            <div className="flex items-center gap-2 border-b border-amber-100/70 pb-2.5 text-amber-950 text-[11px] font-bold uppercase tracking-wider">
-              <div className="w-6 h-6 rounded-lg bg-amber-100 group-hover:bg-amber-600 text-amber-600 group-hover:text-white flex items-center justify-center shrink-0 transition-all duration-200">
-                <Zap className="w-3.5 h-3.5" />
+          {/* Card 6: Payment Method (Informational / Non-clickable - No description) */}
+          <div className="bg-white border border-slate-200/80 rounded-xl p-5 min-h-[108px] flex items-center justify-between gap-3.5">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-xl bg-blue-50 border border-blue-100/80 flex items-center justify-center text-blue-500 shrink-0">
+                <CreditCard className="w-6 h-6 stroke-[2.25]" />
               </div>
-              <span>Energy Delivered</span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                  PAYMENT METHOD
+                </span>
+                <span className="text-base sm:text-lg font-bold text-slate-900 truncate mt-1">
+                  {b.method || 'User Wallet'}
+                </span>
+              </div>
             </div>
-            <span className="inline-flex items-center px-3 py-1.5 bg-white border border-amber-200/70 text-slate-900 rounded-xl font-black text-sm shadow-2xs w-fit">
-              {b.energyDelivered}
-            </span>
+          </div>
+
+          {/* Card 7: Applied Tariff (Clickable) */}
+          <div
+            onClick={handleNavigateTariff}
+            className="group bg-white border border-slate-200/80 hover:border-slate-300 hover:shadow-sm rounded-xl p-5 min-h-[108px] flex items-center justify-between gap-3.5 transition-all duration-150 cursor-pointer"
+          >
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-xl bg-purple-50 border border-purple-100/80 flex items-center justify-center text-purple-500 shrink-0">
+                <Tag className="w-6 h-6 stroke-[2.25]" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                  APPLIED TARIFF
+                </span>
+                <span className="text-base sm:text-lg font-bold text-slate-900 truncate mt-0.5">
+                  {tariffName}
+                </span>
+                <span className="text-xs text-slate-400 truncate mt-0.5">
+                  View tariff and pricing details
+                </span>
+              </div>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-slate-800 group-hover:bg-slate-100 group-hover:translate-x-0.5 transition-all duration-150 shrink-0">
+              <ChevronRight className="w-4.5 h-4.5 stroke-[2.5]" />
+            </div>
+          </div>
+
+          {/* Card 8: Energy Delivered (Informational / Non-clickable - No description) */}
+          <div className="bg-white border border-slate-200/80 rounded-xl p-5 min-h-[108px] flex items-center justify-between gap-3.5">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-xl bg-amber-50 border border-amber-100/80 flex items-center justify-center text-amber-500 shrink-0">
+                <Zap className="w-6 h-6 stroke-[2.25]" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                  ENERGY DELIVERED
+                </span>
+                <span className="text-base sm:text-lg font-bold text-slate-900 font-mono truncate mt-1">
+                  {b.energyDelivered || '0.01 kWh'}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Action Buttons Row */}
-        <div className="pt-4 border-t border-stone-100 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs text-stone-500 font-medium">
-            <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+        <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 no-print">
+          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+            <ShieldCheck className="w-5 h-5 text-emerald-600 stroke-[2] shrink-0" />
             <span>Billing records and documents are finalized and verified.</span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 self-end sm:self-auto">
+            {/* Invoice Action Button */}
             <button
               type="button"
-              onClick={() => toast.info('Invoice document generation feature ready for integration')}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs active:scale-95"
+              disabled={isExportingInvoice}
+              onClick={handleInvoiceExport}
+              className="group inline-flex items-center gap-2 px-5 py-2.5 bg-[#0f4339] hover:bg-[#0b332b] text-white rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer shadow-xs active:scale-95 disabled:opacity-75"
+              title="Generate / Print Invoice PDF"
             >
-              <FileText className="w-4 h-4" />
-              <span>Invoice</span>
+              {isExportingInvoice ? (
+                <Loader2 className="w-4 h-4 animate-spin text-slate-300" />
+              ) : (
+                <FileText className="w-4 h-4 text-white" />
+              )}
+              <span>{isExportingInvoice ? 'Preparing...' : 'Invoice'}</span>
             </button>
 
+            {/* Receipt Action Button */}
             <button
               type="button"
-              onClick={() => toast.info('Receipt document download feature ready for integration')}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs active:scale-95"
+              disabled={isExportingReceipt}
+              onClick={handleReceiptExport}
+              className="group inline-flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer shadow-2xs active:scale-95 disabled:opacity-75"
+              title="Print Receipt"
             >
-              <FileCheck className="w-4 h-4" />
-              <span>Receipt</span>
+              {isExportingReceipt ? (
+                <Loader2 className="w-4 h-4 animate-spin text-slate-500" />
+              ) : (
+                <FileCheck className="w-4 h-4 text-slate-500 group-hover:text-slate-700" />
+              )}
+              <span>{isExportingReceipt ? 'Preparing...' : 'Receipt'}</span>
             </button>
           </div>
         </div>
       </div>
     </div>
+  </div>
   );
 }

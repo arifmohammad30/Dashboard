@@ -46,38 +46,48 @@ export default function ViewChargingStation() {
 
   // Update URL search parameters when user toggles tabs
   const setActiveTab = (tabId) => {
-    setSearchParams({ tab: tabId }, { replace: true });
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set('tab', tabId);
+      return next;
+    }, { replace: true, state: location.state });
   };
 
 
   // 3. Component State
-
-  // Station metadata entity
-  const [station, setStation] = useState(initialStation);
-  // Loading indicator state: active if initialStation was not passed via state and ID exists
-  const [loading, setLoading] = useState(!initialStation && Boolean(id));
+  const [station, setStation] = useState(() => initialStation || null);
+  const [loading, setLoading] = useState(() => !initialStation && Boolean(id));
 
 
   // 4. Lifecycle: Fetch Authoritative Station Details by ID
-
   useEffect(() => {
-    if (id) {
+    if (!id) return;
+    let isMounted = true;
+
+    if (!station) {
       setLoading(true);
-      // Fetch authoritative station record directly by ID (no search fallbacks)
-      getChargingStationById(id)
-        .then((data) => {
+    }
+
+    getChargingStationById(id)
+      .then((data) => {
+        if (isMounted) {
           if (data && (data.name || data.code)) {
-            setStation(data);
+            setStation(prev => ({ ...(prev || {}), ...data }));
           } else {
             setStation(null);
           }
-        })
-        .catch((err) => {
-          console.error("Failed to fetch charging station by ID:", err);
-          setStation(null);
-        })
-        .finally(() => setLoading(false));
-    }
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch charging station by ID:", err);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
 
 

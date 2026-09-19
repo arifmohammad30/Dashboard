@@ -74,8 +74,36 @@ export function formatChargePointData(cp, idx = 0) {
     methods = [];
   }
 
+  let parsedConnectors = [];
+  if (cp.connectors && Array.isArray(cp.connectors)) {
+    parsedConnectors = cp.connectors.map(c => typeof c === 'object' ? {
+      id: c.id,
+      connectorId: c.connectorId,
+      type: c.type,
+      status: c.status || 'Available',
+      availability: c.availability || 'Operative',
+      powerRating: c.powerRating,
+      maxCurrent: c.maxCurrent,
+      maxVoltage: c.maxVoltage,
+      powerType: c.powerType,
+      connectorFormat: c.connectorFormat,
+      qrCode: c.qrCode
+    } : c);
+  } else if (typeof cp.connectors === 'string' && cp.connectors.trim() !== '') {
+    try {
+      const parsed = JSON.parse(cp.connectors);
+      parsedConnectors = Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      parsedConnectors = [];
+    }
+  }
+
   const defaultStages = ['Active', 'Inactive', 'Maintenance'];
   const resolvedStage = cp.stage || defaultStages[idx % defaultStages.length];
+  const isStageDisabled = resolvedStage === 'Inactive' || resolvedStage === 'Maintenance';
+  const resolvedStatus = (isStageDisabled || cp.availability === 'Inoperative')
+    ? 'Faulted'
+    : (cp.status && cp.status !== 'Faulted' ? cp.status : 'Available');
 
   const resolvedTariff = cp.tariff ? {
     id: cp.tariff.id,
@@ -96,7 +124,11 @@ export function formatChargePointData(cp, idx = 0) {
     name: cp.name,
     code: cp.code,
     chargingStation: resolvedChargingStation,
-    manufacturer: cp.manufacturer,
+    status: resolvedStatus,
+    availability: cp.availability || 'Operative',
+    connectors: parsedConnectors,
+    manufacturer: cp.manufacturer || cp.oem,
+    oem: cp.oem || cp.manufacturer,
     mode: cp.mode || 'Public',
     accessibility: cp.accessibility || 'Public',
     stage: resolvedStage,
@@ -106,6 +138,13 @@ export function formatChargePointData(cp, idx = 0) {
     tariff: resolvedTariff,
     settlementProfile: cp.settlementProfile || 'Standard Rate',
     chargingMethods: methods,
+    firmwareVersion: cp.firmwareVersion,
+    totalCapacity: cp.totalCapacity,
+    cpId: cp.cpId || cp.code,
+    thirdPartyCpId: cp.thirdPartyCpId || 'NA',
+    qrCodeId: cp.qrCodeId,
+    lastActive: cp.lastActive,
+    mobilityType: cp.mobilityType || 'Stationary',
     createdAt: cp.createdAt,
     updatedAt: cp.updatedAt
   };

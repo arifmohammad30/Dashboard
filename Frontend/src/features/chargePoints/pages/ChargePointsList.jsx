@@ -23,7 +23,8 @@ import {
   Clock,
   Calendar,
   CheckCircle2,
-  Smartphone
+  Smartphone,
+  SearchX
 } from 'lucide-react';
 
 import Pagination from '../../../components/ui/Pagination';
@@ -441,12 +442,39 @@ export default function ChargePointsList({ chargingStationId, hideHeader = false
                 </tr>
               ) : chargePoints.length === 0 ? (
                 <tr>
-                  <td colSpan="19" className="px-5 py-24 text-center">
-                    <div className="text-stone-400 flex flex-col items-center">
-                      <div className="w-20 h-20 bg-white/40 backdrop-blur-md rounded-3xl shadow-[inset_0_2px_10px_rgba(255,255,255,0.6)] border border-white/50 flex items-center justify-center mb-6">
-                        <Search className="w-10 h-10 text-stone-400" />
-                      </div>
-                      <p className="text-sm font-bold text-stone-500">No charge points found.</p>
+                  <td colSpan="19" className="px-4 py-16 text-center text-stone-500 font-medium">
+                    <div className="flex flex-col items-center justify-center gap-2 max-w-sm mx-auto">
+                      {searchTerm ? (
+                        <>
+                          <div className="p-3 bg-stone-100 rounded-2xl text-stone-500 mb-1">
+                            <SearchX className="w-6 h-6" />
+                          </div>
+                          <span className="font-bold text-stone-800 text-sm">No Matching Charge Points</span>
+                          <p className="text-xs text-stone-500">
+                            No charge points found matching &ldquo;<span className="font-semibold text-stone-700">{searchTerm}</span>&rdquo;.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSearchTerm('');
+                              setCurrentPage(1);
+                            }}
+                            className="mt-2 px-3.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl transition cursor-pointer"
+                          >
+                            Clear Search
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <div className="p-3 bg-emerald-50 text-[#4DA944] rounded-2xl mb-1 border border-emerald-200/80">
+                            <Zap className="w-6 h-6" />
+                          </div>
+                          <span className="font-bold text-stone-800 text-sm">No Charge Points Found</span>
+                          <p className="text-xs text-stone-500">
+                            There are currently no charge points configured in the system.
+                          </p>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>

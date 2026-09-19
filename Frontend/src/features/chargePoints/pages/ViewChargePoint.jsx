@@ -42,12 +42,16 @@ export default function ViewChargePoint({ defaultTab }) {
   const activeTab = validTabs.includes(tabFromUrl) ? tabFromUrl : 'stats';
 
   const handleTabChange = (tabId) => {
-    setSearchParams({ tab: tabId }, { replace: true });
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set('tab', tabId);
+      return next;
+    }, { replace: true, state: location.state });
   };
 
-  // 2. Component State
-  const [chargePoint, setChargePoint] = useState(initialData);
-  const [loading, setLoading] = useState(!initialData && Boolean(id));
+  // 2. Component State: seeded with navigation state if available
+  const [chargePoint, setChargePoint] = useState(() => initialData || null);
+  const [loading, setLoading] = useState(() => !initialData && Boolean(id));
 
   // 3. Extract Connectors for Options & Count
   const cpObj = chargePoint || initialData || {};
@@ -82,17 +86,31 @@ export default function ViewChargePoint({ defaultTab }) {
 
   // 4. Lifecycle: Fetch Authoritative Charge Point Data by ID
   useEffect(() => {
-    if (!initialData && id) {
+    if (!id) return;
+    let isMounted = true;
+
+    // Only display full-screen loading spinner if we don't have initial cached chargePoint data
+    if (!chargePoint) {
       setLoading(true);
-      getChargePointById(id)
-        .then(data => setChargePoint(data))
-        .catch((err) => {
-          console.error("Failed to load charge point by ID:", err);
-          setChargePoint(null);
-        })
-        .finally(() => setLoading(false));
     }
-  }, [id, initialData]);
+
+    getChargePointById(id)
+      .then(data => {
+        if (isMounted && data) {
+          setChargePoint(prev => ({ ...(prev || {}), ...data }));
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load charge point by ID:", err);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
 
   // Synchronize charge point status badge and details in real-time
   useSocketEvents({

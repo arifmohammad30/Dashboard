@@ -14,7 +14,8 @@ import {
   Layers,
   Calendar,
   Percent,
-  X
+  X,
+  SearchX
 } from 'lucide-react';
 
 import Pagination from '../../../components/ui/Pagination';
@@ -363,12 +364,39 @@ export default function TariffsList() {
                 </tr>
               ) : tariffs.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="px-4 py-12 text-center">
-                    <div className="flex flex-col items-center justify-center gap-2">
-                      <div className="w-12 h-12 rounded-2xl bg-white/40 border border-stone-200/60 flex items-center justify-center text-[#4DA944] mb-1">
-                        <Search className="w-6 h-6" />
-                      </div>
-                      <p className="text-sm font-bold text-stone-500">No tariffs found.</p>
+                  <td colSpan="8" className="px-4 py-16 text-center text-stone-500 font-medium">
+                    <div className="flex flex-col items-center justify-center gap-2 max-w-sm mx-auto">
+                      {searchTerm ? (
+                        <>
+                          <div className="p-3 bg-stone-100 rounded-2xl text-stone-500 mb-1">
+                            <SearchX className="w-6 h-6" />
+                          </div>
+                          <span className="font-bold text-stone-800 text-sm">No Matching Tariffs</span>
+                          <p className="text-xs text-stone-500">
+                            No tariffs found matching &ldquo;<span className="font-semibold text-stone-700">{searchTerm}</span>&rdquo;.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSearchTerm('');
+                              setCurrentPage(1);
+                            }}
+                            className="mt-2 px-3.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl transition cursor-pointer"
+                          >
+                            Clear Search
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <div className="p-3 bg-emerald-50 text-[#4DA944] rounded-2xl mb-1 border border-emerald-200/80">
+                            <CreditCard className="w-6 h-6" />
+                          </div>
+                          <span className="font-bold text-stone-800 text-sm">No Tariffs Found</span>
+                          <p className="text-xs text-stone-500">
+                            There are currently no tariff plans or pricing structures configured.
+                          </p>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -403,6 +431,10 @@ export default function TariffsList() {
                   return (
                     <tr
                       key={t.id}
+                      onClick={() => {
+                        setTariffToView(t);
+                        setViewModalOpen(true);
+                      }}
                       className="group hover:bg-stone-50/80 transition-colors duration-150 cursor-pointer"
                     >
                       {/* 1. Actions */}
@@ -420,16 +452,10 @@ export default function TariffsList() {
                         />
                       </td>
 
-
-
                       {/* 2. Tariff (Name + Code) */}
-                      <td className="px-4 py-3 text-left whitespace-nowrap" onClick={(e) => {
-                        e.stopPropagation();
-                        setTariffToView(t);
-                        setViewModalOpen(true);
-                      }}>
+                      <td className="px-4 py-3 text-left whitespace-nowrap">
                         <div className="flex flex-col">
-                          <span className="text-slate-900 font-semibold text-[13px] hover:text-[#30702a] transition-colors duration-150 cursor-pointer">
+                          <span className="text-slate-900 font-semibold text-[13px] group-hover:text-indigo-600 transition-colors duration-150">
                             {t.name}
                           </span>
                           <span className="text-[10px] font-mono font-medium text-stone-400">
@@ -502,89 +528,92 @@ export default function TariffsList() {
 
 
       {viewModalOpen && tariffToView && (
-        <div className="fixed inset-0 z-50 bg-stone-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-stone-200 shadow-2xl max-w-xl w-full p-6 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-4 mb-4">
+        <div className="fixed inset-0 z-50 bg-stone-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-xl border border-stone-200/90 shadow-2xl max-w-xl w-full p-5 sm:p-6 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-stone-200/70 pb-4 mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-500">
-                  <CreditCard className="w-5 h-5" />
+                <div className="w-9 h-9 rounded-lg bg-stone-100 border border-stone-200 flex items-center justify-center text-slate-800">
+                  <CreditCard className="w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-black text-stone-800">{tariffToView.name}</h2>
-                  <span className="text-xs font-bold text-stone-500 flex items-center gap-1.5 mt-0.5">
-                    Type: <span className="text-sky-600 font-extrabold">{tariffToView.type}</span>
+                  <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">{tariffToView.name}</h2>
+                  <span className="text-[11px] font-bold text-stone-500 flex items-center gap-1.5 mt-0.5">
+                    Type: <span className="text-slate-900 font-extrabold">{tariffToView.type || 'Default'}</span>
                   </span>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setViewModalOpen(false)}
-                className="p-1.5 text-stone-400 hover:text-stone-600 rounded-xl hover:bg-stone-100 transition cursor-pointer"
+                className="p-1.5 text-stone-400 hover:text-stone-700 rounded-md hover:bg-stone-100 transition cursor-pointer active:scale-90"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 py-2">
-              <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
-                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Tariff Code</span>
-                <span className="text-xs font-mono font-extrabold text-slate-800">{tariffToView.code || '-'}</span>
+            <div className="grid grid-cols-2 gap-3 py-1">
+              <div className="p-3 bg-stone-50/60 rounded-lg border border-stone-200/80">
+                <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block mb-0.5">Tariff Code</span>
+                <span className="text-xs font-mono font-bold text-slate-900">{tariffToView.code || '-'}</span>
               </div>
 
-              <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
-                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Status</span>
-                <span className="text-xs font-black text-emerald-600">{tariffToView.status || 'Active'}</span>
+              <div className="p-3 bg-stone-50/60 rounded-lg border border-stone-200/80">
+                <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block mb-0.5">Status</span>
+                <span className="text-xs font-bold text-emerald-700">{tariffToView.status || 'Active'}</span>
               </div>
 
-              <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
-                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Base Energy Fee (Normal)</span>
-                <span className="text-sm font-black text-stone-800">{tariffToView.chargingFee}</span>
+              <div className="p-3 bg-stone-50/60 rounded-lg border border-stone-200/80">
+                <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block mb-0.5">Base Energy Fee (Normal)</span>
+                <span className="text-xs font-black text-slate-900">{tariffToView.chargingFee}</span>
               </div>
 
-              <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
-                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">GST Percentage</span>
-                <span className="text-sm font-black text-stone-800">{tariffToView.gstPercentage}</span>
+              <div className="p-3 bg-stone-50/60 rounded-lg border border-stone-200/80">
+                <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block mb-0.5">GST Percentage</span>
+                <span className="text-xs font-black text-slate-900">{tariffToView.gstPercentage}</span>
               </div>
 
-              <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
-                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Peak Periods</span>
-                <span className="text-xs font-extrabold text-rose-600">
+              <div className="p-3 bg-stone-50/60 rounded-lg border border-stone-200/80">
+                <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block mb-0.5">Peak Periods</span>
+                <span className="text-xs font-bold text-rose-700">
                   {tariffToView.pricingConfig?.peakPeriods?.length > 0 ? `${tariffToView.pricingConfig.peakPeriods.length} Period(s)` : 'None'}
                 </span>
               </div>
 
-              <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
-                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Off-Peak Periods</span>
-                <span className="text-xs font-extrabold text-sky-600">
+              <div className="p-3 bg-stone-50/60 rounded-lg border border-stone-200/80">
+                <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block mb-0.5">Off-Peak Periods</span>
+                <span className="text-xs font-bold text-sky-700">
                   {tariffToView.pricingConfig?.offPeakPeriods?.length > 0 ? `${tariffToView.pricingConfig.offPeakPeriods.length} Period(s)` : 'None'}
                 </span>
               </div>
 
-              <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
-                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Parking Fee</span>
-                <span className="text-xs font-extrabold text-stone-800">{tariffToView.parkingFee}</span>
+              <div className="p-3 bg-stone-50/60 rounded-lg border border-stone-200/80">
+                <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block mb-0.5">Parking Fee</span>
+                <span className="text-xs font-bold text-slate-900">{tariffToView.parkingFee || '-'}</span>
               </div>
 
-              <div className="p-3.5 bg-stone-50/80 rounded-2xl border border-stone-100">
-                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Created On</span>
-                <span className="text-xs font-bold text-stone-700">{tariffToView.createdOn}</span>
+              <div className="p-3 bg-stone-50/60 rounded-lg border border-stone-200/80">
+                <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block mb-0.5">Created On</span>
+                <span className="text-xs font-bold text-stone-700">{tariffToView.createdOn || '-'}</span>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-4 mt-2 border-t border-stone-100">
+            <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-stone-200/70">
               <button
+                type="button"
                 onClick={() => {
                   setViewModalOpen(false);
                   navigate(`/tariffs/edit/${tariffToView.id}`, { state: { tariff: tariffToView } });
                 }}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5"
+                className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg text-xs shadow-xs transition active:scale-95 cursor-pointer flex items-center gap-1.5"
               >
                 <Edit className="w-3.5 h-3.5" /> Edit Tariff
               </button>
               <button
+                type="button"
                 onClick={() => setViewModalOpen(false)}
-                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-xl text-xs transition cursor-pointer"
+                className="px-3.5 py-1.5 bg-white hover:bg-stone-50 text-slate-700 font-bold rounded-lg text-xs border border-stone-200 hover:border-stone-300 transition active:scale-95 cursor-pointer"
               >
-                Close Details
+                Close
               </button>
             </div>
           </div>

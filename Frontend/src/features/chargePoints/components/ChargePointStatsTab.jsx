@@ -128,80 +128,108 @@ export default function ChargePointStatsTab({ cp }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
-        <div className="bg-amber-50/70 hover:bg-amber-100/80 border border-amber-200/80 hover:border-amber-400/90 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:shadow-amber-500/10 transition-all duration-200 cursor-pointer flex items-center justify-between group transform hover:-translate-y-1">
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">Total Revenue</span>
-              <span className="px-1.5 py-0.2 text-[9px] font-extrabold bg-amber-200/60 text-amber-900 rounded-full flex items-center gap-0.5">
-                <TrendingUp className="w-2.5 h-2.5" /> +12%
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 relative z-10">
+        {/* Card 1: Total Revenue */}
+        <div className="bg-white border border-slate-200/80 hover:border-slate-300 hover:shadow-xs rounded-xl p-5 min-h-[108px] flex items-center justify-between gap-4 transition-all duration-150">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-xl bg-amber-50 border border-amber-100/80 flex items-center justify-center text-amber-500 shrink-0">
+              <IndianRupee className="w-6 h-6 stroke-[2.25]" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-amber-600 uppercase tracking-wider truncate">
+                  TOTAL REVENUE
+                </span>
+                <span className="px-1.5 py-0.2 text-[9px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200/70 rounded-full flex items-center gap-0.5 shrink-0">
+                  <TrendingUp className="w-2.5 h-2.5" /> +12%
+                </span>
+              </div>
+              <span className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mt-0.5">
+                ₹{rangeConfig.totalRevenue.toFixed(2)}
+              </span>
+              <span className="text-xs text-slate-400 truncate mt-0.5">
+                Avg: ₹{(rangeConfig.totalRevenue / 24).toFixed(2)} / hr
               </span>
             </div>
-            <div className="text-2xl font-black text-amber-950 tracking-tight">
-              ₹{rangeConfig.totalRevenue.toFixed(2)}
-            </div>
-            <span className="text-[10px] text-amber-700 font-medium block">Avg: ₹{(rangeConfig.totalRevenue / 24).toFixed(2)} / hr</span>
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-amber-500/20 group-hover:scale-110 transition-transform duration-200">
-            <IndianRupee className="w-5 h-5 stroke-[2.5]" />
           </div>
         </div>
 
-        <div className="bg-sky-50/70 hover:bg-sky-100/80 border border-sky-200/80 hover:border-sky-400/90 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:shadow-sky-500/10 transition-all duration-200 cursor-pointer flex items-center justify-between group transform hover:-translate-y-1">
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[11px] font-bold text-sky-800 uppercase tracking-wider block">Energy Delivered</span>
-              <span className="px-1.5 py-0.2 text-[9px] font-extrabold bg-sky-200/60 text-sky-900 rounded-full flex items-center gap-0.5">
-                <TrendingUp className="w-2.5 h-2.5" /> +8.4%
+        {/* Card 2: Energy Delivered */}
+        <div className="bg-white border border-slate-200/80 hover:border-slate-300 hover:shadow-xs rounded-xl p-5 min-h-[108px] flex items-center justify-between gap-4 transition-all duration-150">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-xl bg-sky-50 border border-sky-100/80 flex items-center justify-center text-sky-500 shrink-0">
+              <Zap className="w-6 h-6 stroke-[2.25]" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-sky-600 uppercase tracking-wider truncate">
+                  ENERGY DELIVERED
+                </span>
+                <span className="px-1.5 py-0.2 text-[9px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200/70 rounded-full flex items-center gap-0.5 shrink-0">
+                  <TrendingUp className="w-2.5 h-2.5" /> +8.4%
+                </span>
+              </div>
+              <span className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mt-0.5">
+                {rangeConfig.totalEnergy} <span className="text-sm font-semibold text-slate-500">kWh</span>
+              </span>
+              <span className="text-xs text-slate-400 truncate mt-0.5">
+                Peak draw: 52 kW
               </span>
             </div>
-            <div className="text-2xl font-black text-sky-950 tracking-tight">
-              {rangeConfig.totalEnergy} <span className="text-base font-bold text-sky-700">kWh</span>
-            </div>
-            <span className="text-[10px] text-sky-700 font-medium block">Peak draw: 52 kW</span>
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-sky-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-sky-500/20 group-hover:scale-110 transition-transform duration-200">
-            <Zap className="w-5 h-5 stroke-[2.5]" />
           </div>
         </div>
 
-        <div className="bg-purple-50/70 hover:bg-purple-100/80 border border-purple-200/80 hover:border-purple-400/90 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:shadow-purple-500/10 transition-all duration-200 cursor-pointer flex items-center justify-between group transform hover:-translate-y-1">
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[11px] font-bold text-purple-800 uppercase tracking-wider block">Total Sessions</span>
-              <span className="px-1.5 py-0.2 text-[9px] font-extrabold bg-purple-200/60 text-purple-900 rounded-full flex items-center gap-0.5">
-                <TrendingUp className="w-2.5 h-2.5" /> +15%
+        {/* Card 3: Total Sessions */}
+        <div className="bg-white border border-slate-200/80 hover:border-slate-300 hover:shadow-xs rounded-xl p-5 min-h-[108px] flex items-center justify-between gap-4 transition-all duration-150">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-xl bg-purple-50 border border-purple-100/80 flex items-center justify-center text-purple-500 shrink-0">
+              <BatteryCharging className="w-6 h-6 stroke-[2.25]" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-purple-600 uppercase tracking-wider truncate">
+                  TOTAL SESSIONS
+                </span>
+                <span className="px-1.5 py-0.2 text-[9px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200/70 rounded-full flex items-center gap-0.5 shrink-0">
+                  <TrendingUp className="w-2.5 h-2.5" /> +15%
+                </span>
+              </div>
+              <span className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mt-0.5">
+                {rangeConfig.totalSessions} <span className="text-sm font-semibold text-slate-500">Sessions</span>
+              </span>
+              <span className="text-xs text-slate-400 truncate mt-0.5">
+                Avg duration: 38 mins
               </span>
             </div>
-            <div className="text-2xl font-black text-purple-950 tracking-tight">
-              {rangeConfig.totalSessions} <span className="text-xs font-bold text-purple-700">Sessions</span>
-            </div>
-            <span className="text-[10px] text-purple-700 font-medium block">Avg duration: 38 mins</span>
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-purple-500/20 group-hover:scale-110 transition-transform duration-200">
-            <BatteryCharging className="w-5 h-5 stroke-[2.5]" />
           </div>
         </div>
 
-        <div className="bg-emerald-50/70 hover:bg-emerald-100/80 border border-emerald-200/80 hover:border-emerald-400/90 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:shadow-emerald-500/10 transition-all duration-200 cursor-pointer flex items-center justify-between group transform hover:-translate-y-1">
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">Connectivity</span>
-              <span className="px-1.5 py-0.2 text-[9px] font-extrabold bg-emerald-200/60 text-emerald-900 rounded-full">
-                99.8% Uptime
+        {/* Card 4: Connectivity */}
+        <div className="bg-white border border-slate-200/80 hover:border-slate-300 hover:shadow-xs rounded-xl p-5 min-h-[108px] flex items-center justify-between gap-4 transition-all duration-150">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-xl bg-emerald-50 border border-emerald-100/80 flex items-center justify-center text-emerald-500 shrink-0">
+              <CheckCircle2 className="w-6 h-6 stroke-[2.25]" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider truncate">
+                  CONNECTIVITY
+                </span>
+                <span className="px-1.5 py-0.2 text-[9px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200/70 rounded-full shrink-0">
+                  99.8% Uptime
+                </span>
+              </div>
+              <div className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2 mt-0.5">
+                <span className="flex items-center gap-1.5 text-emerald-600 font-bold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> 1 Online
+                </span>
+                <span className="text-slate-300 font-medium">•</span>
+                <span className="text-slate-500 font-medium text-sm">0 Offline</span>
+              </div>
+              <span className="text-xs text-slate-400 truncate mt-0.5">
+                OCPP 1.6J Connected
               </span>
             </div>
-            <div className="text-base font-black text-emerald-950 flex items-center gap-2">
-              <span className="flex items-center gap-1 text-emerald-700">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> 1 Online
-              </span>
-              <span className="text-emerald-300 font-medium">•</span>
-              <span className="text-emerald-700 font-bold">0 Offline</span>
-            </div>
-            <span className="text-[10px] text-emerald-700 font-medium block">OCPP 1.6J Connected</span>
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/20 group-hover:scale-110 transition-transform duration-200">
-            <CheckCircle2 className="w-5 h-5 stroke-[2.5]" />
           </div>
         </div>
       </div>

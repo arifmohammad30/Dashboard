@@ -132,36 +132,42 @@ export async function getBillByIdFromDb(billId) {
   const cpName = cpEntity?.name || cpEntity?.code || b.chargePoint || 'Charge Point Station 28 AC';
 
   const activeTariff = {
-    id: tariffEntity?.id || 'default-tariff',
-    name: tariffEntity?.name || 'Standard AC Tariff',
-    type: tariffEntity?.type || 'Default',
-    costingType: 'Charging Only',
-    baseRate: tariffEntity?.baseRate ?? 15.0,
-    gstPercentage: tariffEntity?.gstPercentage ?? 18.0,
-    createdAt: tariffEntity?.createdAt || new Date()
+    id: tariffEntity?.id || null,
+    name: tariffEntity?.name || 'Standard AC Tariff'
   };
+
+  const fleetEntity = b.fleet ? await prisma.fleet.findFirst({ where: { name: b.fleet } }).catch(() => null) : null;
 
   return {
     id: b.id,
     billNumber: b.billNumber,
     billStatus: b.billStatus,
-    chargeTransactionStatus: b.chargeTransactionStatus,
-    chargeTransaction: b.chargeTransaction,
+    chargeTransaction: {
+      id: session?.id || b.chargeTransaction,
+      txCode: String(b.chargeTransaction || session?.chargeTxCode || session?.id),
+      status: b.chargeTransactionStatus || session?.status || 'Completed'
+    },
     energyDelivered: b.energyDelivered,
     appliedDiscount: b.appliedDiscount || '-',
     amount: b.amount,
-    fleet: b.fleet || '-',
+    fleet: {
+      id: fleetEntity?.id || null,
+      name: b.fleet || '-'
+    },
     method: b.method || 'User Wallet',
     customerDriver: {
-      name: b.driverName || 'EV Driver',
-      initial: b.driverInitials || 'D',
-      bg: b.driverColor || 'bg-purple-600'
+      name: b.driverName || session?.user?.name || 'EV Driver',
+      initial: b.driverInitials || (b.driverName ? b.driverName.charAt(0).toUpperCase() : 'D')
     },
     invoiceAvailable: b.invoiceAvailable,
-    chargePoint: cpName,
-    chargePointId: cpEntity?.id || cpEntity?.code || cpName,
-    chargingStation: stationName,
-    chargingStationId: stationEntity?.id || stationEntity?.name || stationName,
+    chargePoint: {
+      id: cpEntity?.id || cpEntity?.code || cpName,
+      name: cpName
+    },
+    chargingStation: {
+      id: stationEntity?.id || stationEntity?.name || stationName,
+      name: stationName
+    },
     appliedTariff: activeTariff,
     generatedOn: new Date(b.generatedOn).toLocaleDateString('en-US', {
       month: 'short',
@@ -225,34 +231,73 @@ export async function getBillsFromDb(query = {}) {
     });
   }
 
-  const total = await prisma.bill.count({ where });
-  const rawBills = await prisma.bill.findMany({
-    where,
-    orderBy: { generatedOn: 'desc' },
-    skip: (pageNum - 1) * limitNum,
-    take: limitNum
+  const [total, rawBills, allCps, allFleets] = await Promise.all([
+    prisma.bill.count({ where }),
+    prisma.bill.findMany({
+      where,
+      orderBy: { generatedOn: 'desc' },
+      skip: (pageNum - 1) * limitNum,
+      take: limitNum,
+      include: {
+        session: {
+          include: {
+            chargePoint: true
+          }
+        }
+      }
+    }),
+    prisma.chargePoint.findMany({ select: { id: true, name: true, code: true } }).catch(() => []),
+    prisma.fleet.findMany({ select: { id: true, name: true } }).catch(() => [])
+  ]);
+
+  const cpMap = new Map();
+  allCps.forEach(cp => {
+    if (cp.name) cpMap.set(cp.name, cp.id);
+    if (cp.code) cpMap.set(cp.code, cp.id);
   });
 
-  const formattedBills = rawBills.map(b => ({
-    id: b.id,
-    billNumber: b.billNumber,
-    billStatus: b.billStatus,
-    chargeTransactionStatus: b.chargeTransactionStatus,
-    chargeTransaction: b.chargeTransaction,
-    energyDelivered: b.energyDelivered,
-    appliedDiscount: b.appliedDiscount || '-',
-    amount: b.amount,
-    fleet: b.fleet || '-',
-    method: b.method || 'User Wallet',
-    customerDriver: {
-      name: b.driverName || 'EV Driver',
-      initial: b.driverInitials || 'D',
-      bg: b.driverColor || 'bg-purple-600'
-    },
-    invoiceAvailable: b.invoiceAvailable,
-    chargePoint: b.chargePoint || 'Charge Point',
-    generatedOn: new Date(b.generatedOn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  }));
+  const fleetMap = new Map();
+  allFleets.forEach(fl => {
+    if (fl.name) fleetMap.set(fl.name, fl.id);
+  });
+
+  const formattedBills = rawBills.map(b => {
+    const cpId = b.session?.chargePointId || b.session?.chargePoint?.id || cpMap.get(b.chargePoint) || (allCps[0]?.id || b.chargePoint);
+    const cpName = b.session?.chargePoint?.name || b.chargePoint || 'Charge Point';
+    const fleetName = b.fleet || '-';
+    const fleetId = fleetMap.get(fleetName) || null;
+    const txId = b.session?.id || b.chargeTransaction;
+    const txCode = String(b.chargeTransaction || b.session?.chargeTxCode || txId);
+
+    return {
+      id: b.id,
+      billNumber: b.billNumber,
+      billStatus: b.billStatus,
+      chargeTransaction: {
+        id: txId,
+        txCode: txCode,
+        status: b.chargeTransactionStatus || 'Completed'
+      },
+      energyDelivered: b.energyDelivered,
+      appliedDiscount: b.appliedDiscount || '-',
+      amount: b.amount,
+      fleet: {
+        id: fleetId,
+        name: fleetName
+      },
+      method: b.method || 'User Wallet',
+      customerDriver: {
+        name: b.driverName || 'EV Driver',
+        initial: b.driverInitials || (b.driverName ? b.driverName.charAt(0).toUpperCase() : 'D')
+      },
+      invoiceAvailable: b.invoiceAvailable,
+      chargePoint: {
+        id: cpId,
+        name: cpName
+      },
+      generatedOn: new Date(b.generatedOn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+  });
 
   return {
     data: formattedBills,

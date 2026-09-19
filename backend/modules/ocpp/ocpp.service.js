@@ -1,6 +1,7 @@
 import prisma from '../../prisma.js';
 import { getChargePointById } from '../chargepoints/chargepoints.service.js';
 import { createBillFromSession } from '../bills/bill.service.js';
+import { calculateSessionTelemetry } from '../livesessions/session.service.js';
 import { safeIoEmit } from '../../socket.js';
 
 
@@ -21,81 +22,7 @@ const STALE_TIMEOUT_MS = 45000;
 
 function formatSessionForReact(s) {
   if (!s) return null;
-
-  const kwh = parseFloat((s.kwhDelivered ?? 0.0).toFixed(4));
-  const cost = parseFloat((s.totalCost ?? 0.0).toFixed(2));
-  const currentSoc = parseFloat((s.currentSoc ?? 20.0).toFixed(1));
-  const initialSoc = parseFloat((s.initialSoc ?? 20.0).toFixed(1));
-
-  const powerKw = s.powerKw ? parseFloat(s.powerKw.toFixed(2)) : 22.0;
-  const voltage = s.voltage ? parseFloat(s.voltage.toFixed(1)) : 235.0;
-  const currentA = s.currentA ? parseFloat(s.currentA.toFixed(1)) : 32.5;
-
-  const startMs = s.createdAt ? new Date(s.createdAt).getTime() : Date.now();
-  const endMs = s.updatedAt ? new Date(s.updatedAt).getTime() : Date.now();
-  const diffSec = Math.max(0, Math.floor((endMs - startMs) / 1000));
-  const hrs = String(Math.floor(diffSec / 3600)).padStart(2, '0');
-  const mins = String(Math.floor((diffSec % 3600) / 60)).padStart(2, '0');
-  const secs = String(diffSec % 60).padStart(2, '0');
-  const durationStr = `${hrs}:${mins}:${secs}`;
-
-  return {
-    id: s.id,
-    sessionId: s.id,
-    status: s.status || 'Ongoing',
-    initialSoc,
-    currentSoc,
-    soc: {
-      initial: initialSoc,
-      current: currentSoc
-    },
-    energyDeliveredKwh: kwh,
-    kwhDelivered: kwh,
-    powerKw,
-    voltage,
-    current: currentA,
-    currentA,
-    cost,
-    totalCost: cost,
-    duration: durationStr,
-    meterValues: {
-      energy: `${kwh.toFixed(2)} kWh`,
-      power: `${powerKw.toFixed(2)} kW`,
-      voltage: `${voltage.toFixed(1)} V`,
-      current: `${currentA.toFixed(1)} A`
-    },
-    startedAt: s.createdAt ? new Date(s.createdAt).toISOString() : new Date().toISOString(),
-    updatedAt: s.updatedAt ? new Date(s.updatedAt).toISOString() : new Date().toISOString(),
-    userName: s.user?.name || 'Simulated Driver',
-    userInitials: s.user?.initials || 'SD',
-    userColor: s.user?.color || 'bg-emerald-100 text-emerald-700',
-    driver: {
-      id: s.user?.id || '',
-      name: s.user?.name || 'Simulated Driver',
-      initials: s.user?.initials || 'SD',
-      color: s.user?.color || 'bg-emerald-100 text-emerald-700'
-    },
-    station: s.chargingStation?.name || s.chargePoint?.chargingStation?.name || 'Charging Station',
-    chargingStationId: s.chargingStationId || s.chargingStation?.id || s.chargePoint?.chargingStationId || '',
-    chargingStationName: s.chargingStation?.name || s.chargePoint?.chargingStation?.name || 'Charging Station',
-    chargingStation: {
-      id: s.chargingStation?.id || s.chargePoint?.chargingStation?.id || s.chargingStationId || s.chargePoint?.chargingStationId || '',
-      name: s.chargingStation?.name || s.chargePoint?.chargingStation?.name || 'Charging Station'
-    },
-    chargePointId: s.chargePointId || s.chargePoint?.id || '',
-    chargePointCode: s.chargePoint?.code || '',
-    chargePointName: s.chargePoint?.name || s.chargePoint?.code || 'Charge Point',
-    chargePoint: {
-      id: s.chargePoint?.id || s.chargePointId || '',
-      code: s.chargePoint?.code || '',
-      name: s.chargePoint?.name || s.chargePoint?.code || 'Charge Point'
-    },
-    connector: {
-      id: s.connector?.id || '',
-      connectorId: s.connector?.connectorId || 1,
-      type: s.connector?.type || 'Type2'
-    }
-  };
+  return calculateSessionTelemetry(s);
 }
 
 async function recordSessionLog(sessionId, command, direction, messageId, payload, io) {
@@ -136,8 +63,7 @@ async function recordSessionLog(sessionId, command, direction, messageId, payloa
         summary: newLog.summary || '',
         body: parsedBody,
         createdAt: newLog.createdAt ? new Date(newLog.createdAt).toISOString() : new Date().toISOString(),
-        recordedOn: new Date(newLog.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        fullTimestamp: new Date(newLog.createdAt).toLocaleString()
+        recordedOn: new Date(newLog.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
       };
       safeIoEmit(io, 'session:log', formattedLog);
       if (sessionId) {
@@ -222,22 +148,6 @@ export async function processOcppMessage(frame, socket, io) {
   const cpCode = payload?.chargePointCode || payload?.chargePointId;
 
   console.log(`[OCPP Service] Processing CALL [${messageId}] ${action} from ${cpCode || 'Charger'}`);
-
-  if (io) {
-    const liveLog = {
-      id: `live_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-      command: action,
-      direction: 'INBOUND',
-      messageId: messageId || `msg_${Date.now()}`,
-      logType: 'OCPP 1.6J',
-      summary: `↘ ${action} Inbound`,
-      body: payload || {},
-      recordedOn: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-      fullTimestamp: new Date().toLocaleString(),
-      chargePointCode: cpCode
-    };
-    io.emit('session:log', liveLog);
-  }
 
   switch (action) {
     case 'BootNotification': {

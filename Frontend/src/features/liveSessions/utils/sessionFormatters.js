@@ -11,7 +11,13 @@ export const getConnectorLabel = (connector) => {
 
 export const getTxId = (tx) => {
   if (!tx) return '-';
-  const str = String(tx).trim();
+  let val = tx;
+  if (typeof tx === 'object' && tx !== null) {
+    val = tx.chargeTxCode || tx.transactionId || tx.sessionId || tx.id || '-';
+  }
+  if (!val || val === '-') return '-';
+  const str = String(val).trim();
+  if (str === '[object Object]' || str === '') return '-';
   if (str.startsWith('#')) return str;
   if (str.startsWith('sess_')) {
     const parts = str.split('_');

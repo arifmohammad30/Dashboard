@@ -14,6 +14,7 @@ export const getFilterOptions = async () => {
  * Fetch paginated tariff catalog records with search and multi-select filtering.
  */
 export const getTariffs = async (page = 1, limit = 10, searchTerm = '', filters = {}) => {
+
   try {
     const params = new URLSearchParams({
       page: String(page),
@@ -26,7 +27,9 @@ export const getTariffs = async (page = 1, limit = 10, searchTerm = '', filters 
     }
 
     const url = `/tariffs?${params.toString()}`;
-    return await apiClient(url);
+    const data = await apiClient(url);
+    console.log("tariffs data : ", data);
+    return data;
   } catch (error) {
     console.error('Failed to fetch tariffs:', error);
     throw error;
@@ -39,7 +42,10 @@ export const getTariffs = async (page = 1, limit = 10, searchTerm = '', filters 
  */
 export const getTariffById = async (id) => {
   try {
-    return await apiClient(`/tariffs/${id}`);
+    const data = await apiClient(`/tariffs/${id}`);
+    console.log("tariff details data : ", data);
+    return data;
+
   } catch (error) {
     console.error(`Failed to fetch tariff by ID (${id}):`, error);
     throw error;
